@@ -5,34 +5,60 @@ package messaging;
 option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/messaging-service";
 
 service MessagingService {
+  // Отправка сообщения
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+
+  // Получение истории переписки с пользователем
   rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
+
+  // Обновление статуса сообщения
+  rpc UpdateMessageStatus(UpdateMessageStatusRequest) returns (UpdateMessageStatusResponse) {}
 }
 
 message SendMessageRequest {
-  string sender_id = 1;
-  string recipient_id = 2;
-  string content = 3;
+  string sender_id = 1;        // Идентификатор отправителя
+  string recipient_id = 2;     // Идентификатор получателя
+  string content = 3;          // Текст сообщения
 }
 
 message SendMessageResponse {
   bool success = 1;
+  string message_id = 2;       // UUID отправленного сообщения
 }
 
 message GetMessagesRequest {
-  string user_id = 1;
-  int32 limit = 2;
-  int64 offset = 3;
+  string user_id = 1;                // Идентификатор пользователя, запрашивающего сообщения
+  string conversation_user_id = 2;   // Идентификатор собеседника
+  int32 limit = 3;                   // Количество сообщений для получения
+  int32 offset = 4;                  // Смещение для пагинации
 }
 
 message GetMessagesResponse {
   repeated Message messages = 1;
 }
 
+message UpdateMessageStatusRequest {
+  string message_id = 1;       // UUID сообщения
+  string user_id = 2;          // Идентификатор пользователя, обновляющего статус
+  MessageStatus status = 3;    // Новый статус сообщения
+}
+
+message UpdateMessageStatusResponse {
+  bool success = 1;
+}
+
 message Message {
-  string id = 1;
-  string sender_id = 2;
-  string recipient_id = 3;
-  string content = 4;
-  int64 timestamp = 5;
+  string message_id = 1;       // UUID сообщения
+  string sender_id = 2;        // Идентификатор отправителя
+  string recipient_id = 3;     // Идентификатор получателя
+  string content = 4;          // Текст сообщения
+  int64 timestamp = 5;         // Временная метка отправки (Unix timestamp)
+  MessageStatus status = 6;    // Статус сообщения
+}
+
+enum MessageStatus {
+  UNKNOWN = 0;
+  SENT = 1;        // Отправлено
+  DELIVERED = 2;   // Доставлено
+  READ = 3;        // Прочитано
 }

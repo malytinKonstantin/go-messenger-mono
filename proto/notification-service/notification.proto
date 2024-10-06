@@ -5,14 +5,26 @@ package notification;
 option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/notification-service";
 
 service NotificationService {
+  // Отправка уведомления пользователю
   rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse) {}
+
+  // Получение списка уведомлений пользователя
   rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse) {}
+
+  // Пометка уведомления как прочитанное
+  rpc MarkNotificationAsRead(MarkNotificationAsReadRequest) returns (MarkNotificationAsReadResponse) {}
+
+  // Обновление предпочтений уведомлений пользователя
+  rpc UpdateNotificationPreferences(UpdateNotificationPreferencesRequest) returns (UpdateNotificationPreferencesResponse) {}
+
+  // Получение предпочтений уведомлений пользователя
+  rpc GetNotificationPreferences(GetNotificationPreferencesRequest) returns (GetNotificationPreferencesResponse) {}
 }
 
 message SendNotificationRequest {
-  string user_id = 1;
-  string message = 2;
-  NotificationType type = 3;
+  string user_id = 1;            // Идентификатор получателя
+  string message = 2;            // Содержание уведомления
+  NotificationType type = 3;     // Тип уведомления
 }
 
 message SendNotificationResponse {
@@ -20,21 +32,54 @@ message SendNotificationResponse {
 }
 
 message GetNotificationsRequest {
-  string user_id = 1;
-  int32 limit = 2;
-  int64 offset = 3;
+  string user_id = 1;            // Идентификатор пользователя
+  int32 limit = 2;               // Максимальное количество уведомлений
+  int32 offset = 3;              // Смещение для пагинации
 }
 
 message GetNotificationsResponse {
   repeated Notification notifications = 1;
 }
 
+message MarkNotificationAsReadRequest {
+  string notification_id = 1;    // Идентификатор уведомления
+  string user_id = 2;            // Идентификатор пользователя
+}
+
+message MarkNotificationAsReadResponse {
+  bool success = 1;
+}
+
+message UpdateNotificationPreferencesRequest {
+  string user_id = 1;                          // Идентификатор пользователя
+  NotificationPreferences preferences = 2;     // Новые предпочтения
+}
+
+message UpdateNotificationPreferencesResponse {
+  bool success = 1;
+}
+
+message GetNotificationPreferencesRequest {
+  string user_id = 1;            // Идентификатор пользователя
+}
+
+message GetNotificationPreferencesResponse {
+  NotificationPreferences preferences = 1;
+}
+
 message Notification {
-  string id = 1;
-  string user_id = 2;
-  string message = 3;
-  NotificationType type = 4;
-  int64 timestamp = 5;
+  string id = 1;                 // Идентификатор уведомления (UUID)
+  string user_id = 2;            // Идентификатор получателя
+  string message = 3;            // Содержание уведомления
+  NotificationType type = 4;     // Тип уведомления
+  int64 created_at = 5;          // Время создания (Unix timestamp)
+  bool is_read = 6;              // Статус прочтения
+}
+
+message NotificationPreferences {
+  bool new_message = 1;          // Предпочтение по уведомлениям о новых сообщениях
+  bool friend_request = 2;       // Предпочтение по уведомлениям о запросах в друзья
+  bool system = 3;               // Предпочтение по системным уведомлениям
 }
 
 enum NotificationType {
