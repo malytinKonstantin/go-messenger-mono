@@ -19,16 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MessagingService_SendMessage_FullMethodName = "/messaging.MessagingService/SendMessage"
-	MessagingService_GetMessages_FullMethodName = "/messaging.MessagingService/GetMessages"
+	MessagingService_SendMessage_FullMethodName         = "/messaging.MessagingService/SendMessage"
+	MessagingService_GetMessages_FullMethodName         = "/messaging.MessagingService/GetMessages"
+	MessagingService_UpdateMessageStatus_FullMethodName = "/messaging.MessagingService/UpdateMessageStatus"
 )
 
 // MessagingServiceClient is the client API for MessagingService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MessagingServiceClient interface {
+	// Отправка сообщения
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
+	// Получение истории переписки с пользователем
 	GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error)
+	// Обновление статуса сообщения
+	UpdateMessageStatus(ctx context.Context, in *UpdateMessageStatusRequest, opts ...grpc.CallOption) (*UpdateMessageStatusResponse, error)
 }
 
 type messagingServiceClient struct {
@@ -59,12 +64,26 @@ func (c *messagingServiceClient) GetMessages(ctx context.Context, in *GetMessage
 	return out, nil
 }
 
+func (c *messagingServiceClient) UpdateMessageStatus(ctx context.Context, in *UpdateMessageStatusRequest, opts ...grpc.CallOption) (*UpdateMessageStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateMessageStatusResponse)
+	err := c.cc.Invoke(ctx, MessagingService_UpdateMessageStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MessagingServiceServer is the server API for MessagingService service.
 // All implementations must embed UnimplementedMessagingServiceServer
 // for forward compatibility.
 type MessagingServiceServer interface {
+	// Отправка сообщения
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
+	// Получение истории переписки с пользователем
 	GetMessages(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error)
+	// Обновление статуса сообщения
+	UpdateMessageStatus(context.Context, *UpdateMessageStatusRequest) (*UpdateMessageStatusResponse, error)
 	mustEmbedUnimplementedMessagingServiceServer()
 }
 
@@ -80,6 +99,9 @@ func (UnimplementedMessagingServiceServer) SendMessage(context.Context, *SendMes
 }
 func (UnimplementedMessagingServiceServer) GetMessages(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMessages not implemented")
+}
+func (UnimplementedMessagingServiceServer) UpdateMessageStatus(context.Context, *UpdateMessageStatusRequest) (*UpdateMessageStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMessageStatus not implemented")
 }
 func (UnimplementedMessagingServiceServer) mustEmbedUnimplementedMessagingServiceServer() {}
 func (UnimplementedMessagingServiceServer) testEmbeddedByValue()                          {}
@@ -138,6 +160,24 @@ func _MessagingService_GetMessages_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessagingService_UpdateMessageStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateMessageStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServiceServer).UpdateMessageStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessagingService_UpdateMessageStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServiceServer).UpdateMessageStatus(ctx, req.(*UpdateMessageStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MessagingService_ServiceDesc is the grpc.ServiceDesc for MessagingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +192,10 @@ var MessagingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMessages",
 			Handler:    _MessagingService_GetMessages_Handler,
+		},
+		{
+			MethodName: "UpdateMessageStatus",
+			Handler:    _MessagingService_UpdateMessageStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
