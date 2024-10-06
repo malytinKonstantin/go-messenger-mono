@@ -1,6 +1,6 @@
 module github.com/malytinKonstantin/go-messenger-mono/proto
 
-go 1.23.1
+go 1.21
 
 require (
 	google.golang.org/grpc v1.67.1

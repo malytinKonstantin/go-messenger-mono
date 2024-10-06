@@ -2,16 +2,54 @@
 DOCKER_REGISTRY := localhost:5000
 SERVICES := api-gateway auth-service
 K8S_NAMESPACE := go-messenger
+SRC_DIRS := ./...
+GOCMD=go
+GOBUILD=$(GOCMD) build
+GOCLEAN=$(GOCMD) clean
+GOTEST=$(GOCMD) test
+GOGET=$(GOCMD) get
+GOMOD=$(GOCMD) mod
+GOFMT=gofmt
+GOVET=$(GOCMD) vet
+GOLINT=golangci-lint
+
+# Пути
+SRC_DIRS := ./...
 
 # Цели
-.PHONY: all build push deploy
+.PHONY: all build clean test coverage deps fmt lint vet
 
-all: build push deploy
+all: build
+
+clean:
+	$(GOCLEAN)
+
+test:
+	$(GOTEST) -v $(SRC_DIRS)
+
+coverage:
+	$(GOTEST) -v -coverprofile=coverage.out $(SRC_DIRS)
+	$(GOCMD) tool cover -html=coverage.out -o coverage.html
+
+deps:
+	$(GOGET) -v -t -d $(SRC_DIRS)
+	$(GOMOD) tidy
+
+fmt:
+	$(GOFMT) -w .
+
+lint:
+	$(GOLINT) run
+
+vet:
+	$(GOVET) $(SRC_DIRS)
+
+check: fmt lint vet test
 
 build:
 	@for service in $(SERVICES); do \
 		echo "Building $$service..."; \
-		docker build -t $(DOCKER_REGISTRY)/$$service:latest ./$$service; \
+		docker build -t $(DOCKER_REGISTRY)/$$service:latest -f ./$$service/Dockerfile .; \
 	done
 
 push:
