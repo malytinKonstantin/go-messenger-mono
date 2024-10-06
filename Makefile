@@ -1,6 +1,7 @@
 # Переменные
 DOCKER_REGISTRY := localhost:5000
 SERVICES := api-gateway auth-service
+DOCKER_COMPOSE = docker-compose
 K8S_NAMESPACE := go-messenger
 SRC_DIRS := ./...
 GOCMD=go
@@ -49,7 +50,19 @@ check: fmt lint vet test
 build:
 	@for service in $(SERVICES); do \
 		echo "Building $$service..."; \
-		docker build -t $(DOCKER_REGISTRY)/$$service:latest -f ./$$service/Dockerfile .; \
+		$(DOCKER_COMPOSE) -f ./$$service/docker-compose.yml build; \
+	done
+
+up:
+	@for service in $(SERVICES); do \
+		echo "Starting $$service..."; \
+		$(DOCKER_COMPOSE) -f ./$$service/docker-compose.yml up -d; \
+	done
+
+down:
+	@for service in $(SERVICES); do \
+		echo "Stopping $$service..."; \
+		$(DOCKER_COMPOSE) -f ./$$service/docker-compose.yml down; \
 	done
 
 push:
