@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build: .
+    ports:
+      - "50052:50052"
+      - "3002:3002"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - DATABASE_HOST=postgres
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=auth_db
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=auth_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    restart: always
+
+volumes:
+  postgres_data:
+
+networks:
+  backend:
+    driver: bridge
