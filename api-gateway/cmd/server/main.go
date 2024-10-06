@@ -14,12 +14,14 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+// main запускает приложение
 func main() {
 	if err := run(); err != nil {
 		log.Fatalf("Error starting application: %v", err)
 	}
 }
 
+// run инициализирует и запускает сервер
 func run() error {
 	if err := loadConfig(); err != nil {
 		return fmt.Errorf("error loading configuration: %w", err)
@@ -38,12 +40,14 @@ func run() error {
 	return startServer(app)
 }
 
+// loadConfig загружает конфигурацию из файла .env
 func loadConfig() error {
 	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
 	return viper.ReadInConfig()
 }
 
+// setupGRPCMux настраивает gRPC мультиплексор
 func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 	grpcMux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
@@ -69,12 +73,14 @@ func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 	return grpcMux, nil
 }
 
+// setupFiberApp создает и настраивает Fiber приложение
 func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
 	app := fiber.New()
 	app.All("/*", adaptor.HTTPHandler(grpcMux))
 	return app
 }
 
+// startServer запускает HTTP сервер
 func startServer(app *fiber.App) error {
 	port := viper.GetString("HTTP_PORT")
 	log.Printf("Starting API Gateway on port :%s", port)
