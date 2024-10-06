@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package friendship;
+
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/friendship-service";
+
+service FriendshipService {
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse) {}
+  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (AcceptFriendRequestResponse) {}
+}
+
+message SendFriendRequestRequest {
+  string sender_id = 1;
+  string recipient_id = 2;
+}
+
+message SendFriendRequestResponse {
+  bool success = 1;
+}
+
+message AcceptFriendRequestRequest {
+  string request_id = 1;
+  string accepter_id = 2;
+}
+
+message AcceptFriendRequestResponse {
+  bool success = 1;
+}

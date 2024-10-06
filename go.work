@@ -6,6 +6,7 @@ use (
 	./friendship-service
 	./messaging-service
 	./notification-service
+	./proto
 	./shared
 	./user-service
 )
