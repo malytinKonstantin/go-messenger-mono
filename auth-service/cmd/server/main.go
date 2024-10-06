@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"net"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gofiber/fiber/v2"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/auth-service"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -18,6 +17,7 @@ import (
 type server struct {
 	pb.UnimplementedAuthServiceServer
 	producer *kafka.Producer
+	db       *pgxpool.Pool
 }
 
 func (s *server) Authenticate(ctx context.Context, in *pb.AuthRequest) (*pb.AuthResponse, error) {
@@ -31,16 +31,16 @@ func main() {
 		log.Fatalf("Error reading config file: %s", err)
 	}
 
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		viper.GetString("DATABASE_HOST"),
-		viper.GetString("DATABASE_PORT"),
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		viper.GetString("DATABASE_USER"),
 		viper.GetString("DATABASE_PASSWORD"),
+		viper.GetString("DATABASE_HOST"),
+		viper.GetString("DATABASE_PORT"),
 		viper.GetString("DATABASE_NAME"))
 
-	db, err := sql.Open("postgres", connStr)
+	db, err := pgxpool.New(context.Background(), connStr)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
 
@@ -55,7 +55,7 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	pb.RegisterAuthServiceServer(s, &server{producer: p})
+	pb.RegisterAuthServiceServer(s, &server{producer: p, db: db})
 
 	app := fiber.New()
 

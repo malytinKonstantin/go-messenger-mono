@@ -15,42 +15,68 @@ import (
 )
 
 func main() {
-	viper.SetConfigFile(".env")
-	viper.AutomaticEnv()
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file: %s", err)
+	if err := run(); err != nil {
+		log.Fatalf("Error starting application: %v", err)
+	}
+}
+
+func run() error {
+	if err := loadConfig(); err != nil {
+		return fmt.Errorf("error loading configuration: %w", err)
 	}
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	grpcMux, err := setupGRPCMux(ctx)
+	if err != nil {
+		return fmt.Errorf("error setting up gRPC multiplexer: %w", err)
+	}
+
+	app := setupFiberApp(grpcMux)
+
+	return startServer(app)
+}
+
+func loadConfig() error {
+	viper.SetConfigFile(".env")
+	viper.AutomaticEnv()
+	return viper.ReadInConfig()
+}
+
+func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 	grpcMux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
-	// Регистрируем сервисы
-	if err := handlers.RegisterAuthService(ctx, grpcMux, fmt.Sprintf("auth-service:%s", viper.GetString("AUTH_SERVICE_GRPC_PORT")), opts); err != nil {
-		log.Fatalf("Failed to register auth service: %v", err)
-	}
-	if err := handlers.RegisterFriendshipService(ctx, grpcMux, fmt.Sprintf("friendship-service:%s", viper.GetString("FRIENDSHIP_SERVICE_GRPC_PORT")), opts); err != nil {
-		log.Fatalf("Failed to register friendship service: %v", err)
-	}
-	if err := handlers.RegisterMessagingService(ctx, grpcMux, fmt.Sprintf("messaging-service:%s", viper.GetString("MESSAGING_SERVICE_GRPC_PORT")), opts); err != nil {
-		log.Fatalf("Failed to register messaging service: %v", err)
-	}
-	if err := handlers.RegisterNotificationService(ctx, grpcMux, fmt.Sprintf("notification-service:%s", viper.GetString("NOTIFICATION_SERVICE_GRPC_PORT")), opts); err != nil {
-		log.Fatalf("Failed to register notification service: %v", err)
-	}
-	if err := handlers.RegisterUserService(ctx, grpcMux, fmt.Sprintf("user-service:%s", viper.GetString("USER_SERVICE_GRPC_PORT")), opts); err != nil {
-		log.Fatalf("Failed to register user service: %v", err)
+	services := []struct {
+		name     string
+		register func(context.Context, *runtime.ServeMux, string, []grpc.DialOption) error
+	}{
+		{"auth", handlers.RegisterAuthService},
+		{"friendship", handlers.RegisterFriendshipService},
+		{"messaging", handlers.RegisterMessagingService},
+		{"notification", handlers.RegisterNotificationService},
+		{"user", handlers.RegisterUserService},
 	}
 
+	for _, service := range services {
+		endpoint := fmt.Sprintf("%s-service:%s", service.name, viper.GetString(fmt.Sprintf("%s_SERVICE_GRPC_PORT", service.name)))
+		if err := service.register(ctx, grpcMux, endpoint, opts); err != nil {
+			return nil, fmt.Errorf("error registering %s service: %w", service.name, err)
+		}
+	}
+
+	return grpcMux, nil
+}
+
+func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
 	app := fiber.New()
 	app.All("/*", adaptor.HTTPHandler(grpcMux))
+	return app
+}
 
+func startServer(app *fiber.App) error {
 	port := viper.GetString("HTTP_PORT")
-	log.Printf("Starting API Gateway on :%s", port)
-	if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+	log.Printf("Starting API Gateway on port :%s", port)
+	return app.Listen(fmt.Sprintf(":%s", port))
 }
