@@ -50,7 +50,7 @@ check: fmt lint vet test
 build:
 	@for service in $(SERVICES); do \
 		echo "Building $$service..."; \
-		$(DOCKER_COMPOSE) -f ./$$service/docker-compose.yml build; \
+		$(DOCKER_COMPOSE) -f ./$$service/docker-compose.yml build --no-cache;\
 	done
 
 up:

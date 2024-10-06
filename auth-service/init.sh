@@ -9,7 +9,7 @@ done
 echo "Postgres is up - executing schema"
 
 # Выполняем SQL-скрипты для создания схемы
-PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -U $DATABASE_USER -d $DATABASE_NAME -f /app/db/schema/auth.sql
+PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -U $DATABASE_USER -d $DATABASE_NAME -f /root/db/schema/auth.sql
 
 # Запускаем основное приложение
 exec "$@"

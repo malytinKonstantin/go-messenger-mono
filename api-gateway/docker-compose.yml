@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   api-gateway:
-    build: .
+    build:
+      context: ..
+      dockerfile: api-gateway/Dockerfile
+    image: localhost:5000/api-gateway:latest
     ports:
       - "3000:3000"
     networks:

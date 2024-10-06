@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   auth-service:
-    build: .
+    build:
+      context: ..
+      dockerfile: auth-service/Dockerfile
+    image: localhost:5000/auth-service:latest
     ports:
       - "${GRPC_PORT}:${GRPC_PORT}"
       - "${HTTP_PORT}:${HTTP_PORT}"

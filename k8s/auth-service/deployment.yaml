@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: go-messenger-registry/auth-service:latest
+        image: localhost:5000/auth-service:latest
         ports:
         - containerPort: 50051
         - containerPort: 3001
