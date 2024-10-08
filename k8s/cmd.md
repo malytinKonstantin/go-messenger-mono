@@ -63,3 +63,6 @@ kubectl logs <имя-пода> -n go-messenger
 ```bash
 kubectl get all -n go-messenger
 ```
+
+
+kubectl logs api-gateway -n go-messenger

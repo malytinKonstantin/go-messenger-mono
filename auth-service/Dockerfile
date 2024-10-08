@@ -5,7 +5,6 @@ WORKDIR /app
 COPY . .
 COPY ../proto ./proto
 COPY ../auth-service/db ./db
-COPY ../auth-service/init.sh ./init.sh
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -29,9 +28,6 @@ RUN apt-get update && \
 WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/db ./db
-COPY --from=builder /app/init.sh ./init.sh
 
 EXPOSE 50051 3001
-RUN chmod +x ./init.sh
-ENTRYPOINT ["./init.sh"]
 CMD ["./main"]

@@ -1,8 +1,11 @@
 # Переменные
-DOCKER_REGISTRY := constmalytin
+
 DOCKER_HOST := unix:///var/run/docker.sock
+DOCKER_REGISTRY := constmalytin
 SERVICES := api-gateway auth-service
 K8S_NAMESPACE := go-messenger
+VERSION ?= $(shell git rev-parse --short HEAD)
+
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
@@ -46,27 +49,30 @@ vet:
 
 check: fmt lint vet test
 
+# Цель сборки
 build:
 	@for service in $(SERVICES); do \
-		echo "Building $$service..."; \
-		docker build -t $(DOCKER_REGISTRY)/$$service:latest -f ./$$service/Dockerfile .; \
+		echo "Building $$service with version $(VERSION)..."; \
+		docker build -t $(DOCKER_REGISTRY)/$$service:$(VERSION) -f ./$$service/Dockerfile .; \
 	done
 
+# Цель пуша образов
 push:
 	@for service in $(SERVICES); do \
-		echo "Pushing $$service..."; \
-		docker push $(DOCKER_REGISTRY)/$$service:latest; \
+		echo "Pushing $$service with version $(VERSION)..."; \
+		docker push $(DOCKER_REGISTRY)/$$service:$(VERSION); \
+	done
+
+# Обновление образов в Kubernetes
+update-images:
+	@for service in $(SERVICES); do \
+		kubectl set image deployment/$$service $$service=$(DOCKER_REGISTRY)/$$service:$(VERSION) -n $(K8S_NAMESPACE); \
 	done
 
 deploy:
 	kubectl apply -f k8s/namespace.yaml
 	kubectl apply -f k8s/common/configmap.yaml
-
-	kubectl apply -f k8s/auth-service/secrets.yaml
-	kubectl apply -f k8s/auth-service/deployment-postgres.yaml
-	kubectl apply -f k8s/auth-service/persistent-volume.yaml
-	kubectl apply -f k8s/auth-service/persistent-volume-claim.yaml
-
+	kubectl apply -f k8s/auth-service/
 	kubectl apply -f k8s/api-gateway/
 	kubectl apply -f k8s/auth-service/
 	kubectl apply -f k8s/ingress.yaml
@@ -76,8 +82,3 @@ deploy:
 	kubectl get deployments -n $(K8S_NAMESPACE)
 	kubectl get ingress -n $(K8S_NAMESPACE)
 	kubectl get configmaps,secrets -n $(K8S_NAMESPACE)
-
-update-images:
-	@for service in $(SERVICES); do \
-		kubectl set image deployment/$$service $$service=$(DOCKER_REGISTRY)/$$service:latest -n $(K8S_NAMESPACE); \
-	done

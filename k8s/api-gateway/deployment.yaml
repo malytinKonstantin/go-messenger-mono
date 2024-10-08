@@ -18,10 +18,20 @@ spec:
       containers:
       - name: api-gateway
         image: constmalytin/api-gateway:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
-        env:
-        - name: HTTP_PORT
-          value: "3000"
-        - name: AUTH_SERVICE_GRPC_PORT
-          value: "50051"
+        envFrom:
+        - configMapRef:
+            name: api-gateway-config
+        volumeMounts:
+        - name: env-file
+          mountPath: /root/.env
+          subPath: .env
+      volumes:
+      - name: env-file
+        secret:
+          secretName: api-gateway-env-secret
+          items:
+          - key: .env
+            path: .env

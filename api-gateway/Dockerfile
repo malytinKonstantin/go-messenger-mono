@@ -1,4 +1,4 @@
-FROM golang:1.21 AS builder
+FROM golang:1.21-bookworm AS builder
 
 WORKDIR /app
 
@@ -14,9 +14,9 @@ RUN apt-get update && \
 
 RUN go mod download
 
-RUN CGO_ENABLED=1 go build -o main ./api-gateway/cmd/server/main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o main ./api-gateway/cmd/server/main.go
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -28,4 +28,5 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 
 EXPOSE 3000
+
 CMD ["./main"]
