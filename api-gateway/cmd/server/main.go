@@ -71,6 +71,9 @@ func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 
 func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
 	app := fiber.New()
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.SendString("OK")
+	})
 	app.All("/*", adaptor.HTTPHandler(grpcMux))
 	return app
 }
