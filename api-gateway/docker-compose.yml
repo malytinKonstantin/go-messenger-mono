@@ -5,7 +5,7 @@ services:
     build:
       context: ..
       dockerfile: api-gateway/Dockerfile
-    image: localhost:5000/api-gateway:latest
+    image: constmalytin/api-gateway:latest
     ports:
       - "3000:3000"
     networks:

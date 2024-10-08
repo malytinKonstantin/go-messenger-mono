@@ -3,8 +3,10 @@ kind: Deployment
 metadata:
   name: api-gateway
   namespace: go-messenger
+  labels:
+    app: api-gateway
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: api-gateway
@@ -15,7 +17,7 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: localhost:5000/api-gateway:latest
+        image: constmalytin/api-gateway:latest
         ports:
         - containerPort: 3000
         env:

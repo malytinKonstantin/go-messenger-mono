@@ -4,7 +4,7 @@ metadata:
   name: auth-service
   namespace: go-messenger
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: auth-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: localhost:5000/auth-service:latest
+        image: constmalytin/auth-service:latest
         ports:
         - containerPort: 50051
         - containerPort: 3001
@@ -41,4 +41,7 @@ spec:
               name: auth-db-secrets
               key: password
         - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka:9092"
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: KAFKA_BOOTSTRAP_SERVERS

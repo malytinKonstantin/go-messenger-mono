@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 golang:1.21 AS builder
+FROM golang:1.21 AS builder
 
 WORKDIR /app
 
@@ -7,19 +7,24 @@ COPY ../proto ./proto
 COPY ../auth-service/db ./db
 COPY ../auth-service/init.sh ./init.sh
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
-    librdkafka-dev
+    librdkafka-dev \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN go mod download
 
-RUN go build -o main ./auth-service/cmd/server/main.go
+RUN CGO_ENABLED=1 go build -tags dynamic -o main ./auth-service/cmd/server/main.go
 
 FROM debian:bullseye-slim
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     ca-certificates \
-    librdkafka1
+    librdkafka1 && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /root/
 COPY --from=builder /app/main .

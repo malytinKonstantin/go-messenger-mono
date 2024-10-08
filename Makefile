@@ -1,9 +1,8 @@
 # Переменные
-DOCKER_REGISTRY := localhost:5000
+DOCKER_REGISTRY := constmalytin
+DOCKER_HOST := unix:///var/run/docker.sock
 SERVICES := api-gateway auth-service
-DOCKER_COMPOSE = docker-compose
 K8S_NAMESPACE := go-messenger
-SRC_DIRS := ./...
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
@@ -18,7 +17,7 @@ GOLINT=golangci-lint
 SRC_DIRS := ./...
 
 # Цели
-.PHONY: all build clean test coverage deps fmt lint vet
+.PHONY: all build clean test coverage deps fmt lint vet check push deploy update-images
 
 all: build
 
@@ -50,19 +49,7 @@ check: fmt lint vet test
 build:
 	@for service in $(SERVICES); do \
 		echo "Building $$service..."; \
-		$(DOCKER_COMPOSE) -f ./$$service/docker-compose.yml build --no-cache;\
-	done
-
-up:
-	@for service in $(SERVICES); do \
-		echo "Starting $$service..."; \
-		$(DOCKER_COMPOSE) -f ./$$service/docker-compose.yml up -d; \
-	done
-
-down:
-	@for service in $(SERVICES); do \
-		echo "Stopping $$service..."; \
-		$(DOCKER_COMPOSE) -f ./$$service/docker-compose.yml down; \
+		docker build -t $(DOCKER_REGISTRY)/$$service:latest -f ./$$service/Dockerfile .; \
 	done
 
 push:
@@ -74,12 +61,22 @@ push:
 deploy:
 	kubectl apply -f k8s/namespace.yaml
 	kubectl apply -f k8s/common/configmap.yaml
+
 	kubectl apply -f k8s/auth-service/secrets.yaml
+	kubectl apply -f k8s/auth-service/deployment-postgres.yaml
+	kubectl apply -f k8s/auth-service/persistent-volume.yaml
+	kubectl apply -f k8s/auth-service/persistent-volume-claim.yaml
+
 	kubectl apply -f k8s/api-gateway/
 	kubectl apply -f k8s/auth-service/
 	kubectl apply -f k8s/ingress.yaml
+	kubectl apply -f k8s/registry/deployment.yaml
+	kubectl get pods -n $(K8S_NAMESPACE)
+	kubectl get services -n $(K8S_NAMESPACE)
+	kubectl get deployments -n $(K8S_NAMESPACE)
+	kubectl get ingress -n $(K8S_NAMESPACE)
+	kubectl get configmaps,secrets -n $(K8S_NAMESPACE)
 
-# Цель для обновления образов в деплойментах
 update-images:
 	@for service in $(SERVICES); do \
 		kubectl set image deployment/$$service $$service=$(DOCKER_REGISTRY)/$$service:latest -n $(K8S_NAMESPACE); \
