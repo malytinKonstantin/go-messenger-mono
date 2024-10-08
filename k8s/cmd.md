@@ -64,5 +64,8 @@ kubectl logs <имя-пода> -n go-messenger
 kubectl get all -n go-messenger
 ```
 
+#### Получить IP-адрес Minikube:
 
-kubectl logs api-gateway -n go-messenger
+```bash
+minikube ip
+```
