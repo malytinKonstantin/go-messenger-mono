@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 golang:1.21-bookworm AS builder
+FROM golang:1.21-bookworm AS builder
 
 WORKDIR /app
 
@@ -12,9 +12,9 @@ RUN apt-get update && \
     librdkafka-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -tags dynamic -o main ./auth-service/cmd/server/main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -tags dynamic -o main ./auth-service/cmd/server/main.go
 
-FROM --platform=linux/arm64 debian:bookworm-slim
+FROM debian:bookworm-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
