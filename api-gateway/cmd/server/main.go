@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
@@ -39,8 +40,14 @@ func run() error {
 }
 
 func loadConfig() error {
-	viper.SetConfigFile(".env")
-	viper.AutomaticEnv()
+	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" {
+		viper.SetConfigFile(".env")
+		if err := viper.ReadInConfig(); err != nil {
+			log.Printf("Warning: Error reading .env file: %s", err)
+		}
+	} else {
+		viper.AutomaticEnv()
+	}
 	return viper.ReadInConfig()
 }
 

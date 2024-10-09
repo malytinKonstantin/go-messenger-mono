@@ -63,11 +63,35 @@ push:
 		docker push $(DOCKER_REGISTRY)/$$service:$(VERSION); \
 	done
 
+# Сборка отдельного образа
+build-service:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "Укажите SERVICE=<имя_сервиса>"; \
+		exit 1; \
+	fi
+	@echo "Building $(SERVICE) with version $(VERSION)..."
+	docker build -t $(DOCKER_REGISTRY)/$(SERVICE):$(VERSION) -f ./$(SERVICE)/Dockerfile .
+
+# Пуш отдельного образа
+push-service:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "Укажите SERVICE=<имя_сервиса>"; \
+		exit 1; \
+	fi
+	@echo "Pushing $(SERVICE) with version $(VERSION)..."
+	docker push $(DOCKER_REGISTRY)/$(SERVICE):$(VERSION)
+
 # Обновление образов в Kubernetes
 update-images:
 	@for service in $(SERVICES); do \
 		kubectl set image deployment/$$service $$service=$(DOCKER_REGISTRY)/$$service:$(VERSION) -n $(K8S_NAMESPACE); \
 	done
+
+rebuild-auth:
+	docker build -t $(DOCKER_REGISTRY)/auth-service:$(VERSION) -f ./auth-service/Dockerfile .
+	docker push $(DOCKER_REGISTRY)/auth-service:$(VERSION)
+	kubectl set image deployment/auth-service auth-service=$(DOCKER_REGISTRY)/auth-service:$(VERSION) -n $(K8S_NAMESPACE)
+	kubectl rollout restart deployment auth-service -n $(K8S_NAMESPACE)
 
 deploy:
 	kubectl apply -f k8s/namespace.yaml
@@ -77,6 +101,13 @@ deploy:
 	kubectl apply -f k8s/auth-service/
 	kubectl apply -f k8s/ingress.yaml
 	kubectl apply -f k8s/registry/deployment.yaml
+	kubectl get pods -n $(K8S_NAMESPACE)
+	kubectl get services -n $(K8S_NAMESPACE)
+	kubectl get deployments -n $(K8S_NAMESPACE)
+	kubectl get ingress -n $(K8S_NAMESPACE)
+	kubectl get configmaps,secrets -n $(K8S_NAMESPACE)
+
+log:
 	kubectl get pods -n $(K8S_NAMESPACE)
 	kubectl get services -n $(K8S_NAMESPACE)
 	kubectl get deployments -n $(K8S_NAMESPACE)

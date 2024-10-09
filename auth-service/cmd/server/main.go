@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gofiber/fiber/v2"
@@ -26,7 +27,14 @@ func (s *server) Authenticate(ctx context.Context, in *pb.AuthRequest) (*pb.Auth
 }
 
 func main() {
-	viper.SetConfigFile(".env")
+	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" {
+		viper.SetConfigFile(".env")
+		if err := viper.ReadInConfig(); err != nil {
+			log.Printf("Warning: Error reading .env file: %s", err)
+		}
+	} else {
+		viper.AutomaticEnv()
+	}
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file: %s", err)
 	}

@@ -1,23 +1,20 @@
-FROM golang:1.21 AS builder
+FROM --platform=linux/arm64 golang:1.21-bookworm AS builder
 
 WORKDIR /app
 
 COPY . .
 COPY ../proto ./proto
-COPY ../auth-service/db ./db
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
-    librdkafka-dev \
-    ca-certificates && \
+    ca-certificates \
+    librdkafka-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN go mod download
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -tags dynamic -o main ./auth-service/cmd/server/main.go
 
-RUN CGO_ENABLED=1 go build -tags dynamic -o main ./auth-service/cmd/server/main.go
-
-FROM debian:bullseye-slim
+FROM --platform=linux/arm64 debian:bookworm-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -27,7 +24,7 @@ RUN apt-get update && \
 
 WORKDIR /root/
 COPY --from=builder /app/main .
-COPY --from=builder /app/db ./db
 
 EXPOSE 50051 3001
+
 CMD ["./main"]

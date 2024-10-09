@@ -69,3 +69,13 @@ kubectl get all -n go-messenger
 ```bash
 minikube ip
 ```
+
+
+kubectl port-forward svc/postgres 5432:5432 -n go-messenger
+
+migrate -path ./migrations -database "postgres://postgres:password@localhost:5432/auth_db?sslmode=disable" up
+
+kubectl apply -f k8s/auth-service/postgres-nodeport-service.yaml
+
+kubectl rollout restart deployment api-gateway -n go-messenger
+kubectl rollout restart deployment auth-service -n go-messenger

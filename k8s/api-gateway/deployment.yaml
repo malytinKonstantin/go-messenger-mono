@@ -23,7 +23,7 @@ spec:
         - containerPort: 3000
         envFrom:
         - configMapRef:
-            name: api-gateway-config
+            name: api-gateway-env-file
         volumeMounts:
         - name: env-file
           mountPath: /root/.env
