@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gofiber/fiber/v2"
@@ -27,17 +26,13 @@ func (s *server) Authenticate(ctx context.Context, in *pb.AuthRequest) (*pb.Auth
 }
 
 func main() {
-	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" {
-		viper.SetConfigFile(".env")
-		if err := viper.ReadInConfig(); err != nil {
-			log.Printf("Warning: Error reading .env file: %s", err)
-		}
-	} else {
-		viper.AutomaticEnv()
-	}
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file: %s", err)
-	}
+	viper.AutomaticEnv()
+
+	// Логирование для отладки
+	log.Printf("DATABASE_HOST: %s", viper.GetString("DATABASE_HOST"))
+	log.Printf("DATABASE_PORT: %s", viper.GetString("DATABASE_PORT"))
+	log.Printf("DATABASE_NAME: %s", viper.GetString("DATABASE_NAME"))
+	log.Printf("DATABASE_USER: %s", viper.GetString("DATABASE_USER"))
 
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		viper.GetString("DATABASE_USER"),
