@@ -25,3 +25,11 @@
 ### Сервис уведомлений (Notification Service)
 - Порты: 50055 (gRPC), 3005 (HTTP)
 - Описание: Отвечает за отправку и доставку уведомлений пользователям о различных событиях в системе.
+
+
+make deploy-blue VERSION=v1.0.0
+make deploy-green VERSION=v1.0.1
+make switch-to-green
+make log
+make switch-to-blue
+make log
