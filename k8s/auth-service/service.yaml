@@ -6,6 +6,7 @@ metadata:
 spec:
   selector:
     app: auth-service
+    version: blue  # начальная версия
   ports:
     - name: grpc
       protocol: TCP
@@ -15,4 +16,3 @@ spec:
       protocol: TCP
       port: 3001
       targetPort: 3001
-  type: ClusterIP

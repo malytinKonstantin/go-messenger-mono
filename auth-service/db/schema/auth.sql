@@ -1,3 +1,4 @@
+-- Active: 1727367118150@@127.0.0.1@5432@auth_db
 CREATE TABLE user_credentials (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,

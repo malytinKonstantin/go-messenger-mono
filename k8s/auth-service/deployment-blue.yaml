@@ -1,22 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-service
+  name: auth-service-blue
   namespace: go-messenger
 spec:
   replicas: 3
   selector:
     matchLabels:
       app: auth-service
+      version: blue
   template:
     metadata:
       labels:
         app: auth-service
+        version: blue
     spec:
       containers:
       - name: auth-service
-        image: constmalytin/auth-service:latest
-        imagePullPolicy: Always
+        image: constmalytin/auth-service:$(VERSION)
         ports:
         - containerPort: 50051
         - containerPort: 3001

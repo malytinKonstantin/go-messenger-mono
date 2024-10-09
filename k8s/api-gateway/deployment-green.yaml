@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-green
+  namespace: go-messenger
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-gateway
+      version: green
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: green
+    spec:
+      containers:
+      - name: api-gateway
+        image: constmalytin/api-gateway:$(VERSION)  # новая версия
+        ports:
+        - containerPort: 3000
+        envFrom:
+        - configMapRef:
+            name: api-gateway-env-file
+        volumeMounts:
+        - name: env-file
+          mountPath: /root/.env
+          subPath: .env
+      volumes:
+      - name: env-file
+        secret:
+          secretName: api-gateway-env-secret
+          items:
+          - key: .env
+            path: .env

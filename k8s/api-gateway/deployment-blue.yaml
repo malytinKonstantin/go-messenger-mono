@@ -1,24 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  name: api-gateway-blue
   namespace: go-messenger
-  labels:
-    app: api-gateway
 spec:
   replicas: 3
   selector:
     matchLabels:
       app: api-gateway
+      version: blue
   template:
     metadata:
       labels:
         app: api-gateway
+        version: blue
     spec:
       containers:
       - name: api-gateway
-        image: constmalytin/api-gateway:latest
-        imagePullPolicy: Always
+        image: constmalytin/api-gateway:$(VERSION)  # текущая версия
         ports:
         - containerPort: 3000
         envFrom:

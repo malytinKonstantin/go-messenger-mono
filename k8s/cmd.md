@@ -125,3 +125,12 @@ psql -h localhost -p 5432 -U postgres -d auth_db
 ```bash
 minikube service postgres-external -n go-messenger --url
 ```
+
+
+kubectl patch service auth-service -n go-messenger -p '{"spec":{"selector":{"app":"auth-service","version":"green"}}}'
+
+kubectl patch service api-gateway -n go-messenger -p '{"spec":{"selector":{"app":"api-gateway","version":"green"}}}'
+
+
+kubectl delete deployment auth-service-blue -n go-messenger
+kubectl delete deployment api-gateway-blue -n go-messenger
