@@ -110,14 +110,16 @@ deploy-green: build-and-push deploy-green-k8s
 deploy-blue-k8s:
 	@for service in $(SERVICES); do \
 		echo "Deploying $$service to blue environment..."; \
-		cat k8s/$$service/deployment-blue.yaml | envsubst | kubectl apply -f -; \
+		export VERSION=$(VERSION); \
+		cat k8s/$$service/deployment-blue.yaml | envsubst '$${VERSION}' | kubectl apply -f -; \
 		kubectl apply -f k8s/$$service/service.yaml; \
 	done
 
 deploy-green-k8s:
 	@for service in $(SERVICES); do \
 		echo "Deploying $$service to green environment..."; \
-		cat k8s/$$service/deployment-green.yaml | envsubst | kubectl apply -f -; \
+		export VERSION=$(VERSION); \
+		cat k8s/$$service/deployment-green.yaml | envsubst '$${VERSION}' | kubectl apply -f -; \
 		kubectl apply -f k8s/$$service/service.yaml; \
 	done
 

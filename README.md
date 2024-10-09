@@ -27,9 +27,10 @@
 - Описание: Отвечает за отправку и доставку уведомлений пользователям о различных событиях в системе.
 
 
+make build-and-push VERSION=v1.0.0
 make deploy-blue VERSION=v1.0.0
-make deploy-green VERSION=v1.0.1
 make switch-to-green
 make log
+kubectl get pods -n go-messenger
 make switch-to-blue
 make log

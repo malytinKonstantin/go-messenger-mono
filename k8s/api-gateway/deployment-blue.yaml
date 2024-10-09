@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: constmalytin/api-gateway:$(VERSION)  # текущая версия
+        image: constmalytin/api-gateway:${VERSION}  # текущая версия
         ports:
         - containerPort: 3000
         envFrom:

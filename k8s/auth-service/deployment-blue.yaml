@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: constmalytin/auth-service:$(VERSION)
+        image: constmalytin/auth-service:${VERSION}
         ports:
         - containerPort: 50051
         - containerPort: 3001
