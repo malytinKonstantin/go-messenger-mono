@@ -3,15 +3,17 @@ kind: Ingress
 metadata:
   name: api-gateway-ingress
   namespace: go-messenger
+  annotations:
+    kubernetes.io/ingress.class: nginx
 spec:
-  ingressClassName: nginx
   rules:
-  - http:
+  - host: go-messenger.com  # Замените на домен
+    http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
             name: api-gateway
-            port: 
+            port:
               number: 80

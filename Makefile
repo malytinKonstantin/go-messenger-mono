@@ -2,50 +2,43 @@
 
 DOCKER_HOST := unix:///var/run/docker.sock
 DOCKER_REGISTRY := constmalytin
-SERVICES := api-gateway auth-service
+SERVICES := api-gateway auth-service 
+# SERVICES := api-gateway auth-service user-service friendship-service notification-service
 K8S_NAMESPACE := go-messenger
 VERSION ?= $(shell git rev-parse --short HEAD)
-DEPLOYMENT_VERSION ?= blue
 
 GOCMD = go
 GOBUILD = $(GOCMD) build
-GOCLEAN = $(GOCMD) clean
-GOTEST = $(GOCMD) test
-GOGET = $(GOCMD) get
-GOMOD = $(GOCMD) mod
-GOFMT = gofmt
-GOLINT = golangci-lint
-
-# Пути
-SRC_DIRS := ./...
 
 # Цели
-.PHONY: all build clean test coverage deps fmt lint vet check push deploy update-images
+.PHONY: all build clean test coverage deps fmt lint vet check push deploy update-images deploy-all \
+        deploy-blue deploy-green switch-to-blue switch-to-green log \
+        check-events deploy-auth-postgres deploy-common deploy-services deploy-ingress delete-blue delete-green \
+        release-blue release-green
 
 all: build
 
 clean:
-	$(GOCLEAN)
+	$(GOCMD) clean
 
 test:
-	$(GOTEST) -v $(SRC_DIRS)
+	$(GOCMD) test -v ./...
 
 coverage:
-	$(GOTEST) -v -coverprofile=coverage.out $(SRC_DIRS)
+	$(GOCMD) test -v -coverprofile=coverage.out ./...
 	$(GOCMD) tool cover -html=coverage.out -o coverage.html
 
 deps:
-	$(GOGET) -v -t -d $(SRC_DIRS)
-	$(GOMOD) tidy
+	$(GOCMD) mod tidy
 
 fmt:
-	$(GOFMT) -w .
+	$(GOCMD) fmt ./...
 
 lint:
-	$(GOLINT) run
+	golangci-lint run ./...
 
 vet:
-	$(GOCMD) vet $(SRC_DIRS)
+	$(GOCMD) vet ./...
 
 check: fmt lint vet test
 
@@ -66,97 +59,89 @@ push:
 # Сборка и пуш всех сервисов
 build-and-push: build push
 
-# Сборка отдельного сервиса
-build-service:
-	@if [ -z "$(SERVICE)" ]; then \
-		echo "Укажите SERVICE=<имя_сервиса>"; \
-		exit 1; \
-	fi
-	echo "Building $(SERVICE) with version $(VERSION)..."
-	docker build -t $(DOCKER_REGISTRY)/$(SERVICE):$(VERSION) -f ./$(SERVICE)/Dockerfile .
+# Деплой общих ресурсов
+deploy-common:
+	kubectl apply -f k8s/namespace.yaml
+	kubectl apply -f k8s/common/configmap.yaml
+	kubectl apply -f k8s/auth-service/secrets.yaml
+	kubectl apply -f k8s/api-gateway/secrets.yaml
+	$(MAKE) deploy-auth-postgres
 
-# Пуш отдельного образа
-push-service:
-	@if [ -z "$(SERVICE)" ]; then \
-		echo "Укажите SERVICE=<имя_сервиса>"; \
-		exit 1; \
-	fi
-	echo "Pushing $(SERVICE) with version $(VERSION)..."
-	docker push $(DOCKER_REGISTRY)/$(SERVICE):$(VERSION)
+# Деплой PostgreSQL для auth-service
+deploy-auth-postgres:
+	kubectl apply -f k8s/auth-service/persistent-volume.yaml
+	kubectl apply -f k8s/auth-service/persistent-volume-claim.yaml
+	kubectl apply -f k8s/auth-service/deployment-postgres.yaml
+	kubectl apply -f k8s/auth-service/postgres-service.yaml
 
-# Сборка и пуш отдельного сервиса
-build-and-push-service: build-service push-service
-
-# Обновление образов в Kubernetes для Blue-Green деплоя
-update-images:
+# Деплой сервисов
+deploy-services:
 	@for service in $(SERVICES); do \
-		kubectl set image deployment/$$service-$(DEPLOYMENT_VERSION) $$service=$(DOCKER_REGISTRY)/$$service:$(VERSION) -n $(K8S_NAMESPACE); \
+		if [ -f k8s/$$service/service.yaml ]; then \
+			echo "Deploying service for $$service..."; \
+			kubectl apply -f k8s/$$service/service.yaml; \
+		fi; \
 	done
 
-# Рестарт деплойментов (опционально)
-restart-deployments:
+# Деплой blue версии
+deploy-blue:
 	@for service in $(SERVICES); do \
-		kubectl rollout restart deployment/$$service-$(DEPLOYMENT_VERSION) -n $(K8S_NAMESPACE); \
+		if [ -f k8s/$$service/deployment-blue.yaml ]; then \
+			echo "Deploying $$service to blue environment with version $(VERSION)..."; \
+			VERSION=$(VERSION) envsubst < k8s/$$service/deployment-blue.yaml | kubectl apply -f -; \
+		fi; \
 	done
 
-# Цели для Blue-Green деплоя с правильными Docker сборками
-
-deploy-blue: DEPLOYMENT_VERSION=blue
-deploy-blue: build-and-push deploy-blue-k8s
-
-deploy-green: DEPLOYMENT_VERSION=green
-deploy-green: build-and-push deploy-green-k8s
-
-deploy-blue-k8s:
+# Деплой green версии
+deploy-green:
 	@for service in $(SERVICES); do \
-		echo "Deploying $$service to blue environment..."; \
-		export VERSION=$(VERSION); \
-		cat k8s/$$service/deployment-blue.yaml | envsubst '$${VERSION}' | kubectl apply -f -; \
-		kubectl apply -f k8s/$$service/service.yaml; \
+		if [ -f k8s/$$service/deployment-green.yaml ]; then \
+			echo "Deploying $$service to green environment with version $(VERSION)..."; \
+			VERSION=$(VERSION) envsubst < k8s/$$service/deployment-green.yaml | kubectl apply -f -; \
+		fi; \
 	done
 
-deploy-green-k8s:
-	@for service in $(SERVICES); do \
-		echo "Deploying $$service to green environment..."; \
-		export VERSION=$(VERSION); \
-		cat k8s/$$service/deployment-green.yaml | envsubst '$${VERSION}' | kubectl apply -f -; \
-		kubectl apply -f k8s/$$service/service.yaml; \
-	done
-
+# Переключение на blue версию
 switch-to-blue:
 	@for service in $(SERVICES); do \
 		echo "Switching $$service to blue version..."; \
 		kubectl patch service $$service -n $(K8S_NAMESPACE) -p '{"spec":{"selector":{"app":"'"$$service"'","version":"blue"}}}'; \
 	done
 
+# Переключение на green версию
 switch-to-green:
 	@for service in $(SERVICES); do \
 		echo "Switching $$service to green version..."; \
 		kubectl patch service $$service -n $(K8S_NAMESPACE) -p '{"spec":{"selector":{"app":"'"$$service"'","version":"green"}}}'; \
 	done
 
-# Деплой отдельных сервисов с учётом версии деплоя
+# Удаление синих деплойментов
+delete-blue:
+	@for service in $(SERVICES); do \
+		echo "Deleting $$service blue deployment..."; \
+		kubectl delete deployment $$service-blue -n $(K8S_NAMESPACE) --ignore-not-found; \
+	done
 
-deploy-auth-service:
-	$(MAKE) build-service SERVICE=auth-service
-	$(MAKE) push-service SERVICE=auth-service
-	envsubst < k8s/auth-service/deployment-$(DEPLOYMENT_VERSION).yaml | kubectl apply -f -
-	kubectl apply -f k8s/auth-service/service.yaml
+# Удаление зеленых деплойментов
+delete-green:
+	@for service in $(SERVICES); do \
+		echo "Deleting $$service green deployment..."; \
+		kubectl delete deployment $$service-green -n $(K8S_NAMESPACE) --ignore-not-found; \
+	done
 
-deploy-api-gateway:
-	$(MAKE) build-service SERVICE=api-gateway
-	$(MAKE) push-service SERVICE=api-gateway
-	envsubst < k8s/api-gateway/deployment-$(DEPLOYMENT_VERSION).yaml | kubectl apply -f -
-	kubectl apply -f k8s/api-gateway/service.yaml
-
-# Общий деплой ресурсов Kubernetes
-deploy:
-	kubectl apply -f k8s/namespace.yaml
-	kubectl apply -f k8s/common/configmap.yaml
-	$(MAKE) deploy-blue
+# Применение Ingress и других ресурсов
+deploy-ingress:
 	kubectl apply -f k8s/ingress.yaml
 	kubectl apply -f k8s/registry/deployment.yaml
-	$(MAKE) log
+
+# Общий деплой ресурсов Kubernetes
+deploy: deploy-common deploy-services deploy-ingress
+
+# Полный цикл релиза для blue версии
+release-blue: build-and-push deploy deploy-blue switch-to-blue delete-green
+
+# Полный цикл релиза для green версии
+release-green: build-and-push deploy deploy-green switch-to-green delete-blue
 
 log:
 	kubectl get pods -n $(K8S_NAMESPACE)
@@ -164,3 +149,7 @@ log:
 	kubectl get deployments -n $(K8S_NAMESPACE)
 	kubectl get ingress -n $(K8S_NAMESPACE)
 	kubectl get configmaps,secrets -n $(K8S_NAMESPACE)
+	$(MAKE) check-events
+
+check-events:
+	kubectl get events -n $(K8S_NAMESPACE) --sort-by='.metadata.creationTimestamp'

@@ -17,20 +17,29 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: constmalytin/api-gateway:${VERSION}  # новая версия
+        image: constmalytin/api-gateway:${VERSION}
         ports:
         - containerPort: 3000
-        envFrom:
-        - configMapRef:
-            name: api-gateway-env-file
-        volumeMounts:
-        - name: env-file
-          mountPath: /root/.env
-          subPath: .env
-      volumes:
-      - name: env-file
-        secret:
-          secretName: api-gateway-env-secret
-          items:
-          - key: .env
-            path: .env
+        env:
+        - name: HTTP_PORT
+          value: "3000"
+        - name: AUTH_SERVICE_GRPC_PORT
+          value: "50051"  
+        - name: AUTH_SERVICE_HTTP_PORT
+          value: "3001"
+        - name: USER_SERVICE_GRPC_PORT
+          value: "50052"
+        - name: USER_SERVICE_HTTP_PORT
+          value: "3002"
+        - name: FRIENDSHIP_SERVICE_GRPC_PORT
+          value: "50053"
+        - name: FRIENDSHIP_SERVICE_HTTP_PORT
+          value: "3003"
+        - name: MESSAGING_SERVICE_GRPC_PORT
+          value: "50054"
+        - name: MESSAGING_SERVICE_HTTP_PORT
+          value: "3004"
+        - name: NOTIFICATION_SERVICE_GRPC_PORT
+          value: "50055"
+        - name: NOTIFICATION_SERVICE_HTTP_PORT
+          value: "3005"

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service-green
+  namespace: go-messenger
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: notification-service
+      version: green
+  template:
+    metadata:
+      labels:
+        app: notification-service
+        version: green
+    spec:
+      containers:
+      - name: notification-service
+        image: constmalytin/notification-service:${VERSION}
+        ports:
+        - containerPort: 50055
+        - containerPort: 3005
+        env:
+        - name: GRPC_PORT
+          value: "50055"
+        - name: HTTP_PORT
+          value: "3005"

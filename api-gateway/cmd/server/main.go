@@ -21,9 +21,7 @@ func main() {
 }
 
 func run() error {
-	if err := loadConfig(); err != nil {
-		return fmt.Errorf("error loading configuration: %w", err)
-	}
+	viper.AutomaticEnv()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -36,12 +34,6 @@ func run() error {
 	app := setupFiberApp(grpcMux)
 
 	return startServer(app)
-}
-
-func loadConfig() error {
-	// viper.SetConfigFile(".env")
-	viper.AutomaticEnv()
-	return viper.ReadInConfig()
 }
 
 func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {

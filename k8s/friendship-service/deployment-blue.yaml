@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: friendship-service-blue
+  namespace: go-messenger
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: friendship-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: friendship-service
+        version: blue
+    spec:
+      containers:
+      - name: friendship-service
+        image: constmalytin/friendship-service:${VERSION}
+        ports:
+        - containerPort: 50053
+        - containerPort: 3003
+        env:
+        - name: GRPC_PORT
+          value: "50053"
+        - name: HTTP_PORT
+          value: "3003"

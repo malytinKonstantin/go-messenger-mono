@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-blue
+  namespace: go-messenger
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: user-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: blue
+    spec:
+      containers:
+      - name: user-service
+        image: constmalytin/user-service:${VERSION}
+        ports:
+        - containerPort: 50052
+        - containerPort: 3002
+        env:
+        - name: GRPC_PORT
+          value: "50052"
+        - name: HTTP_PORT
+          value: "3002"
