@@ -137,11 +137,33 @@ deploy-ingress:
 # Общий деплой ресурсов Kubernetes
 deploy: deploy-common deploy-services deploy-ingress
 
-# Полный цикл релиза для blue версии
-release-blue: build-and-push deploy deploy-blue switch-to-blue delete-green
+# # Полный цикл релиза для blue версии
+# release-blue: build-and-push deploy deploy-blue switch-to-blue delete-green
 
-# Полный цикл релиза для green версии
-release-green: build-and-push deploy deploy-green switch-to-green delete-blue
+# # Полный цикл релиза для green версии
+# release-green: build-and-push deploy deploy-green switch-to-green delete-blue
+
+release-blue: build-and-push deploy deploy-blue
+	@echo "Waiting for blue deployment to be ready..."
+	@kubectl rollout status deployment/api-gateway-blue -n $(K8S_NAMESPACE)
+	@kubectl rollout status deployment/auth-service-blue -n $(K8S_NAMESPACE)
+	@echo "Switching traffic to blue version..."
+	@$(MAKE) switch-to-blue
+	@echo "Waiting for traffic to stabilize..."
+	@sleep 30
+	@echo "Deleting green deployment..."
+	@$(MAKE) delete-green
+
+release-green: build-and-push deploy deploy-green
+	@echo "Waiting for green deployment to be ready..."
+	@kubectl rollout status deployment/api-gateway-green -n $(K8S_NAMESPACE)
+	@kubectl rollout status deployment/auth-service-green -n $(K8S_NAMESPACE)
+	@echo "Switching traffic to green version..."
+	@$(MAKE) switch-to-green
+	@echo "Waiting for traffic to stabilize..."
+	@sleep 30
+	@echo "Deleting blue deployment..."
+	@$(MAKE) delete-blue
 
 log:
 	kubectl get pods -n $(K8S_NAMESPACE)
