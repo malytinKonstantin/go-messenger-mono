@@ -2,8 +2,7 @@
 
 DOCKER_HOST := unix:///var/run/docker.sock
 DOCKER_REGISTRY := constmalytin
-SERVICES := api-gateway auth-service 
-# SERVICES := api-gateway auth-service user-service friendship-service notification-service
+SERVICES := api-gateway auth-service friendship-service
 K8S_NAMESPACE := go-messenger
 VERSION ?= $(shell git rev-parse --short HEAD)
 
@@ -14,7 +13,7 @@ GOBUILD = $(GOCMD) build
 .PHONY: all build clean test coverage deps fmt lint vet check push deploy update-images deploy-all \
         deploy-blue deploy-green switch-to-blue switch-to-green log \
         check-events deploy-auth-postgres deploy-common deploy-services deploy-ingress delete-blue delete-green \
-        release-blue release-green
+        release-blue release-green deploy-friendship-neo4j
 
 all: build
 
@@ -65,7 +64,9 @@ deploy-common:
 	kubectl apply -f k8s/common/configmap.yaml
 	kubectl apply -f k8s/auth-service/secrets.yaml
 	kubectl apply -f k8s/api-gateway/secrets.yaml
+	kubectl apply -f k8s/friendship-service/secrets.yaml
 	$(MAKE) deploy-auth-postgres
+	$(MAKE) deploy-friendship-neo4j
 
 # Деплой PostgreSQL для auth-service
 deploy-auth-postgres:
@@ -73,6 +74,13 @@ deploy-auth-postgres:
 	kubectl apply -f k8s/auth-service/persistent-volume-claim.yaml
 	kubectl apply -f k8s/auth-service/deployment-postgres.yaml
 	kubectl apply -f k8s/auth-service/postgres-service.yaml
+
+# Деплой Neo4j для friendship-service
+deploy-friendship-neo4j:
+	kubectl apply -f k8s/friendship-service/neo4j-volume.yaml
+	kubectl apply -f k8s/friendship-service/neo4j-volume-claim.yaml
+	kubectl apply -f k8s/friendship-service/neo4j-deployment.yaml
+	kubectl apply -f k8s/friendship-service/neo4j-service.yaml
 
 # Деплой сервисов
 deploy-services:
@@ -137,16 +145,12 @@ deploy-ingress:
 # Общий деплой ресурсов Kubernetes
 deploy: deploy-common deploy-services deploy-ingress
 
-# # Полный цикл релиза для blue версии
-# release-blue: build-and-push deploy deploy-blue switch-to-blue delete-green
-
-# # Полный цикл релиза для green версии
-# release-green: build-and-push deploy deploy-green switch-to-green delete-blue
-
+# Полный цикл релиза для blue версии
 release-blue: build-and-push deploy deploy-blue
 	@echo "Waiting for blue deployment to be ready..."
 	@kubectl rollout status deployment/api-gateway-blue -n $(K8S_NAMESPACE)
 	@kubectl rollout status deployment/auth-service-blue -n $(K8S_NAMESPACE)
+	@kubectl rollout status deployment/friendship-service-blue -n $(K8S_NAMESPACE)
 	@echo "Switching traffic to blue version..."
 	@$(MAKE) switch-to-blue
 	@echo "Waiting for traffic to stabilize..."
@@ -154,10 +158,12 @@ release-blue: build-and-push deploy deploy-blue
 	@echo "Deleting green deployment..."
 	@$(MAKE) delete-green
 
+# Полный цикл релиза для green версии
 release-green: build-and-push deploy deploy-green
 	@echo "Waiting for green deployment to be ready..."
 	@kubectl rollout status deployment/api-gateway-green -n $(K8S_NAMESPACE)
 	@kubectl rollout status deployment/auth-service-green -n $(K8S_NAMESPACE)
+	@kubectl rollout status deployment/friendship-service-green -n $(K8S_NAMESPACE)
 	@echo "Switching traffic to green version..."
 	@$(MAKE) switch-to-green
 	@echo "Waiting for traffic to stabilize..."

@@ -21,6 +21,7 @@ func main() {
 }
 
 func run() error {
+
 	viper.AutomaticEnv()
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -1,13 +1,30 @@
-FROM golang:1.23.1-alpine AS builder
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+FROM golang:1.21-bookworm AS builder
 
-FROM scratch
+WORKDIR /app
+
+COPY . .
+COPY ../proto ./proto
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    librdkafka-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN CGO_ENABLED=1 GOOS=linux go build -tags dynamic -o main ./friendship-service/cmd/server/main.go
+
+FROM debian:bookworm-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    librdkafka1 && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /root/
 COPY --from=builder /app/main .
-COPY .env .
+
 EXPOSE 50053 3003
+
 CMD ["./main"]
