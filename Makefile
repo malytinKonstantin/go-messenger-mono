@@ -70,68 +70,67 @@ update-images:
 # Деплой общих ресурсов
 deploy-common:
 	kubectl apply -f k8s/namespace.yaml
-	kubectl apply -f k8s/common/configmap.yaml
-	kubectl apply -f k8s/common/secrets.yaml
+	kubectl apply -f k8s/common/configmap.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/common/secrets.yaml -n $(K8S_NAMESPACE)
 
 # Деплой баз данных
 deploy-auth-postgres:
-	kubectl apply -f k8s/auth-service/persistent-volume.yaml
-	kubectl apply -f k8s/auth-service/persistent-volume-claim.yaml
-	kubectl apply -f k8s/auth-service/deployment-postgres.yaml
-	kubectl apply -f k8s/auth-service/postgres-service.yaml
+	kubectl apply -f k8s/auth-service/persistent-volume.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/auth-service/persistent-volume-claim.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/auth-service/deployment-postgres.yaml -n $(K8S_NAMESPACE)
 
 deploy-friendship-neo4j:
-	kubectl apply -f k8s/friendship-service/neo4j-volume.yaml
-	kubectl apply -f k8s/friendship-service/neo4j-volume-claim.yaml
-	kubectl apply -f k8s/friendship-service/neo4j-deployment.yaml
-	kubectl apply -f k8s/friendship-service/neo4j-service.yaml
+	kubectl apply -f k8s/friendship-service/neo4j-volume.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/friendship-service/neo4j-volume-claim.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/friendship-service/neo4j-deployment.yaml -n $(K8S_NAMESPACE)
 
 deploy-cassandra-k8s:
-	kubectl apply -f k8s/messaging-service/cassandra-deployment.yaml
-	kubectl apply -f k8s/messaging-service/cassandra-service.yaml
+	kubectl apply -f k8s/messaging-service/cassandra-deployment.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/messaging-service/cassandra-service.yaml -n $(K8S_NAMESPACE)
 
 deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra-k8s
 
 # Деплой сервисов
 deploy-services:
 	@for service in $(SERVICES); do \
-		kubectl apply -f k8s/$$service/service.yaml; \
+		kubectl apply -f k8s/$$service/service.yaml -n $(K8S_NAMESPACE); \
 	done
+	$(MAKE) deploy-ingress
 
-# Деплой ingress
+# Деплой входного контроллера
 deploy-ingress:
-	kubectl apply -f k8s/ingress.yaml
-	kubectl apply -f k8s/registry/deployment.yaml
+	kubectl apply -f k8s/ingress.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/registry/deployment.yaml -n $(K8S_NAMESPACE)
 
 # Полный деплой
-deploy: deploy-common deploy-databases deploy-services deploy-ingress
+deploy: deploy-common deploy-databases deploy-services
 
-# Деплой blue версии
+# Деплой blue версии сервисов
 deploy-blue:
 	@for service in $(SERVICES); do \
-		echo "Deploying blue version of $$service..."; \
-		VERSION=$(VERSION) envsubst < k8s/$$service/deployment-blue.yaml | kubectl apply -f -; \
+		echo "Deploying $$service blue version..."; \
+		VERSION=$(VERSION) envsubst < k8s/$$service/deployment-blue.yaml | kubectl apply -n $(K8S_NAMESPACE) -f -; \
 	done
 
-# Деплой green версии
+# Деплой green версии сервисов
 deploy-green:
 	@for service in $(SERVICES); do \
-		echo "Deploying green version of $$service..."; \
-		VERSION=$(VERSION) envsubst < k8s/$$service/deployment-green.yaml | kubectl apply -f -; \
+		echo "Deploying $$service green version..."; \
+		VERSION=$(VERSION) envsubst < k8s/$$service/deployment-green.yaml | kubectl apply -n $(K8S_NAMESPACE) -f -; \
 	done
 
 # Переключение на blue версию
 switch-to-blue:
 	@for service in $(SERVICES); do \
 		echo "Switching $$service service to blue version..."; \
-		kubectl patch service $$service -n $(K8S_NAMESPACE) -p '{"spec":{"selector":{"app":"'$$service'","version":"blue"}}}'; \
+		kubectl patch service $$service -n $(K8S_NAMESPACE) -p '{"spec":{"selector":{"app":"$$service","version":"blue"}}}'; \
 	done
 
 # Переключение на green версию
 switch-to-green:
 	@for service in $(SERVICES); do \
 		echo "Switching $$service service to green version..."; \
-		kubectl patch service $$service -n $(K8S_NAMESPACE) -p '{"spec":{"selector":{"app":"'$$service'","version":"green"}}}'; \
+		kubectl patch service $$service -n $(K8S_NAMESPACE) -p '{"spec":{"selector":{"app":"$$service","version":"green"}}}'; \
 	done
 
 # Удаление blue версий деплойментов
@@ -149,7 +148,7 @@ delete-green:
 	done
 
 # Полный цикл релиза для blue версии
-release-blue: build-and-push deploy deploy-blue
+release-blue: build-and-push deploy-common deploy-databases deploy-services deploy-blue
 	@echo "Waiting for blue deployments to be ready..."
 	@for service in $(SERVICES); do \
 		kubectl rollout status deployment/$$service-blue -n $(K8S_NAMESPACE); \
@@ -162,7 +161,7 @@ release-blue: build-and-push deploy deploy-blue
 	@$(MAKE) delete-green
 
 # Полный цикл релиза для green версии
-release-green: build-and-push deploy deploy-green
+release-green: build-and-push deploy-common deploy-databases deploy-services deploy-green
 	@echo "Waiting for green deployments to be ready..."
 	@for service in $(SERVICES); do \
 		kubectl rollout status deployment/$$service-green -n $(K8S_NAMESPACE); \
