@@ -13,9 +13,10 @@ GOBUILD = $(GOCMD) build
 # Цели
 .PHONY: all build clean test coverage deps fmt lint vet check push deploy update-images deploy-all \
         deploy-blue deploy-green switch-to-blue switch-to-green log \
-        check-events deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra-k8s deploy-common deploy-services deploy-ingress delete-blue delete-green \
+        check-events deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra deploy-common deploy-services deploy-ingress delete-blue delete-green \
         release-blue release-green deploy-databases \
-        build-cassandra run-cassandra stop-cassandra restart-cassandra deploy-cassandra
+        build-cassandra push-cassandra run-cassandra stop-cassandra restart-cassandra \
+        build-messaging-service push-messaging-service
 
 all: build
 
@@ -73,7 +74,8 @@ deploy-common:
 	kubectl apply -f k8s/common/configmap.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/auth-service/secrets.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/friendship-service/secrets.yaml -n $(K8S_NAMESPACE)
-    # kubectl apply -f k8s/common/secrets.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/messaging-service/configmap.yaml -n $(K8S_NAMESPACE)
+	# kubectl apply -f k8s/common/secrets.yaml -n $(K8S_NAMESPACE)
 
 # Деплой баз данных
 deploy-auth-postgres:
@@ -89,11 +91,13 @@ deploy-friendship-neo4j:
 	kubectl apply -f k8s/friendship-service/neo4j-deployment.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/friendship-service/neo4j-service.yaml -n $(K8S_NAMESPACE)
 
-deploy-cassandra-k8s:
+deploy-cassandra:
+	kubectl apply -f k8s/messaging-service/cassandra-pv.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/messaging-service/cassandra-pvc.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/messaging-service/cassandra-deployment.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/messaging-service/cassandra-service.yaml -n $(K8S_NAMESPACE)
 
-deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra-k8s
+deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra
 
 # Деплой сервисов
 deploy-services:
@@ -192,7 +196,7 @@ check-events:
 
 # Команды для локального запуска Cassandra
 build-cassandra:
-	docker build -t constmalytin/messaging-service-cassandra:latest -f $(MESSAGING_SERVICE_DIR)/Dockerfile.cassandra $(MESSAGING_SERVICE_DIR)
+	docker build -t $(DOCKER_REGISTRY)/messaging-service-cassandra:latest -f $(MESSAGING_SERVICE_DIR)/Dockerfile.cassandra $(MESSAGING_SERVICE_DIR)
 
 push-cassandra:
 	docker push $(DOCKER_REGISTRY)/messaging-service-cassandra:latest
@@ -200,11 +204,16 @@ push-cassandra:
 run-cassandra:
 	docker run --name my-cassandra \
 		-p 9042:9042 \
-		-d my-cassandra-image
+		-d $(DOCKER_REGISTRY)/messaging-service-cassandra:latest
 
 stop-cassandra:
 	docker rm -f my-cassandra
 
 restart-cassandra: stop-cassandra run-cassandra
 
-deploy-cassandra: run-cassandra
+# Команды для messaging-service
+build-messaging-service:
+	docker build -t $(DOCKER_REGISTRY)/messaging-service:$(VERSION) -f $(MESSAGING_SERVICE_DIR)/Dockerfile $(MESSAGING_SERVICE_DIR)
+
+push-messaging-service:
+	docker push $(DOCKER_REGISTRY)/messaging-service:$(VERSION)
