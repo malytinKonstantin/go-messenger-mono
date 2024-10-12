@@ -104,42 +104,38 @@ deploy-services:
 	@for service in $(SERVICES); do \
 		kubectl apply -f k8s/$$service/service.yaml -n $(K8S_NAMESPACE); \
 	done
-	$(MAKE) deploy-ingress
 
-# Деплой входного контроллера
+# Деплой Ingress
 deploy-ingress:
 	kubectl apply -f k8s/ingress.yaml -n $(K8S_NAMESPACE)
-	kubectl apply -f k8s/registry/deployment.yaml -n $(K8S_NAMESPACE)
+	# kubectl apply -f k8s/registry/deployment.yaml -n $(K8S_NAMESPACE)
 
-# Полный деплой
-deploy: deploy-common deploy-databases deploy-services
-
-# Деплой blue версии сервисов
+# Деплой blue версии
 deploy-blue:
 	@for service in $(SERVICES); do \
 		echo "Deploying $$service blue version..."; \
-		VERSION=$(VERSION) envsubst < k8s/$$service/deployment-blue.yaml | kubectl apply -n $(K8S_NAMESPACE) -f -; \
+		envsubst < k8s/$$service/deployment-blue.yaml | kubectl apply -n $(K8S_NAMESPACE) -f -; \
 	done
 
-# Деплой green версии сервисов
+# Деплой green версии
 deploy-green:
 	@for service in $(SERVICES); do \
 		echo "Deploying $$service green version..."; \
-		VERSION=$(VERSION) envsubst < k8s/$$service/deployment-green.yaml | kubectl apply -n $(K8S_NAMESPACE) -f -; \
+		envsubst < k8s/$$service/deployment-green.yaml | kubectl apply -n $(K8S_NAMESPACE) -f -; \
 	done
 
 # Переключение на blue версию
 switch-to-blue:
 	@for service in $(SERVICES); do \
 		echo "Switching $$service service to blue version..."; \
-		kubectl patch service $$service -n $(K8S_NAMESPACE) -p '{"spec":{"selector":{"app":"$$service","version":"blue"}}}'; \
+		kubectl patch service $$service -n $(K8S_NAMESPACE) -p "{\"spec\":{\"selector\":{\"app\":\"$$service\",\"version\":\"blue\"}}}"; \
 	done
 
 # Переключение на green версию
 switch-to-green:
 	@for service in $(SERVICES); do \
 		echo "Switching $$service service to green version..."; \
-		kubectl patch service $$service -n $(K8S_NAMESPACE) -p '{"spec":{"selector":{"app":"$$service","version":"green"}}}'; \
+		kubectl patch service $$service -n $(K8S_NAMESPACE) -p "{\"spec\":{\"selector\":{\"app\":\"$$service\",\"version\":\"green\"}}}"; \
 	done
 
 # Удаление blue версий деплойментов
@@ -157,7 +153,7 @@ delete-green:
 	done
 
 # Полный цикл релиза для blue версии
-release-blue: build-and-push deploy-common deploy-databases deploy-services deploy-blue
+release-blue: build-and-push deploy-common deploy-databases deploy-services deploy-blue deploy-ingress
 	@echo "Waiting for blue deployments to be ready..."
 	@for service in $(SERVICES); do \
 		kubectl rollout status deployment/$$service-blue -n $(K8S_NAMESPACE); \
@@ -170,7 +166,7 @@ release-blue: build-and-push deploy-common deploy-databases deploy-services depl
 	@$(MAKE) delete-green
 
 # Полный цикл релиза для green версии
-release-green: build-and-push deploy-common deploy-databases deploy-services deploy-green
+release-green: build-and-push deploy-common deploy-databases deploy-services deploy-green deploy-ingress
 	@echo "Waiting for green deployments to be ready..."
 	@for service in $(SERVICES); do \
 		kubectl rollout status deployment/$$service-green -n $(K8S_NAMESPACE); \
