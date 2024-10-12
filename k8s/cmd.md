@@ -134,3 +134,5 @@ kubectl patch service api-gateway -n go-messenger -p '{"spec":{"selector":{"app"
 
 kubectl delete deployment auth-service-blue -n go-messenger
 kubectl delete deployment api-gateway-blue -n go-messenger
+
+kubectl delete pod messaging-service-blue-5ddb8455b6-kdlf7 messaging-service-blue-84c4694bb9-stb72 messaging-service-blue-84c4694bb9-w97rx messaging-service-blue-84c4694bb9-x4q4m -n go-messenger

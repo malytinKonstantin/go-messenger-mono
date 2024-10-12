@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: cassandra
-          image: my-cassandra-image:latest
+          image: constmalytin/messaging-service-cassandra:latest
           ports:
             - containerPort: 9042
           volumeMounts:

@@ -71,18 +71,23 @@ update-images:
 deploy-common:
 	kubectl apply -f k8s/namespace.yaml
 	kubectl apply -f k8s/common/configmap.yaml -n $(K8S_NAMESPACE)
-	kubectl apply -f k8s/common/secrets.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/auth-service/secrets.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/friendship-service/secrets.yaml -n $(K8S_NAMESPACE)
+    # kubectl apply -f k8s/common/secrets.yaml -n $(K8S_NAMESPACE)
 
 # Деплой баз данных
 deploy-auth-postgres:
 	kubectl apply -f k8s/auth-service/persistent-volume.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/auth-service/persistent-volume-claim.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/auth-service/deployment-postgres.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/auth-service/postgres-nodeport-service.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/auth-service/postgres-service.yaml -n $(K8S_NAMESPACE)
 
 deploy-friendship-neo4j:
 	kubectl apply -f k8s/friendship-service/neo4j-volume.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/friendship-service/neo4j-volume-claim.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/friendship-service/neo4j-deployment.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/friendship-service/neo4j-service.yaml -n $(K8S_NAMESPACE)
 
 deploy-cassandra-k8s:
 	kubectl apply -f k8s/messaging-service/cassandra-deployment.yaml -n $(K8S_NAMESPACE)
@@ -180,14 +185,17 @@ log:
 	kubectl get deployments -n $(K8S_NAMESPACE)
 	kubectl get ingress -n $(K8S_NAMESPACE)
 	kubectl get configmaps,secrets -n $(K8S_NAMESPACE)
-	$(MAKE) check-events
+# $(MAKE) check-events
 
 check-events:
 	kubectl get events -n $(K8S_NAMESPACE) --sort-by='.metadata.creationTimestamp'
 
 # Команды для локального запуска Cassandra
 build-cassandra:
-	docker build -t my-cassandra-image -f $(MESSAGING_SERVICE_DIR)/Dockerfile.cassandra $(MESSAGING_SERVICE_DIR)
+	docker build -t constmalytin/messaging-service-cassandra:latest -f $(MESSAGING_SERVICE_DIR)/Dockerfile.cassandra $(MESSAGING_SERVICE_DIR)
+
+push-cassandra:
+	docker push $(DOCKER_REGISTRY)/messaging-service-cassandra:latest
 
 run-cassandra:
 	docker run --name my-cassandra \
@@ -199,4 +207,4 @@ stop-cassandra:
 
 restart-cassandra: stop-cassandra run-cassandra
 
-deploy-cassandra: build-cassandra run-cassandra
+deploy-cassandra: run-cassandra
