@@ -1,25 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cassandra
+  name: notification-cassandra
   namespace: go-messenger
   labels:
-    app: cassandra
+    app: notification-cassandra
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cassandra
+      app: notification-cassandra
   template:
     metadata:
       labels:
-        app: cassandra
+        app: notification-cassandra
     spec:
       containers:
-        - name: cassandra
+        - name: notification-cassandra
           image: constmalytin/notification-service-cassandra:latest
           ports:
             - containerPort: 9042
+              name: cql
           resources:
             requests:
               memory: "1Gi"
@@ -50,4 +51,4 @@ spec:
       volumes:
         - name: cassandra-data
           persistentVolumeClaim:
-            claimName: cassandra-pv-claim
+            claimName: notification-cassandra-pv-claim

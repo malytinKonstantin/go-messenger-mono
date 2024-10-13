@@ -2,8 +2,8 @@
 
 DOCKER_HOST := unix:///var/run/docker.sock
 DOCKER_REGISTRY := constmalytin
-# SERVICES := api-gateway auth-service friendship-service messaging-service user-service
-SERVICES := user-service
+# SERVICES := api-gateway auth-service friendship-service messaging-service user-service notification-service
+SERVICES := notification-service
 K8S_NAMESPACE := go-messenger
 VERSION ?= $(shell git rev-parse --short HEAD)
 MESSAGING_SERVICE_DIR := ./messaging-service
@@ -79,7 +79,7 @@ deploy-common:
 	kubectl apply -f k8s/friendship-service/secrets.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/messaging-service/configmap.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/user-service/configmap.yaml -n $(K8S_NAMESPACE)
-	# kubectl apply -f k8s/common/secrets.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/notification-service/configmap.yaml -n $(K8S_NAMESPACE)
 
 # Деплой баз данных
 deploy-auth-postgres:
@@ -107,7 +107,14 @@ deploy-user-scylla:
 	kubectl apply -f k8s/user-service/scylla-deployment.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/user-service/scylla-service.yaml -n $(K8S_NAMESPACE)
 
-deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra deploy-user-scylla
+deploy-notification-cassandra:
+	kubectl apply -f k8s/notification-service/cassandra-pv.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/notification-service/cassandra-pvc.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/notification-service/cassandra-deployment.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/notification-service/cassandra-service.yaml -n $(K8S_NAMESPACE)
+
+# deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra deploy-user-scylla deploy-notification-cassandra
+deploy-databases: deploy-notification-cassandra
 
 # Деплой сервисов
 deploy-services:

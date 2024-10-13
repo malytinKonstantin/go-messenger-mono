@@ -29,7 +29,7 @@ spec:
         - name: KAFKA_BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
-              name: common-config
+              name: notification-config
               key: KAFKA_BOOTSTRAP_SERVERS
         - name: CASSANDRA_HOST
           valueFrom:
@@ -46,14 +46,14 @@ spec:
             configMapKeyRef:
               name: notification-config
               key: CASSANDRA_KEYSPACE
-        - name: CASSANDRA_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: cassandra-secret
-              key: username
-        - name: CASSANDRA_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: cassandra-secret
-              key: password
+        # - name: CASSANDRA_USERNAME
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: notification-cassandra-secret
+        #       key: username
+        # - name: CASSANDRA_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: notification-cassandra-secret
+        #       key: password
         imagePullPolicy: Always
