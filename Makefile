@@ -8,6 +8,7 @@ K8S_NAMESPACE := go-messenger
 VERSION ?= $(shell git rev-parse --short HEAD)
 MESSAGING_SERVICE_DIR := ./messaging-service
 USER_SERVICE_DIR := ./user-service
+NOTIFICATION_SERVICE_DIR := ./notification-service
 
 GOCMD = go
 GOBUILD = $(GOCMD) build
@@ -17,7 +18,7 @@ GOBUILD = $(GOCMD) build
         deploy-blue deploy-green switch-to-blue switch-to-green log \
         check-events deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra deploy-common deploy-services deploy-ingress delete-blue delete-green \
         release-blue release-green deploy-databases \
-        build-cassandra push-cassandra run-cassandra stop-cassandra restart-cassandra \
+        build-messaging-cassandra push-messaging-cassandra run-messaging-cassandra \
         build-messaging-service push-messaging-service
 
 all: build
@@ -200,16 +201,29 @@ check-events:
 	kubectl get events -n $(K8S_NAMESPACE) --sort-by='.metadata.creationTimestamp'
 
 # Команды для локального запуска Cassandra
-build-cassandra:
+build-messaging-cassandra:
 	docker build -t $(DOCKER_REGISTRY)/messaging-service-cassandra:latest -f $(MESSAGING_SERVICE_DIR)/Dockerfile.cassandra $(MESSAGING_SERVICE_DIR)
 
-push-cassandra:
+push-messaging-cassandra:
 	docker push $(DOCKER_REGISTRY)/messaging-service-cassandra:latest
 
-run-cassandra:
-	docker run --name my-cassandra \
+run-messaging-cassandra:
+	docker run --name messaging-cassandra \
 		-p 9042:9042 \
 		-d $(DOCKER_REGISTRY)/messaging-service-cassandra:latest
+
+build-notification-cassandra:
+	docker build -t $(DOCKER_REGISTRY)/notification-service-cassandra:latest -f $(NOTIFICATION_SERVICE_DIR)/Dockerfile.cassandra $(NOTIFICATION_SERVICE_DIR)
+
+push-notification-cassandra:
+	docker push $(DOCKER_REGISTRY)/notification-service-cassandra:latest
+
+run-notification-cassandra:
+	docker run --name notification-cassandra \
+		-p 9242:9042 \
+		-d $(DOCKER_REGISTRY)/notification-service-cassandra:latest
+
+rerun-cassandra-local: build-notification-cassandra push-notification-cassandra run-notification-cassandra
 
 # Команды для локального запуска ScyllaDB
 build-user-scylla:
