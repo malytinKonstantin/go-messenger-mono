@@ -26,3 +26,34 @@ spec:
           value: "50055"
         - name: HTTP_PORT
           value: "3005"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: KAFKA_BOOTSTRAP_SERVERS
+        - name: CASSANDRA_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: CASSANDRA_HOST
+        - name: CASSANDRA_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: CASSANDRA_PORT
+        - name: CASSANDRA_KEYSPACE
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: CASSANDRA_KEYSPACE
+        - name: CASSANDRA_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: cassandra-secret
+              key: username
+        - name: CASSANDRA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cassandra-secret
+              key: password
+        imagePullPolicy: Always
