@@ -2,7 +2,8 @@
 
 DOCKER_HOST := unix:///var/run/docker.sock
 DOCKER_REGISTRY := constmalytin
-SERVICES := api-gateway auth-service friendship-service messaging-service user-service
+# SERVICES := api-gateway auth-service friendship-service messaging-service user-service
+SERVICES := user-service
 K8S_NAMESPACE := go-messenger
 VERSION ?= $(shell git rev-parse --short HEAD)
 MESSAGING_SERVICE_DIR := ./messaging-service
@@ -76,6 +77,7 @@ deploy-common:
 	kubectl apply -f k8s/auth-service/secrets.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/friendship-service/secrets.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/messaging-service/configmap.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/user-service/configmap.yaml -n $(K8S_NAMESPACE)
 	# kubectl apply -f k8s/common/secrets.yaml -n $(K8S_NAMESPACE)
 
 # Деплой баз данных
