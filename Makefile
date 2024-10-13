@@ -2,8 +2,8 @@
 
 DOCKER_HOST := unix:///var/run/docker.sock
 DOCKER_REGISTRY := constmalytin
-# SERVICES := api-gateway auth-service friendship-service messaging-service user-service notification-service
-SERVICES := notification-service
+SERVICES := api-gateway auth-service friendship-service messaging-service user-service notification-service
+# SERVICES := notification-service
 K8S_NAMESPACE := go-messenger
 VERSION ?= $(shell git rev-parse --short HEAD)
 MESSAGING_SERVICE_DIR := ./messaging-service
@@ -115,8 +115,8 @@ deploy-notification-cassandra:
 	kubectl apply -f k8s/notification-service/cassandra-service.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/notification-service/cassandra-init-job.yaml -n $(K8S_NAMESPACE)
 
-# deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra deploy-user-scylla deploy-notification-cassandra
-deploy-databases: deploy-notification-cassandra
+deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra deploy-user-scylla deploy-notification-cassandra
+# deploy-databases: deploy-notification-cassandra
 
 # Деплой сервисов
 deploy-services:
