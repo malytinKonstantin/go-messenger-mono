@@ -47,19 +47,29 @@ vet:
 
 check: fmt lint vet test
 
-# Сборка всех сервисов
+# Сборка всех сервисов или отдельного сервиса
 build:
-	@for service in $(SERVICES); do \
-		echo "Building $$service with version $(VERSION)..."; \
-		docker build -t $(DOCKER_REGISTRY)/$$service:$(VERSION) -f ./$$service/Dockerfile .; \
-	done
+	@if [ -z "$(SERVICE)" ]; then \
+		for service in $(SERVICES); do \
+			echo "Building $$service with version $(VERSION)..."; \
+			docker build -t $(DOCKER_REGISTRY)/$$service:$(VERSION) -f ./$$service/Dockerfile .; \
+		done; \
+	else \
+		echo "Building $(SERVICE) with version $(VERSION)..."; \
+		docker build -t $(DOCKER_REGISTRY)/$(SERVICE):$(VERSION) -f ./$(SERVICE)/Dockerfile .; \
+	fi
 
-# Пуш всех образов
+# Пуш всех образов или отдельного сервиса
 push:
-	@for service in $(SERVICES); do \
-		echo "Pushing $$service with version $(VERSION)..."; \
-		docker push $(DOCKER_REGISTRY)/$$service:$(VERSION); \
-	done
+	@if [ -z "$(SERVICE)" ]; then \
+		for service in $(SERVICES); do \
+			echo "Pushing $$service with version $(VERSION)..."; \
+			docker push $(DOCKER_REGISTRY)/$$service:$(VERSION); \
+		done; \
+	else \
+		echo "Pushing $(SERVICE) with version $(VERSION)..."; \
+		docker push $(DOCKER_REGISTRY)/$(SERVICE):$(VERSION); \
+	fi
 
 # Сборка и пуш
 build-and-push: build push
@@ -197,6 +207,42 @@ release-green: build-and-push deploy-common deploy-databases deploy-services dep
 	@echo "Deleting blue deployments..."
 	@$(MAKE) delete-blue
 
+# Деплой отдельного сервиса
+# make release-service SERVICE=user-service COLOR=blue VERSION=v1.2.3
+deploy-service:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "Ошибка: необходимо указать SERVICE. Пример: make deploy-service SERVICE=auth-service"; \
+		exit 1; \
+	fi
+	kubectl apply -f k8s/$(SERVICE)/service.yaml -n $(K8S_NAMESPACE)
+
+# Релиз отдельного сервиса с поддержкой blue-green деплоя
+release-service:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "Ошибка: необходимо указать SERVICE. Пример: make release-service SERVICE=auth-service COLOR=green VERSION=$(VERSION)"; \
+		exit 1; \
+	fi
+	@if [ -z "$(COLOR)" ]; then \
+		echo "Ошибка: необходимо указать COLOR (blue или green). Пример: make release-service SERVICE=auth-service COLOR=green VERSION=$(VERSION)"; \
+		exit 1; \
+	fi
+	@echo "Releasing $(SERVICE) ($(COLOR)) with version $(VERSION)..."
+	docker build -t $(DOCKER_REGISTRY)/$(SERVICE):$(VERSION) -f ./$(SERVICE)/Dockerfile .
+	docker push $(DOCKER_REGISTRY)/$(SERVICE):$(VERSION)
+	@echo "Deploying $(SERVICE)-$(COLOR)..."
+	@envsubst < k8s/$(SERVICE)/deployment-$(COLOR).yaml | kubectl apply -n $(K8S_NAMESPACE) -f -
+	@kubectl rollout status deployment/$(SERVICE)-$(COLOR) -n $(K8S_NAMESPACE)
+	@echo "Switching traffic to $(COLOR) version..."
+	kubectl patch service $(SERVICE) -n $(K8S_NAMESPACE) -p "{\"spec\":{\"selector\":{\"app\":\"$(SERVICE)\",\"version\":\"$(COLOR)\"}}}"
+	@echo "Waiting for traffic to stabilize..."
+	@sleep 30
+	@echo "Deleting old deployment..."
+	@if [ "$(COLOR)" = "blue" ]; then \
+		kubectl delete deployment $(SERVICE)-green -n $(K8S_NAMESPACE) --ignore-not-found; \
+	else \
+		kubectl delete deployment $(SERVICE)-blue -n $(K8S_NAMESPACE) --ignore-not-found; \
+	fi
+
 # Логи и проверки
 log:
 	kubectl get pods -n $(K8S_NAMESPACE)
@@ -257,3 +303,35 @@ build-messaging-service:
 
 push-messaging-service:
 	docker push $(DOCKER_REGISTRY)/messaging-service:$(VERSION)
+
+# Проверка статуса подов
+status-pods:
+	kubectl get pods -n $(K8S_NAMESPACE)
+
+# Проверка статуса сервисов
+status-services:
+	kubectl get services -n $(K8S_NAMESPACE)
+
+# Проверка статуса деплойментов
+status-deployments:
+	kubectl get deployments -n $(K8S_NAMESPACE)
+
+# Удаление всех ресурсов в пространстве имен
+clean-k8s:
+	kubectl delete all --all -n $(K8S_NAMESPACE)
+
+# Параллельная сборка всех сервисов
+build:
+	@echo "Building services..."
+	@echo $(SERVICES) | xargs -n 1 -P $(shell nproc) -I {} sh -c ' \
+		echo "Building {} with version $(VERSION)..."; \
+		docker build -t $(DOCKER_REGISTRY)/{}:$(VERSION) -f ./{}'/Dockerfile' . \
+	'
+
+# Параллельный пуш всех образов
+push:
+	@echo "Pushing services..."
+	@echo $(SERVICES) | xargs -n 1 -P $(shell nproc) -I {} sh -c ' \
+		echo "Pushing {} with version $(VERSION)..."; \
+		docker push $(DOCKER_REGISTRY)/{}:$(VERSION) \
+	'
