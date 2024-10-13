@@ -112,6 +112,7 @@ deploy-notification-cassandra:
 	kubectl apply -f k8s/notification-service/cassandra-pvc.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/notification-service/cassandra-deployment.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/notification-service/cassandra-service.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/notification-service/cassandra-init-script.yaml -n $(K8S_NAMESPACE)
 
 # deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra deploy-user-scylla deploy-notification-cassandra
 deploy-databases: deploy-notification-cassandra

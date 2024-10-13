@@ -10,6 +10,6 @@ spec:
     app: notification-cassandra
   ports:
     - port: 9242
-      targetPort: 9042
+      targetPort: 9242
       protocol: TCP
       name: cql

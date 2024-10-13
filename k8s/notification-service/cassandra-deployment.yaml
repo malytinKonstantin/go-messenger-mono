@@ -16,39 +16,58 @@ spec:
         app: notification-cassandra
     spec:
       containers:
-        - name: notification-cassandra
-          image: constmalytin/notification-service-cassandra:latest
+        - name: cassandra
+          image: cassandra:4.0
           ports:
-            - containerPort: 9042
+            - containerPort: 9242
               name: cql
           resources:
             requests:
-              memory: "1Gi"
+              memory: "2Gi"
               cpu: "500m"
             limits:
-              memory: "2Gi"
+              memory: "4Gi"
               cpu: "1"
           env:
             - name: MAX_HEAP_SIZE
-              value: "1G"
+              value: "2G"
             - name: HEAP_NEWSIZE
-              value: "200M"
+              value: "400M"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - name: JVM_OPTS
-              value: "-Xms1G -Xmx1G"
-          readinessProbe:
-            exec:
-              command: ["nodetool", "status"]
-            initialDelaySeconds: 60
-            periodSeconds: 10
-          livenessProbe:
-            exec:
-              command: ["nodetool", "status"]
-            initialDelaySeconds: 120
-            periodSeconds: 30
+              value: >
+                -Dcassandra.rpc_port=9242
+                -Dcassandra.native_transport_port=9242
+                -Dcassandra.storage_port=7001
+                -Dcassandra.jmx.local.port=7199
+                -Dcassandra.listen_address=$(POD_IP)
+                -Dcassandra.broadcast_address=$(POD_IP)
+                -Dcassandra.rpc_address=0.0.0.0
+                -Dcassandra.broadcast_rpc_address=$(POD_IP)
+                -XX:+UseG1GC
+                -XX:G1HeapRegionSize=16M
+                -XX:+ParallelRefProcEnabled
+                -XX:MaxGCPauseMillis=200
+                -XX:InitiatingHeapOccupancyPercent=45
+                -XX:+HeapDumpOnOutOfMemoryError
+                -Djava.net.preferIPv4Stack=true
           volumeMounts:
             - name: cassandra-data
               mountPath: /var/lib/cassandra
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d/init.cql
+              subPath: init.cql
+          lifecycle:
+            postStart:
+              exec:
+                command: ["sh", "-c", "until cqlsh -e 'describe keyspaces' -p 9242; do sleep 5; done; cqlsh -f /docker-entrypoint-initdb.d/init.cql -p 9242"]
       volumes:
         - name: cassandra-data
           persistentVolumeClaim:
             claimName: notification-cassandra-pv-claim
+        - name: init-script
+          configMap:
+            name: cassandra-init-script

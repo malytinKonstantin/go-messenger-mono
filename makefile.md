@@ -246,3 +246,5 @@ make VERSION=v1.0.1 release-green
 
 Если версия не указана, будет использован текущий хеш коммита:
 make release-blue
+
+minikube start --memory=7000 --cpus=4

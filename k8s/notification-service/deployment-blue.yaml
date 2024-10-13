@@ -46,14 +46,4 @@ spec:
             configMapKeyRef:
               name: notification-config
               key: CASSANDRA_KEYSPACE
-        # - name: CASSANDRA_USERNAME
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: notification-cassandra-secret
-        #       key: username
-        # - name: CASSANDRA_PASSWORD
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: notification-cassandra-secret
-        #       key: password
         imagePullPolicy: Always
