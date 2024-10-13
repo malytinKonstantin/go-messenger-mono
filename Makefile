@@ -210,21 +210,21 @@ run-cassandra:
 		-d $(DOCKER_REGISTRY)/messaging-service-cassandra:latest
 
 # Команды для локального запуска ScyllaDB
-build-scylla:
+build-user-scylla:
 	docker build -t $(DOCKER_REGISTRY)/user-service-scylla:latest -f $(USER_SERVICE_DIR)/Dockerfile.scylla $(USER_SERVICE_DIR)
 
-push-scylla:
+push-user-scylla:
 	docker push $(DOCKER_REGISTRY)/user-service-scylla:latest
 
-run-scylla:
+run-user-scylla:
 	docker run --name user-scylla \
 		-p 9052:9042 \
 		-d $(DOCKER_REGISTRY)/user-service-scylla:latest
 
-stop-scylla:
+stop-user-scylla:
 	docker rm -f user-scylla
 
-restart-scylla: stop-scylla run-scylla
+restart-user-scylla: stop-user-scylla run-user-scylla
 
 # Команды для messaging-service
 build-messaging-service:
