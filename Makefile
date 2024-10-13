@@ -2,10 +2,11 @@
 
 DOCKER_HOST := unix:///var/run/docker.sock
 DOCKER_REGISTRY := constmalytin
-SERVICES := api-gateway auth-service friendship-service messaging-service
+SERVICES := api-gateway auth-service friendship-service messaging-service user-service
 K8S_NAMESPACE := go-messenger
 VERSION ?= $(shell git rev-parse --short HEAD)
 MESSAGING_SERVICE_DIR := ./messaging-service
+USER_SERVICE_DIR := ./user-service
 
 GOCMD = go
 GOBUILD = $(GOCMD) build
@@ -97,7 +98,13 @@ deploy-cassandra:
 	kubectl apply -f k8s/messaging-service/cassandra-deployment.yaml -n $(K8S_NAMESPACE)
 	kubectl apply -f k8s/messaging-service/cassandra-service.yaml -n $(K8S_NAMESPACE)
 
-deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra
+deploy-user-scylla:
+	kubectl apply -f k8s/user-service/scylla-pv.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/user-service/scylla-pvc.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/user-service/scylla-deployment.yaml -n $(K8S_NAMESPACE)
+	kubectl apply -f k8s/user-service/scylla-service.yaml -n $(K8S_NAMESPACE)
+
+deploy-databases: deploy-auth-postgres deploy-friendship-neo4j deploy-cassandra deploy-user-scylla
 
 # Деплой сервисов
 deploy-services:
@@ -202,10 +209,22 @@ run-cassandra:
 		-p 9042:9042 \
 		-d $(DOCKER_REGISTRY)/messaging-service-cassandra:latest
 
-stop-cassandra:
-	docker rm -f my-cassandra
+# Команды для локального запуска ScyllaDB
+build-scylla:
+	docker build -t $(DOCKER_REGISTRY)/user-service-scylla:latest -f $(USER_SERVICE_DIR)/Dockerfile.scylla $(USER_SERVICE_DIR)
 
-restart-cassandra: stop-cassandra run-cassandra
+push-scylla:
+	docker push $(DOCKER_REGISTRY)/user-service-scylla:latest
+
+run-scylla:
+	docker run --name user-scylla \
+		-p 9052:9042 \
+		-d $(DOCKER_REGISTRY)/user-service-scylla:latest
+
+stop-scylla:
+	docker rm -f user-scylla
+
+restart-scylla: stop-scylla run-scylla
 
 # Команды для messaging-service
 build-messaging-service:
