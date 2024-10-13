@@ -137,6 +137,10 @@ func main() {
 	// Автоматически считываем переменные окружения
 	viper.AutomaticEnv()
 
+	// Читаем параметры из переменных окружения
+	grpcPort := viper.GetString("GRPC_PORT")
+	httpPort := viper.GetString("HTTP_PORT")
+
 	// Читаем параметры ScyllaDB из переменных окружения
 	scyllaHost := viper.GetString("SCYLLA_HOST")
 	scyllaPort := viper.GetString("SCYLLA_PORT")
@@ -176,7 +180,7 @@ func main() {
 	// defer p.Close()
 
 	// Запуск gRPC сервера
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
 	if err != nil {
 		log.Fatalf("Не удалось прослушать порт: %v", err)
 	}
@@ -191,7 +195,7 @@ func main() {
 	})
 
 	go func() {
-		log.Fatal(app.Listen(":3001"))
+		log.Fatal(app.Listen(fmt.Sprintf(":%s", httpPort)))
 	}()
 
 	log.Printf("gRPC сервер слушает на %v", lis.Addr())
