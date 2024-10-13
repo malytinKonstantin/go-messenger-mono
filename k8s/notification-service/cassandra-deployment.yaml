@@ -30,14 +30,16 @@ spec:
               cpu: "1"
           env:
             - name: MAX_HEAP_SIZE
-              value: "2G"
+              value: "1G"
             - name: HEAP_NEWSIZE
-              value: "400M"
+              value: "200M"
             - name: POD_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-            - name: JVM_OPTS
+            - name: JVM_GC
+              value: "G1GC"
+            - name: JVM_EXTRA_OPTS
               value: >
                 -Dcassandra.rpc_port=9242
                 -Dcassandra.native_transport_port=9242
@@ -47,27 +49,11 @@ spec:
                 -Dcassandra.broadcast_address=$(POD_IP)
                 -Dcassandra.rpc_address=0.0.0.0
                 -Dcassandra.broadcast_rpc_address=$(POD_IP)
-                -XX:+UseG1GC
-                -XX:G1HeapRegionSize=16M
-                -XX:+ParallelRefProcEnabled
-                -XX:MaxGCPauseMillis=200
-                -XX:InitiatingHeapOccupancyPercent=45
-                -XX:+HeapDumpOnOutOfMemoryError
                 -Djava.net.preferIPv4Stack=true
           volumeMounts:
             - name: cassandra-data
               mountPath: /var/lib/cassandra
-            - name: init-script
-              mountPath: /docker-entrypoint-initdb.d/init.cql
-              subPath: init.cql
-          lifecycle:
-            postStart:
-              exec:
-                command: ["sh", "-c", "until cqlsh -e 'describe keyspaces' -p 9242; do sleep 5; done; cqlsh -f /docker-entrypoint-initdb.d/init.cql -p 9242"]
       volumes:
         - name: cassandra-data
           persistentVolumeClaim:
             claimName: notification-cassandra-pv-claim
-        - name: init-script
-          configMap:
-            name: cassandra-init-script
