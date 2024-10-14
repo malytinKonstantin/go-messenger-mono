@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/auth-service";
+
+service AuthService {
+  // Регистрация нового пользователя по электронной почте и паролю
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+
+  // Аутентификация пользователя по электронной почте и паролю
+  rpc Authenticate(AuthRequest) returns (AuthResponse) {}
+
+  // Аутентификация пользователя через OAuth провайдера
+  rpc OAuthAuthenticate(OAuthRequest) returns (AuthResponse) {}
+
+  // Подтверждение адреса электронной почты
+  rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {}
+
+  // Запрос на сброс пароля
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {}
+
+  // Смена пароля с использованием токена сброса
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {}
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  string user_id = 1; // UUID нового пользователя
+}
+
+message AuthRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message AuthResponse {
+  string token = 1; // JWT токен доступа
+}
+
+message OAuthRequest {
+  string provider = 1; // Название провайдера (например, "google", "facebook")
+  string provider_token = 2; // Токен, полученный от OAuth провайдера
+}
+
+message VerifyEmailRequest {
+  string user_id = 1;
+  string verification_code = 2;
+}
+
+message VerifyEmailResponse {
+  bool success = 1;
+}
+
+message ResetPasswordRequest {
+  string email = 1;
+}
+
+message ResetPasswordResponse {
+  bool success = 1;
+}
+
+message ChangePasswordRequest {
+  string reset_token = 1;
+  string new_password = 2;
+}
+
+message ChangePasswordResponse {
+  bool success = 1;
+}

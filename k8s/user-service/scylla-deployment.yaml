@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-scylla
+  namespace: go-messenger
+  labels:
+    app: user-scylla
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-scylla
+  template:
+    metadata:
+      labels:
+        app: user-scylla
+    spec:
+      containers:
+      - name: user-scylla
+        image: constmalytin/user-service-scylla:latest
+        ports:
+        - containerPort: 9042
+        volumeMounts:
+        - name: scylla-data
+          mountPath: /var/lib/scylla
+      volumes:
+      - name: scylla-data
+        persistentVolumeClaim:
+          claimName: user-scylla-pvc

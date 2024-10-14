@@ -1,0 +1,1 @@
+docker run --name user-scylla -d -p 9052:9042 scylladb/scylla

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-scylla-service
+  namespace: go-messenger
+  labels:
+    app: user-scylla
+spec:
+  selector:
+    app: user-scylla
+  ports:
+  - protocol: TCP
+    port: 9042
+    targetPort: 9042
+  type: ClusterIP

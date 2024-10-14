@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-green
+  namespace: go-messenger
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-gateway
+      version: green
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: green
+    spec:
+      containers:
+      - name: api-gateway
+        image: constmalytin/api-gateway:${VERSION}
+        ports:
+        - containerPort: 3000
+        env:
+        - name: HTTP_PORT
+          value: "3000"
+        - name: AUTH_SERVICE_GRPC_PORT
+          value: "50051"  
+        - name: AUTH_SERVICE_HTTP_PORT
+          value: "3001"
+        - name: USER_SERVICE_GRPC_PORT
+          value: "50052"
+        - name: USER_SERVICE_HTTP_PORT
+          value: "3002"
+        - name: FRIENDSHIP_SERVICE_GRPC_PORT
+          value: "50053"
+        - name: FRIENDSHIP_SERVICE_HTTP_PORT
+          value: "3003"
+        - name: MESSAGING_SERVICE_GRPC_PORT
+          value: "50054"
+        - name: MESSAGING_SERVICE_HTTP_PORT
+          value: "3004"
+        - name: NOTIFICATION_SERVICE_GRPC_PORT
+          value: "50055"
+        - name: NOTIFICATION_SERVICE_HTTP_PORT
+          value: "3005"

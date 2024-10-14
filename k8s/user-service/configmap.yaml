@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+  namespace: go-messenger
+data:
+  SCYLLA_HOST: "user-scylla-service.go-messenger.svc.cluster.local"
+  SCYLLA_PORT: "9052"
+  SCYLLA_USER: "scylla"
+  SCYLLA_PASSWORD: "scylla"

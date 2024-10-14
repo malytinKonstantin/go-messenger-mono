@@ -1,0 +1,12 @@
+go 1.21
+
+use (
+	./api-gateway
+	./auth-service
+	./friendship-service
+	./messaging-service
+	./notification-service
+	./proto
+	./shared
+	./user-service
+)

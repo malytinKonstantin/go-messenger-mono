@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: notification-cassandra-pv-claim
+  namespace: go-messenger
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 5Gi

@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  notification-service:
+    build: .
+    ports:
+      - "50055:50055"
+      - "3005:3005"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    restart: always
+
+volumes:
+  redis_data:
+
+networks:
+  backend:
+    driver: bridge

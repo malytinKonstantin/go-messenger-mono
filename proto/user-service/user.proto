@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/user-service";
+
+service UserService {
+  // Получение информации о пользователе
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+
+  // Создание профиля пользователя
+  rpc CreateUserProfile(CreateUserProfileRequest) returns (CreateUserProfileResponse) {}
+
+  // Обновление профиля пользователя
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse) {}
+
+  // Поиск пользователей по никнейму
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse) {}
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  UserProfile profile = 1;
+}
+
+message CreateUserProfileRequest {
+  string user_id = 1; // UUID пользователя из Auth Service
+  string nickname = 2;
+  string bio = 3;
+  string avatar_url = 4;
+}
+
+message CreateUserProfileResponse {
+  UserProfile profile = 1;
+}
+
+message UpdateUserProfileRequest {
+  string user_id = 1;
+  string nickname = 2;
+  string bio = 3;
+  string avatar_url = 4;
+}
+
+message UpdateUserProfileResponse {
+  UserProfile profile = 1;
+}
+
+message SearchUsersRequest {
+  string query = 1;       // Поисковый запрос по никнейму
+  int32 limit = 2;        // Лимит результатов
+  int32 offset = 3;       // Смещение для пагинации
+}
+
+message SearchUsersResponse {
+  repeated UserProfile profiles = 1;
+}
+
+message UserProfile {
+  string user_id = 1;     // Уникальный идентификатор пользователя
+  string nickname = 2;    // Никнейм пользователя
+  string bio = 3;         // Биография пользователя
+  string avatar_url = 4;  // Ссылка на аватарку
+  int64 created_at = 5;   // Дата создания профиля (Unix timestamp)
+  int64 updated_at = 6;   // Дата последнего обновления профиля
+}

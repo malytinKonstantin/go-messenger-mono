@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messaging-service-blue
+  namespace: go-messenger
+  labels:
+    app: messaging-service
+    version: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: messaging-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: messaging-service
+        version: blue
+    spec:
+      containers:
+        - name: messaging-service
+          image: constmalytin/messaging-service:${VERSION}
+          ports:
+            - containerPort: 50054
+            - containerPort: 3004
+          env:
+            - name: GRPC_PORT
+              value: "50054"
+            - name: HTTP_PORT
+              value: "3004"
+            - name: CASSANDRA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config
+                  key: CASSANDRA_HOST
+            - name: CASSANDRA_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config
+                  key: CASSANDRA_PORT
+            - name: CASSANDRA_KEYSPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config
+                  key: CASSANDRA_KEYSPACE
+          imagePullPolicy: Always

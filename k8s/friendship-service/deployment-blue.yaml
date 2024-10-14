@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: friendship-service-blue
+  namespace: go-messenger
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: friendship-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: friendship-service
+        version: blue
+    spec:
+      initContainers:
+      - name: wait-for-neo4j
+        image: alpine:latest
+        command: ['sh', '-c', 'until nc -z neo4j 7687; do echo "Waiting for Neo4j..."; sleep 2; done;']
+      containers:
+      - name: friendship-service
+        image: constmalytin/friendship-service:${VERSION}
+        ports:
+        - containerPort: 50053
+        - containerPort: 3003
+        env:
+        - name: ENV
+          value: "production"
+        - name: GRPC_PORT
+          value: "50053"
+        - name: HTTP_PORT
+          value: "3003"
+        - name: DATABASE_HOST
+          value: "bolt://neo4j:7687"
+        - name: NEO4J_USER
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-secret
+              key: NEO4J_USER
+        - name: NEO4J_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-secret
+              key: NEO4J_PASSWORD

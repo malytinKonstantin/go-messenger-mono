@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cassandra
+  namespace: go-messenger
+  labels:
+    app: cassandra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cassandra
+  template:
+    metadata:
+      labels:
+        app: cassandra
+    spec:
+      containers:
+        - name: cassandra
+          image: constmalytin/messaging-service-cassandra:latest
+          ports:
+            - containerPort: 9042
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          env:
+            - name: MAX_HEAP_SIZE
+              value: "1G"
+            - name: HEAP_NEWSIZE
+              value: "200M"
+            - name: JVM_OPTS
+              value: "-Xms1G -Xmx1G"
+          readinessProbe:
+            exec:
+              command: ["nodetool", "status"]
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["nodetool", "status"]
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          volumeMounts:
+            - name: cassandra-data
+              mountPath: /var/lib/cassandra
+      volumes:
+        - name: cassandra-data
+          persistentVolumeClaim:
+            claimName: cassandra-pv-claim

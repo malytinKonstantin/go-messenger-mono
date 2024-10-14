@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  friendship-service:
+    build: .
+    ports:
+      - "50053:50053"
+      - "3003:3003"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - DATABASE_HOST=neo4j
+      - NEO4J_AUTH=neo4j/neo4j
+    depends_on:
+      - neo4j
+    networks:
+      - backend
+
+  neo4j:
+    image: neo4j:latest
+    environment:
+      - NEO4J_AUTH=neo4j/neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - backend
+    restart: always
+
+volumes:
+  neo4j_data:
+
+networks:
+  backend:
+    driver: bridge

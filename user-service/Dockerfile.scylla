@@ -1,0 +1,9 @@
+FROM scylladb/scylla
+
+COPY init.cql /init.cql
+
+EXPOSE 9042
+
+CMD ["sh", "-c", "/usr/bin/scylla --developer-mode 1 & \
+   until cqlsh -f /init.cql; do sleep 5; done && \
+   tail -f /dev/null"]
