@@ -5,7 +5,6 @@ go 1.21
 require (
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0
-	github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0
 	github.com/spf13/viper v1.19.0
 	google.golang.org/grpc v1.67.1
 )
@@ -41,7 +40,7 @@ require (
 	golang.org/x/text v0.19.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240930140551-af27646dc61f // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240930140551-af27646dc61f // indirect
-	google.golang.org/protobuf v1.34.2 // indirect
+	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
