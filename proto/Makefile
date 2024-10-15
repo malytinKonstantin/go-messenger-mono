@@ -19,23 +19,23 @@ DIR ?= .
 	go install github.com/yoheimuta/protolint/cmd/protolint@latest
 
 # Проверка синтаксиса и стиля proto-файлов с помощью buf
-proto-lint:
+lint:
 	$(LOCAL_BIN)/buf lint
 
 # Проверка обратной совместимости proto-файлов с помощью buf
-proto-breaking:
+breaking:
 	$(LOCAL_BIN)/buf breaking --against '.git#branch=main'
 
 # Генерация кода из proto-файлов с помощью buf
-proto-generate:
+generate:
 	$(LOCAL_BIN)/buf generate --template buf.gen.yaml
 
 # Форматирование proto-файлов с помощью buf
-proto-format:
+format:
 	$(LOCAL_BIN)/buf format -w
 
 # Сборка proto-файлов с помощью buf
-proto-build:
+build:
 	$(LOCAL_BIN)/buf build
 
 # Дополнительная проверка линтером protolint
@@ -43,4 +43,4 @@ protolint:
 	find . -name "*.proto" | xargs $(LOCAL_BIN)/protolint lint
 
 # Выполнение всех команд последовательно
-all: .bin-deps proto-lint proto-breaking proto-generate proto-format proto-build protolint
+all: .bin-deps lint breaking generate format build protolint
