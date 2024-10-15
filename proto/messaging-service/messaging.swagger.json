@@ -1,0 +1,122 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "proto/messaging-service/messaging.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "MessagingService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "messagingGetMessagesResponse": {
+      "type": "object",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/messagingMessage"
+          }
+        }
+      }
+    },
+    "messagingMessage": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "title": "UUID сообщения"
+        },
+        "senderId": {
+          "type": "string",
+          "title": "Идентификатор отправителя"
+        },
+        "recipientId": {
+          "type": "string",
+          "title": "Идентификатор получателя"
+        },
+        "content": {
+          "type": "string",
+          "title": "Текст сообщения"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64",
+          "title": "Временная метка отправки (Unix timestamp)"
+        },
+        "status": {
+          "$ref": "#/definitions/messagingMessageStatus",
+          "title": "Статус сообщения"
+        }
+      }
+    },
+    "messagingMessageStatus": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "SENT",
+        "DELIVERED",
+        "READ"
+      ],
+      "default": "UNKNOWN",
+      "title": "- SENT: Отправлено\n - DELIVERED: Доставлено\n - READ: Прочитано"
+    },
+    "messagingSendMessageResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "messageId": {
+          "type": "string",
+          "title": "UUID отправленного сообщения"
+        }
+      }
+    },
+    "messagingUpdateMessageStatusResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

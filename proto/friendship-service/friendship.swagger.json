@@ -1,0 +1,161 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "proto/friendship-service/friendship.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "FriendshipService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "friendshipAcceptFriendRequestResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "friendshipFriend": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "title": "Идентификатор друга"
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Никнейм друга"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "title": "URL аватарки"
+        },
+        "addedAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Время добавления в друзья"
+        }
+      }
+    },
+    "friendshipFriendRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "title": "Идентификатор пользователя, отправившего запрос"
+        },
+        "friendId": {
+          "type": "string",
+          "title": "Идентификатор пользователя, получившего запрос"
+        },
+        "status": {
+          "type": "string",
+          "title": "Статус запроса (\"pending\", \"accepted\", \"rejected\")"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Время создания запроса"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Время обновления статуса"
+        }
+      }
+    },
+    "friendshipGetFriendsListResponse": {
+      "type": "object",
+      "properties": {
+        "friends": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/friendshipFriend"
+          }
+        }
+      }
+    },
+    "friendshipGetPendingRequestsResponse": {
+      "type": "object",
+      "properties": {
+        "incomingRequests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/friendshipFriendRequest"
+          }
+        },
+        "outgoingRequests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/friendshipFriendRequest"
+          }
+        }
+      }
+    },
+    "friendshipRejectFriendRequestResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "friendshipRemoveFriendResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "friendshipSendFriendRequestResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

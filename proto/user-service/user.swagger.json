@@ -1,0 +1,116 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "proto/user-service/user.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "UserService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "userCreateUserProfileResponse": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "$ref": "#/definitions/userUserProfile"
+        }
+      }
+    },
+    "userGetUserResponse": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "$ref": "#/definitions/userUserProfile"
+        }
+      }
+    },
+    "userSearchUsersResponse": {
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/userUserProfile"
+          }
+        }
+      }
+    },
+    "userUpdateUserProfileResponse": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "$ref": "#/definitions/userUserProfile"
+        }
+      }
+    },
+    "userUserProfile": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "title": "Уникальный идентификатор пользователя"
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Никнейм пользователя"
+        },
+        "bio": {
+          "type": "string",
+          "title": "Биография пользователя"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "title": "Ссылка на аватарку"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Дата создания профиля (Unix timestamp)"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Дата последнего обновления профиля"
+        }
+      }
+    }
+  }
+}

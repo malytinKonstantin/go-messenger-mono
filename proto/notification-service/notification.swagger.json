@@ -1,0 +1,150 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "proto/notification-service/notification.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "NotificationService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "notificationGetNotificationPreferencesResponse": {
+      "type": "object",
+      "properties": {
+        "preferences": {
+          "$ref": "#/definitions/notificationNotificationPreferences"
+        }
+      }
+    },
+    "notificationGetNotificationsResponse": {
+      "type": "object",
+      "properties": {
+        "notifications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/notificationNotification"
+          }
+        }
+      }
+    },
+    "notificationMarkNotificationAsReadResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "notificationNotification": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Идентификатор уведомления (UUID)"
+        },
+        "userId": {
+          "type": "string",
+          "title": "Идентификатор получателя"
+        },
+        "message": {
+          "type": "string",
+          "title": "Содержание уведомления"
+        },
+        "type": {
+          "$ref": "#/definitions/notificationNotificationType",
+          "title": "Тип уведомления"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Время создания (Unix timestamp)"
+        },
+        "isRead": {
+          "type": "boolean",
+          "title": "Статус прочтения"
+        }
+      }
+    },
+    "notificationNotificationPreferences": {
+      "type": "object",
+      "properties": {
+        "newMessage": {
+          "type": "boolean",
+          "title": "Предпочтение по уведомлениям о новых сообщениях"
+        },
+        "friendRequest": {
+          "type": "boolean",
+          "title": "Предпочтение по уведомлениям о запросах в друзья"
+        },
+        "system": {
+          "type": "boolean",
+          "title": "Предпочтение по системным уведомлениям"
+        }
+      }
+    },
+    "notificationNotificationType": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "NEW_MESSAGE",
+        "FRIEND_REQUEST",
+        "SYSTEM"
+      ],
+      "default": "UNKNOWN"
+    },
+    "notificationSendNotificationResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "notificationUpdateNotificationPreferencesResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
