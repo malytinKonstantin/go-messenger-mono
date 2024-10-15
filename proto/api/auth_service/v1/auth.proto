@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.auth_service.v1;
 
-import "buf/validate/validate.proto";
+import "validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 

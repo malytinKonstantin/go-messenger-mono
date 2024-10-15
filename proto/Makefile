@@ -1,3 +1,5 @@
+include vendor.proto.mk
+
 # Используем bin в текущей директории для установки плагинов protoc
 LOCAL_BIN := $(CURDIR)/bin
 export PATH := $(LOCAL_BIN):$(PATH)
