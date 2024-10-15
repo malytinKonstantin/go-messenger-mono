@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: proto/user-service/user.proto
+// source: api/user_service/v1/user.proto
 
 package user_service
 
@@ -19,15 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_GetUser_FullMethodName           = "/user.UserService/GetUser"
-	UserService_CreateUserProfile_FullMethodName = "/user.UserService/CreateUserProfile"
-	UserService_UpdateUserProfile_FullMethodName = "/user.UserService/UpdateUserProfile"
-	UserService_SearchUsers_FullMethodName       = "/user.UserService/SearchUsers"
+	UserService_GetUser_FullMethodName           = "/api.user_service.v1.UserService/GetUser"
+	UserService_CreateUserProfile_FullMethodName = "/api.user_service.v1.UserService/CreateUserProfile"
+	UserService_UpdateUserProfile_FullMethodName = "/api.user_service.v1.UserService/UpdateUserProfile"
+	UserService_SearchUsers_FullMethodName       = "/api.user_service.v1.UserService/SearchUsers"
 )
 
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Сервис для управления пользователями
 type UserServiceClient interface {
 	// Получение информации о пользователе
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
@@ -35,7 +37,7 @@ type UserServiceClient interface {
 	CreateUserProfile(ctx context.Context, in *CreateUserProfileRequest, opts ...grpc.CallOption) (*CreateUserProfileResponse, error)
 	// Обновление профиля пользователя
 	UpdateUserProfile(ctx context.Context, in *UpdateUserProfileRequest, opts ...grpc.CallOption) (*UpdateUserProfileResponse, error)
-	// Поиск пользователей по никнейму
+	// Поиск пользователей
 	SearchUsers(ctx context.Context, in *SearchUsersRequest, opts ...grpc.CallOption) (*SearchUsersResponse, error)
 }
 
@@ -90,6 +92,8 @@ func (c *userServiceClient) SearchUsers(ctx context.Context, in *SearchUsersRequ
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
+//
+// Сервис для управления пользователями
 type UserServiceServer interface {
 	// Получение информации о пользователе
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
@@ -97,7 +101,7 @@ type UserServiceServer interface {
 	CreateUserProfile(context.Context, *CreateUserProfileRequest) (*CreateUserProfileResponse, error)
 	// Обновление профиля пользователя
 	UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*UpdateUserProfileResponse, error)
-	// Поиск пользователей по никнейму
+	// Поиск пользователей
 	SearchUsers(context.Context, *SearchUsersRequest) (*SearchUsersResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -218,7 +222,7 @@ func _UserService_SearchUsers_Handler(srv interface{}, ctx context.Context, dec 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "user.UserService",
+	ServiceName: "api.user_service.v1.UserService",
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -239,5 +243,5 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/user-service/user.proto",
+	Metadata: "api/user_service/v1/user.proto",
 }

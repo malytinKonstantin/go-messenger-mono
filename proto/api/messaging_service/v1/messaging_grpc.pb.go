@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: proto/messaging-service/messaging.proto
+// source: api/messaging_service/v1/messaging.proto
 
 package messaging_service
 
@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MessagingService_SendMessage_FullMethodName         = "/messaging.MessagingService/SendMessage"
-	MessagingService_GetMessages_FullMethodName         = "/messaging.MessagingService/GetMessages"
-	MessagingService_UpdateMessageStatus_FullMethodName = "/messaging.MessagingService/UpdateMessageStatus"
+	MessagingService_SendMessage_FullMethodName         = "/api.messaging_service.v1.MessagingService/SendMessage"
+	MessagingService_GetMessages_FullMethodName         = "/api.messaging_service.v1.MessagingService/GetMessages"
+	MessagingService_UpdateMessageStatus_FullMethodName = "/api.messaging_service.v1.MessagingService/UpdateMessageStatus"
 )
 
 // MessagingServiceClient is the client API for MessagingService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Сервис для отправки и получения сообщений между пользователями
 type MessagingServiceClient interface {
 	// Отправка сообщения
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
@@ -77,6 +79,8 @@ func (c *messagingServiceClient) UpdateMessageStatus(ctx context.Context, in *Up
 // MessagingServiceServer is the server API for MessagingService service.
 // All implementations must embed UnimplementedMessagingServiceServer
 // for forward compatibility.
+//
+// Сервис для отправки и получения сообщений между пользователями
 type MessagingServiceServer interface {
 	// Отправка сообщения
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
@@ -182,7 +186,7 @@ func _MessagingService_UpdateMessageStatus_Handler(srv interface{}, ctx context.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var MessagingService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "messaging.MessagingService",
+	ServiceName: "api.messaging_service.v1.MessagingService",
 	HandlerType: (*MessagingServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -199,5 +203,5 @@ var MessagingService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/messaging-service/messaging.proto",
+	Metadata: "api/messaging_service/v1/messaging.proto",
 }

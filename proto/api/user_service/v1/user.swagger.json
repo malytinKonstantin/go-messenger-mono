@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "proto/user-service/user.proto",
+    "title": "api/user_service/v1/user.proto",
     "version": "version not set"
   },
   "tags": [
@@ -45,48 +45,56 @@
         }
       }
     },
-    "userCreateUserProfileResponse": {
+    "v1CreateUserProfileResponse": {
       "type": "object",
       "properties": {
         "profile": {
-          "$ref": "#/definitions/userUserProfile"
+          "$ref": "#/definitions/v1UserProfile",
+          "title": "Профиль пользователя"
         }
-      }
+      },
+      "title": "Сообщение с информацией о созданном профиле пользователя"
     },
-    "userGetUserResponse": {
+    "v1GetUserResponse": {
       "type": "object",
       "properties": {
         "profile": {
-          "$ref": "#/definitions/userUserProfile"
+          "$ref": "#/definitions/v1UserProfile",
+          "title": "Профиль пользователя"
         }
-      }
+      },
+      "title": "Сообщение с информацией о пользователе"
     },
-    "userSearchUsersResponse": {
+    "v1SearchUsersResponse": {
       "type": "object",
       "properties": {
         "profiles": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/userUserProfile"
-          }
+            "$ref": "#/definitions/v1UserProfile"
+          },
+          "title": "Список профилей пользователей"
         }
-      }
+      },
+      "title": "Сообщение с результатами поиска пользователей"
     },
-    "userUpdateUserProfileResponse": {
+    "v1UpdateUserProfileResponse": {
       "type": "object",
       "properties": {
         "profile": {
-          "$ref": "#/definitions/userUserProfile"
+          "$ref": "#/definitions/v1UserProfile",
+          "title": "Профиль пользователя"
         }
-      }
+      },
+      "title": "Сообщение с информацией об обновленном профиле пользователя"
     },
-    "userUserProfile": {
+    "v1UserProfile": {
       "type": "object",
       "properties": {
         "userId": {
           "type": "string",
-          "title": "Уникальный идентификатор пользователя"
+          "title": "Идентификатор пользователя"
         },
         "nickname": {
           "type": "string",
@@ -98,19 +106,20 @@
         },
         "avatarUrl": {
           "type": "string",
-          "title": "Ссылка на аватарку"
+          "title": "URL аватарки пользователя"
         },
         "createdAt": {
           "type": "string",
           "format": "int64",
-          "title": "Дата создания профиля (Unix timestamp)"
+          "title": "Время создания профиля (Unix timestamp)"
         },
         "updatedAt": {
           "type": "string",
           "format": "int64",
-          "title": "Дата последнего обновления профиля"
+          "title": "Время последнего обновления профиля (Unix timestamp)"
         }
-      }
+      },
+      "title": "Профиль пользователя"
     }
   }
 }

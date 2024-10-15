@@ -1,0 +1,164 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/notification_service/v1/notification.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "NotificationService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1GetNotificationPreferencesResponse": {
+      "type": "object",
+      "properties": {
+        "preferences": {
+          "$ref": "#/definitions/v1NotificationPreferences",
+          "title": "Предпочтения уведомлений"
+        }
+      },
+      "title": "Сообщение для ответа с предпочтениями уведомлений"
+    },
+    "v1GetNotificationsResponse": {
+      "type": "object",
+      "properties": {
+        "notifications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Notification"
+          },
+          "title": "Список уведомлений"
+        }
+      },
+      "title": "Сообщение для ответа с списком уведомлений"
+    },
+    "v1MarkNotificationAsReadResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "title": "Успешность операции"
+        }
+      },
+      "title": "Сообщение для ответа на пометку уведомления как прочитанного"
+    },
+    "v1Notification": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Идентификатор уведомления (UUID)"
+        },
+        "userId": {
+          "type": "string",
+          "title": "Идентификатор получателя"
+        },
+        "message": {
+          "type": "string",
+          "title": "Содержание уведомления"
+        },
+        "type": {
+          "$ref": "#/definitions/v1NotificationType",
+          "title": "Тип уведомления"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Время создания (Unix timestamp)"
+        },
+        "isRead": {
+          "type": "boolean",
+          "title": "Статус прочтения"
+        }
+      },
+      "title": "Структура уведомления"
+    },
+    "v1NotificationPreferences": {
+      "type": "object",
+      "properties": {
+        "newMessage": {
+          "type": "boolean",
+          "title": "Уведомления о новых сообщениях"
+        },
+        "friendRequest": {
+          "type": "boolean",
+          "title": "Уведомления о запросах в друзья"
+        },
+        "system": {
+          "type": "boolean",
+          "title": "Системные уведомления"
+        }
+      },
+      "title": "Предпочтения уведомлений пользователя"
+    },
+    "v1NotificationType": {
+      "type": "string",
+      "enum": [
+        "NOTIFICATION_TYPE_UNSPECIFIED",
+        "NOTIFICATION_TYPE_NEW_MESSAGE",
+        "NOTIFICATION_TYPE_FRIEND_REQUEST",
+        "NOTIFICATION_TYPE_SYSTEM"
+      ],
+      "default": "NOTIFICATION_TYPE_UNSPECIFIED",
+      "description": "- NOTIFICATION_TYPE_UNSPECIFIED: Неопределенный тип уведомления\n - NOTIFICATION_TYPE_NEW_MESSAGE: Новое сообщение\n - NOTIFICATION_TYPE_FRIEND_REQUEST: Запрос в друзья\n - NOTIFICATION_TYPE_SYSTEM: Системное уведомление",
+      "title": "Типы уведомлений"
+    },
+    "v1SendNotificationResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "title": "Успешность операции"
+        }
+      },
+      "title": "Сообщение для ответа на отправку уведомления"
+    },
+    "v1UpdateNotificationPreferencesResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "title": "Успешность операции"
+        }
+      },
+      "title": "Сообщение для ответа на обновление предпочтений уведомлений"
+    }
+  }
+}

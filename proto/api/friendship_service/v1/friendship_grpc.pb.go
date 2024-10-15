@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: proto/friendship-service/friendship.proto
+// source: api/friendship_service/v1/friendship.proto
 
 package friendship_service
 
@@ -19,17 +19,19 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FriendshipService_SendFriendRequest_FullMethodName   = "/friendship.FriendshipService/SendFriendRequest"
-	FriendshipService_AcceptFriendRequest_FullMethodName = "/friendship.FriendshipService/AcceptFriendRequest"
-	FriendshipService_RejectFriendRequest_FullMethodName = "/friendship.FriendshipService/RejectFriendRequest"
-	FriendshipService_RemoveFriend_FullMethodName        = "/friendship.FriendshipService/RemoveFriend"
-	FriendshipService_GetFriendsList_FullMethodName      = "/friendship.FriendshipService/GetFriendsList"
-	FriendshipService_GetPendingRequests_FullMethodName  = "/friendship.FriendshipService/GetPendingRequests"
+	FriendshipService_SendFriendRequest_FullMethodName   = "/api.friendship_service.v1.FriendshipService/SendFriendRequest"
+	FriendshipService_AcceptFriendRequest_FullMethodName = "/api.friendship_service.v1.FriendshipService/AcceptFriendRequest"
+	FriendshipService_RejectFriendRequest_FullMethodName = "/api.friendship_service.v1.FriendshipService/RejectFriendRequest"
+	FriendshipService_RemoveFriend_FullMethodName        = "/api.friendship_service.v1.FriendshipService/RemoveFriend"
+	FriendshipService_GetFriendsList_FullMethodName      = "/api.friendship_service.v1.FriendshipService/GetFriendsList"
+	FriendshipService_GetPendingRequests_FullMethodName  = "/api.friendship_service.v1.FriendshipService/GetPendingRequests"
 )
 
 // FriendshipServiceClient is the client API for FriendshipService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Сервис для управления дружбой между пользователями
 type FriendshipServiceClient interface {
 	// Отправка запроса на добавление в друзья
 	SendFriendRequest(ctx context.Context, in *SendFriendRequestRequest, opts ...grpc.CallOption) (*SendFriendRequestResponse, error)
@@ -116,6 +118,8 @@ func (c *friendshipServiceClient) GetPendingRequests(ctx context.Context, in *Ge
 // FriendshipServiceServer is the server API for FriendshipService service.
 // All implementations must embed UnimplementedFriendshipServiceServer
 // for forward compatibility.
+//
+// Сервис для управления дружбой между пользователями
 type FriendshipServiceServer interface {
 	// Отправка запроса на добавление в друзья
 	SendFriendRequest(context.Context, *SendFriendRequestRequest) (*SendFriendRequestResponse, error)
@@ -290,7 +294,7 @@ func _FriendshipService_GetPendingRequests_Handler(srv interface{}, ctx context.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var FriendshipService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "friendship.FriendshipService",
+	ServiceName: "api.friendship_service.v1.FriendshipService",
 	HandlerType: (*FriendshipServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -319,5 +323,5 @@ var FriendshipService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/friendship-service/friendship.proto",
+	Metadata: "api/friendship_service/v1/friendship.proto",
 }

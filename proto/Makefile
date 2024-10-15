@@ -2,10 +2,14 @@
 LOCAL_BIN := $(CURDIR)/bin
 export PATH := $(LOCAL_BIN):$(PATH)
 
-.PHONY: install-tools proto-lint proto-breaking proto-generate proto-format proto-build
+# Опциональный параметр DIR для указания папки
+DIR ?= .
+
+.PHONY: .bin-deps proto-lint proto-breaking proto-generate proto-format proto-build protolint all
 
 # Установка всех необходимых инструментов для работы с proto-файлами
-install-tools:
+.bin-deps: export GOBIN := $(LOCAL_BIN)
+.bin-deps:
 	@echo "Installing tools..."
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -16,34 +20,27 @@ install-tools:
 
 # Проверка синтаксиса и стиля proto-файлов с помощью buf
 proto-lint:
-	@echo "Linting proto files..."
-	buf lint
+	$(LOCAL_BIN)/buf lint
 
 # Проверка обратной совместимости proto-файлов с помощью buf
 proto-breaking:
-	@echo "Checking for breaking changes..."
-	buf breaking --against '.git#branch=main'
+	$(LOCAL_BIN)/buf breaking --against '.git#branch=main'
 
 # Генерация кода из proto-файлов с помощью buf
 proto-generate:
-	@echo "Generating code from proto files..."
-	buf generate --template buf.gen.yaml
+	$(LOCAL_BIN)/buf generate --template buf.gen.yaml
 
 # Форматирование proto-файлов с помощью buf
 proto-format:
-	@echo "Formatting proto files..."
-	buf format -w
+	$(LOCAL_BIN)/buf format -w
 
 # Сборка proto-файлов с помощью buf
 proto-build:
-	@echo "Building proto files..."
-	buf build
+	$(LOCAL_BIN)/buf build
 
 # Дополнительная проверка линтером protolint
 protolint:
-	@echo "Running protolint..."
-	protolint lint ./proto
+	find . -name "*.proto" | xargs $(LOCAL_BIN)/protolint lint
 
 # Выполнение всех команд последовательно
-all: install-tools proto-lint proto-breaking proto-generate proto-format proto-build protolint
-	@echo "All tasks completed successfully!"
+all: .bin-deps proto-lint proto-breaking proto-generate proto-format proto-build protolint

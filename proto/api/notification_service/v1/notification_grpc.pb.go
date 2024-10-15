@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: proto/notification-service/notification.proto
+// source: api/notification_service/v1/notification.proto
 
 package notification_service
 
@@ -19,16 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NotificationService_SendNotification_FullMethodName              = "/notification.NotificationService/SendNotification"
-	NotificationService_GetNotifications_FullMethodName              = "/notification.NotificationService/GetNotifications"
-	NotificationService_MarkNotificationAsRead_FullMethodName        = "/notification.NotificationService/MarkNotificationAsRead"
-	NotificationService_UpdateNotificationPreferences_FullMethodName = "/notification.NotificationService/UpdateNotificationPreferences"
-	NotificationService_GetNotificationPreferences_FullMethodName    = "/notification.NotificationService/GetNotificationPreferences"
+	NotificationService_SendNotification_FullMethodName              = "/api.notification_service.v1.NotificationService/SendNotification"
+	NotificationService_GetNotifications_FullMethodName              = "/api.notification_service.v1.NotificationService/GetNotifications"
+	NotificationService_MarkNotificationAsRead_FullMethodName        = "/api.notification_service.v1.NotificationService/MarkNotificationAsRead"
+	NotificationService_UpdateNotificationPreferences_FullMethodName = "/api.notification_service.v1.NotificationService/UpdateNotificationPreferences"
+	NotificationService_GetNotificationPreferences_FullMethodName    = "/api.notification_service.v1.NotificationService/GetNotificationPreferences"
 )
 
 // NotificationServiceClient is the client API for NotificationService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Сервис для управления уведомлениями пользователей
 type NotificationServiceClient interface {
 	// Отправка уведомления пользователю
 	SendNotification(ctx context.Context, in *SendNotificationRequest, opts ...grpc.CallOption) (*SendNotificationResponse, error)
@@ -103,6 +105,8 @@ func (c *notificationServiceClient) GetNotificationPreferences(ctx context.Conte
 // NotificationServiceServer is the server API for NotificationService service.
 // All implementations must embed UnimplementedNotificationServiceServer
 // for forward compatibility.
+//
+// Сервис для управления уведомлениями пользователей
 type NotificationServiceServer interface {
 	// Отправка уведомления пользователю
 	SendNotification(context.Context, *SendNotificationRequest) (*SendNotificationResponse, error)
@@ -254,7 +258,7 @@ func _NotificationService_GetNotificationPreferences_Handler(srv interface{}, ct
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var NotificationService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "notification.NotificationService",
+	ServiceName: "api.notification_service.v1.NotificationService",
 	HandlerType: (*NotificationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -279,5 +283,5 @@ var NotificationService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/notification-service/notification.proto",
+	Metadata: "api/notification_service/v1/notification.proto",
 }

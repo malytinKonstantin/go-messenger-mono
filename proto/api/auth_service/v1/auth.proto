@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package api.auth_service.v1;
+
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/api/v1/auth_service;auth_service";
+
+// AuthService предоставляет методы для аутентификации и управления учетными записями пользователей.
+service AuthService {
+  // Регистрация нового пользователя по электронной почте и паролю
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+
+  // Аутентификация пользователя по электронной почте и паролю
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {}
+
+  // Аутентификация пользователя через OAuth провайдера
+  rpc OAuthAuthenticate(OAuthAuthenticateRequest) returns (OAuthAuthenticateResponse) {}
+
+  // Подтверждение адреса электронной почты
+  rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {}
+
+  // Запрос на сброс пароля
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {}
+
+  // Смена пароля с использованием токена сброса
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {}
+}
+
+// RegisterRequest содержит данные для регистрации нового пользователя.
+message RegisterRequest {
+  // Email пользователя
+  string email = 1;
+  // Пароль пользователя
+  string password = 2;
+}
+
+// RegisterResponse содержит результат регистрации нового пользователя.
+message RegisterResponse {
+  // UUID нового пользователя
+  string user_id = 1;
+}
+
+// AuthenticateRequest содержит данные для аутентификации пользователя.
+message AuthenticateRequest {
+  // Email пользователя
+  string email = 1;
+  // Пароль пользователя
+  string password = 2;
+}
+
+// AuthenticateResponse содержит результат аутентификации пользователя.
+message AuthenticateResponse {
+  // JWT токен доступа
+  string token = 1;
+}
+
+// OAuthAuthenticateRequest содержит данные для аутентификации через OAuth.
+message OAuthAuthenticateRequest {
+  // Название провайдера (например, "google", "facebook")
+  string provider = 1;
+  // Токен, полученный от OAuth провайдера
+  string provider_token = 2;
+}
+
+// OAuthAuthenticateResponse содержит результат аутентификации через OAuth.
+message OAuthAuthenticateResponse {
+  // JWT токен доступа
+  string token = 1;
+}
+
+// VerifyEmailRequest содержит данные для подтверждения email.
+message VerifyEmailRequest {
+  // Идентификатор пользователя
+  string user_id = 1;
+  // Код подтверждения
+  string verification_code = 2;
+}
+
+// VerifyEmailResponse содержит результат подтверждения email.
+message VerifyEmailResponse {
+  // Успешность операции
+  bool success = 1;
+}
+
+// ResetPasswordRequest содержит данные для запроса сброса пароля.
+message ResetPasswordRequest {
+  // Email пользователя
+  string email = 1;
+}
+
+// ResetPasswordResponse содержит результат запроса сброса пароля.
+message ResetPasswordResponse {
+  // Успешность операции
+  bool success = 1;
+}
+
+// ChangePasswordRequest содержит данные для смены пароля.
+message ChangePasswordRequest {
+  // Токен сброса пароля
+  string reset_token = 1;
+  // Новый пароль
+  string new_password = 2;
+}
+
+// ChangePasswordResponse содержит результат смены пароля.
+message ChangePasswordResponse {
+  // Успешность операции
+  bool success = 1;
+}

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: proto/auth-service/auth.proto
+// source: api/auth_service/v1/auth.proto
 
 package auth_service
 
@@ -19,24 +19,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Register_FullMethodName          = "/auth.AuthService/Register"
-	AuthService_Authenticate_FullMethodName      = "/auth.AuthService/Authenticate"
-	AuthService_OAuthAuthenticate_FullMethodName = "/auth.AuthService/OAuthAuthenticate"
-	AuthService_VerifyEmail_FullMethodName       = "/auth.AuthService/VerifyEmail"
-	AuthService_ResetPassword_FullMethodName     = "/auth.AuthService/ResetPassword"
-	AuthService_ChangePassword_FullMethodName    = "/auth.AuthService/ChangePassword"
+	AuthService_Register_FullMethodName          = "/api.auth_service.v1.AuthService/Register"
+	AuthService_Authenticate_FullMethodName      = "/api.auth_service.v1.AuthService/Authenticate"
+	AuthService_OAuthAuthenticate_FullMethodName = "/api.auth_service.v1.AuthService/OAuthAuthenticate"
+	AuthService_VerifyEmail_FullMethodName       = "/api.auth_service.v1.AuthService/VerifyEmail"
+	AuthService_ResetPassword_FullMethodName     = "/api.auth_service.v1.AuthService/ResetPassword"
+	AuthService_ChangePassword_FullMethodName    = "/api.auth_service.v1.AuthService/ChangePassword"
 )
 
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// AuthService предоставляет методы для аутентификации и управления учетными записями пользователей.
 type AuthServiceClient interface {
 	// Регистрация нового пользователя по электронной почте и паролю
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	// Аутентификация пользователя по электронной почте и паролю
-	Authenticate(ctx context.Context, in *AuthRequest, opts ...grpc.CallOption) (*AuthResponse, error)
+	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	// Аутентификация пользователя через OAuth провайдера
-	OAuthAuthenticate(ctx context.Context, in *OAuthRequest, opts ...grpc.CallOption) (*AuthResponse, error)
+	OAuthAuthenticate(ctx context.Context, in *OAuthAuthenticateRequest, opts ...grpc.CallOption) (*OAuthAuthenticateResponse, error)
 	// Подтверждение адреса электронной почты
 	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*VerifyEmailResponse, error)
 	// Запрос на сброс пароля
@@ -63,9 +65,9 @@ func (c *authServiceClient) Register(ctx context.Context, in *RegisterRequest, o
 	return out, nil
 }
 
-func (c *authServiceClient) Authenticate(ctx context.Context, in *AuthRequest, opts ...grpc.CallOption) (*AuthResponse, error) {
+func (c *authServiceClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthResponse)
+	out := new(AuthenticateResponse)
 	err := c.cc.Invoke(ctx, AuthService_Authenticate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -73,9 +75,9 @@ func (c *authServiceClient) Authenticate(ctx context.Context, in *AuthRequest, o
 	return out, nil
 }
 
-func (c *authServiceClient) OAuthAuthenticate(ctx context.Context, in *OAuthRequest, opts ...grpc.CallOption) (*AuthResponse, error) {
+func (c *authServiceClient) OAuthAuthenticate(ctx context.Context, in *OAuthAuthenticateRequest, opts ...grpc.CallOption) (*OAuthAuthenticateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthResponse)
+	out := new(OAuthAuthenticateResponse)
 	err := c.cc.Invoke(ctx, AuthService_OAuthAuthenticate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -116,13 +118,15 @@ func (c *authServiceClient) ChangePassword(ctx context.Context, in *ChangePasswo
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
+//
+// AuthService предоставляет методы для аутентификации и управления учетными записями пользователей.
 type AuthServiceServer interface {
 	// Регистрация нового пользователя по электронной почте и паролю
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	// Аутентификация пользователя по электронной почте и паролю
-	Authenticate(context.Context, *AuthRequest) (*AuthResponse, error)
+	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	// Аутентификация пользователя через OAuth провайдера
-	OAuthAuthenticate(context.Context, *OAuthRequest) (*AuthResponse, error)
+	OAuthAuthenticate(context.Context, *OAuthAuthenticateRequest) (*OAuthAuthenticateResponse, error)
 	// Подтверждение адреса электронной почты
 	VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error)
 	// Запрос на сброс пароля
@@ -142,10 +146,10 @@ type UnimplementedAuthServiceServer struct{}
 func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
-func (UnimplementedAuthServiceServer) Authenticate(context.Context, *AuthRequest) (*AuthResponse, error) {
+func (UnimplementedAuthServiceServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
 }
-func (UnimplementedAuthServiceServer) OAuthAuthenticate(context.Context, *OAuthRequest) (*AuthResponse, error) {
+func (UnimplementedAuthServiceServer) OAuthAuthenticate(context.Context, *OAuthAuthenticateRequest) (*OAuthAuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OAuthAuthenticate not implemented")
 }
 func (UnimplementedAuthServiceServer) VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error) {
@@ -197,7 +201,7 @@ func _AuthService_Register_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 func _AuthService_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthRequest)
+	in := new(AuthenticateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -209,13 +213,13 @@ func _AuthService_Authenticate_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: AuthService_Authenticate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).Authenticate(ctx, req.(*AuthRequest))
+		return srv.(AuthServiceServer).Authenticate(ctx, req.(*AuthenticateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _AuthService_OAuthAuthenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OAuthRequest)
+	in := new(OAuthAuthenticateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -227,7 +231,7 @@ func _AuthService_OAuthAuthenticate_Handler(srv interface{}, ctx context.Context
 		FullMethod: AuthService_OAuthAuthenticate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).OAuthAuthenticate(ctx, req.(*OAuthRequest))
+		return srv.(AuthServiceServer).OAuthAuthenticate(ctx, req.(*OAuthAuthenticateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -290,7 +294,7 @@ func _AuthService_ChangePassword_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AuthService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "auth.AuthService",
+	ServiceName: "api.auth_service.v1.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -319,5 +323,5 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/auth-service/auth.proto",
+	Metadata: "api/auth_service/v1/auth.proto",
 }

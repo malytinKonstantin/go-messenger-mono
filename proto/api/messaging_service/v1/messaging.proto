@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package api.messaging_service.v1;
+
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/api/v1/messaging_service;messaging_service";
+
+// Сервис для отправки и получения сообщений между пользователями
+service MessagingService {
+  // Отправка сообщения
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+
+  // Получение истории переписки с пользователем
+  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
+
+  // Обновление статуса сообщения
+  rpc UpdateMessageStatus(UpdateMessageStatusRequest) returns (UpdateMessageStatusResponse) {}
+}
+
+// Сообщение для запроса отправки сообщения
+message SendMessageRequest {
+  // Идентификатор отправителя
+  string sender_id = 1;
+  // Идентификатор получателя
+  string recipient_id = 2;
+  // Текст сообщения
+  string content = 3;
+}
+
+// Сообщение для ответа на отправку сообщения
+message SendMessageResponse {
+  // Успешность операции
+  bool success = 1;
+  // UUID отправленного сообщения
+  string message_id = 2;
+}
+
+// Сообщение для запроса получения истории переписки
+message GetMessagesRequest {
+  // Идентификатор пользователя, запрашивающего сообщения
+  string user_id = 1;
+  // Идентификатор собеседника
+  string conversation_user_id = 2;
+  // Количество сообщений для получения
+  int32 limit = 3;
+  // Смещение для пагинации
+  int32 offset = 4;
+}
+
+// Сообщение с ответом на запрос истории переписки
+message GetMessagesResponse {
+  // Список сообщений
+  repeated Message messages = 1;
+}
+
+// Сообщение для запроса обновления статуса сообщения
+message UpdateMessageStatusRequest {
+  // UUID сообщения
+  string message_id = 1;
+  // Идентификатор пользователя, обновляющего статус
+  string user_id = 2;
+  // Новый статус сообщения
+  MessageStatus status = 3;
+}
+
+// Сообщение с ответом на обновление статуса сообщения
+message UpdateMessageStatusResponse {
+  // Успешность операции
+  bool success = 1;
+}
+
+// Структура сообщения
+message Message {
+  // UUID сообщения
+  string message_id = 1;
+  // Идентификатор отправителя
+  string sender_id = 2;
+  // Идентификатор получателя
+  string recipient_id = 3;
+  // Текст сообщения
+  string content = 4;
+  // Временная метка отправки (Unix timestamp)
+  int64 timestamp = 5;
+  // Статус сообщения
+  MessageStatus status = 6;
+}
+
+// Статус сообщения
+enum MessageStatus {
+  // Неопределенный статус
+  MESSAGE_STATUS_UNSPECIFIED = 0;
+  // Отправлено
+  MESSAGE_STATUS_SENT = 1;
+  // Доставлено
+  MESSAGE_STATUS_DELIVERED = 2;
+  // Прочитано
+  MESSAGE_STATUS_READ = 3;
+}

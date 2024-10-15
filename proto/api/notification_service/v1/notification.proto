@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package api.notification_service.v1;
+
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/api/v1/notification_service;notification_service";
+
+// Сервис для управления уведомлениями пользователей
+service NotificationService {
+  // Отправка уведомления пользователю
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse) {}
+
+  // Получение списка уведомлений пользователя
+  rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse) {}
+
+  // Пометка уведомления как прочитанное
+  rpc MarkNotificationAsRead(MarkNotificationAsReadRequest) returns (MarkNotificationAsReadResponse) {}
+
+  // Обновление предпочтений уведомлений пользователя
+  rpc UpdateNotificationPreferences(UpdateNotificationPreferencesRequest) returns (UpdateNotificationPreferencesResponse) {}
+
+  // Получение предпочтений уведомлений пользователя
+  rpc GetNotificationPreferences(GetNotificationPreferencesRequest) returns (GetNotificationPreferencesResponse) {}
+}
+
+// Сообщение для запроса отправки уведомления
+message SendNotificationRequest {
+  // Идентификатор получателя
+  string user_id = 1;
+  // Содержание уведомления
+  string message = 2;
+  // Тип уведомления
+  NotificationType type = 3;
+}
+
+// Сообщение для ответа на отправку уведомления
+message SendNotificationResponse {
+  // Успешность операции
+  bool success = 1;
+}
+
+// Сообщение для запроса получения списка уведомлений пользователя
+message GetNotificationsRequest {
+  // Идентификатор пользователя
+  string user_id = 1;
+  // Максимальное количество уведомлений
+  int32 limit = 2;
+  // Смещение для пагинации
+  int32 offset = 3;
+}
+
+// Сообщение для ответа с списком уведомлений
+message GetNotificationsResponse {
+  // Список уведомлений
+  repeated Notification notifications = 1;
+}
+
+// Сообщение для запроса пометки уведомления как прочитанного
+message MarkNotificationAsReadRequest {
+  // Идентификатор уведомления
+  string notification_id = 1;
+  // Идентификатор пользователя
+  string user_id = 2;
+}
+
+// Сообщение для ответа на пометку уведомления как прочитанного
+message MarkNotificationAsReadResponse {
+  // Успешность операции
+  bool success = 1;
+}
+
+// Сообщение для запроса обновления предпочтений уведомлений пользователя
+message UpdateNotificationPreferencesRequest {
+  // Идентификатор пользователя
+  string user_id = 1;
+  // Новые предпочтения
+  NotificationPreferences preferences = 2;
+}
+
+// Сообщение для ответа на обновление предпочтений уведомлений
+message UpdateNotificationPreferencesResponse {
+  // Успешность операции
+  bool success = 1;
+}
+
+// Сообщение для запроса получения предпочтений уведомлений пользователя
+message GetNotificationPreferencesRequest {
+  // Идентификатор пользователя
+  string user_id = 1;
+}
+
+// Сообщение для ответа с предпочтениями уведомлений
+message GetNotificationPreferencesResponse {
+  // Предпочтения уведомлений
+  NotificationPreferences preferences = 1;
+}
+
+// Структура уведомления
+message Notification {
+  // Идентификатор уведомления (UUID)
+  string id = 1;
+  // Идентификатор получателя
+  string user_id = 2;
+  // Содержание уведомления
+  string message = 3;
+  // Тип уведомления
+  NotificationType type = 4;
+  // Время создания (Unix timestamp)
+  int64 created_at = 5;
+  // Статус прочтения
+  bool is_read = 6;
+}
+
+// Предпочтения уведомлений пользователя
+message NotificationPreferences {
+  // Уведомления о новых сообщениях
+  bool new_message = 1;
+  // Уведомления о запросах в друзья
+  bool friend_request = 2;
+  // Системные уведомления
+  bool system = 3;
+}
+
+// Типы уведомлений
+enum NotificationType {
+  // Неопределенный тип уведомления
+  NOTIFICATION_TYPE_UNSPECIFIED = 0;
+  // Новое сообщение
+  NOTIFICATION_TYPE_NEW_MESSAGE = 1;
+  // Запрос в друзья
+  NOTIFICATION_TYPE_FRIEND_REQUEST = 2;
+  // Системное уведомление
+  NOTIFICATION_TYPE_SYSTEM = 3;
+}

@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package api.user_service.v1;
+
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/api/user_service/v1;user_service";
+
+// Сервис для управления пользователями
+service UserService {
+  // Получение информации о пользователе
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+
+  // Создание профиля пользователя
+  rpc CreateUserProfile(CreateUserProfileRequest) returns (CreateUserProfileResponse) {}
+
+  // Обновление профиля пользователя
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse) {}
+
+  // Поиск пользователей
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse) {}
+}
+
+// Сообщение для запроса получения информации о пользователе
+message GetUserRequest {
+  // Идентификатор пользователя
+  string user_id = 1;
+}
+
+// Сообщение с информацией о пользователе
+message GetUserResponse {
+  // Профиль пользователя
+  UserProfile profile = 1;
+}
+
+// Сообщение для запроса создания профиля пользователя
+message CreateUserProfileRequest {
+  // Идентификатор пользователя
+  string user_id = 1;
+  // Никнейм пользователя
+  string nickname = 2;
+  // Биография пользователя
+  string bio = 3;
+  // URL аватарки пользователя
+  string avatar_url = 4;
+}
+
+// Сообщение с информацией о созданном профиле пользователя
+message CreateUserProfileResponse {
+  // Профиль пользователя
+  UserProfile profile = 1;
+}
+
+// Сообщение для запроса обновления профиля пользователя
+message UpdateUserProfileRequest {
+  // Идентификатор пользователя
+  string user_id = 1;
+  // Никнейм пользователя
+  string nickname = 2;
+  // Биография пользователя
+  string bio = 3;
+  // URL аватарки пользователя
+  string avatar_url = 4;
+}
+
+// Сообщение с информацией об обновленном профиле пользователя
+message UpdateUserProfileResponse {
+  // Профиль пользователя
+  UserProfile profile = 1;
+}
+
+// Сообщение для запроса поиска пользователей
+message SearchUsersRequest {
+  // Строка запроса для поиска
+  string query = 1;
+  // Количество результатов для получения
+  int32 limit = 2;
+  // Смещение для пагинации
+  int32 offset = 3;
+}
+
+// Сообщение с результатами поиска пользователей
+message SearchUsersResponse {
+  // Список профилей пользователей
+  repeated UserProfile profiles = 1;
+}
+
+// Профиль пользователя
+message UserProfile {
+  // Идентификатор пользователя
+  string user_id = 1;
+  // Никнейм пользователя
+  string nickname = 2;
+  // Биография пользователя
+  string bio = 3;
+  // URL аватарки пользователя
+  string avatar_url = 4;
+  // Время создания профиля (Unix timestamp)
+  int64 created_at = 5;
+  // Время последнего обновления профиля (Unix timestamp)
+  int64 updated_at = 6;
+}
