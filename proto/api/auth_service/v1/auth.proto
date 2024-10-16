@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.auth_service.v1;
 
-import "validate/validate.proto";
+import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
@@ -63,12 +63,12 @@ service AuthService {
 message RegisterRequest {
   // Email пользователя
   string email = 1 [
-    (buf.validate.field).string = { email: true },
+    (buf.validate.field).string = {email: true},
     (google.api.field_behavior) = REQUIRED
   ];
   // Пароль пользователя
   string password = 2 [
-    (buf.validate.field).string = { min_len: 8 },
+    (buf.validate.field).string = {min_len: 8},
     (google.api.field_behavior) = REQUIRED
   ];
 }
@@ -76,21 +76,19 @@ message RegisterRequest {
 // RegisterResponse содержит результат регистрации нового пользователя.
 message RegisterResponse {
   // UUID нового пользователя
-  string user_id = 1 [
-    (buf.validate.field).string = { uuid: true }
-  ];
+  string user_id = 1 [(buf.validate.field).string = {uuid: true}];
 }
 
 // AuthenticateRequest содержит данные для аутентификации пользователя.
 message AuthenticateRequest {
   // Email пользователя
   string email = 1 [
-    (buf.validate.field).string = { email: true },
+    (buf.validate.field).string = {email: true},
     (google.api.field_behavior) = REQUIRED
   ];
   // Пароль пользователя
   string password = 2 [
-    (buf.validate.field).string = { min_len: 8 },
+    (buf.validate.field).string = {min_len: 8},
     (google.api.field_behavior) = REQUIRED
   ];
 }
@@ -98,21 +96,19 @@ message AuthenticateRequest {
 // AuthenticateResponse содержит результат аутентификации пользователя.
 message AuthenticateResponse {
   // JWT токен доступа
-  string token = 1 [
-    (buf.validate.field).string = { min_len: 1 }
-  ];
+  string token = 1 [(buf.validate.field).string = {min_len: 1}];
 }
 
 // OAuthAuthenticateRequest содержит данные для аутентификации через OAuth.
 message OAuthAuthenticateRequest {
   // Название провайдера (например, "google", "facebook")
   string provider = 1 [
-    (buf.validate.field).string = { min_len: 1 },
+    (buf.validate.field).string = {min_len: 1},
     (google.api.field_behavior) = REQUIRED
   ];
   // Токен, полученный от OAuth провайдера
   string provider_token = 2 [
-    (buf.validate.field).string = { min_len: 1 },
+    (buf.validate.field).string = {min_len: 1},
     (google.api.field_behavior) = REQUIRED
   ];
 }
@@ -120,21 +116,19 @@ message OAuthAuthenticateRequest {
 // OAuthAuthenticateResponse содержит результат аутентификации через OAuth.
 message OAuthAuthenticateResponse {
   // JWT токен доступа
-  string token = 1 [
-    (buf.validate.field).string = { min_len: 1 }
-  ];
+  string token = 1 [(buf.validate.field).string = {min_len: 1}];
 }
 
 // VerifyEmailRequest содержит данные для подтверждения email.
 message VerifyEmailRequest {
   // Идентификатор пользователя
   string user_id = 1 [
-    (buf.validate.field).string = { uuid: true },
+    (buf.validate.field).string = {uuid: true},
     (google.api.field_behavior) = REQUIRED
   ];
   // Код подтверждения
   string verification_code = 2 [
-    (buf.validate.field).string = { min_len: 6 },
+    (buf.validate.field).string = {min_len: 6},
     (google.api.field_behavior) = REQUIRED
   ];
 }
@@ -149,7 +143,7 @@ message VerifyEmailResponse {
 message ResetPasswordRequest {
   // Email пользователя
   string email = 1 [
-    (buf.validate.field).string = { email: true },
+    (buf.validate.field).string = {email: true},
     (google.api.field_behavior) = REQUIRED
   ];
 }
@@ -164,12 +158,12 @@ message ResetPasswordResponse {
 message ChangePasswordRequest {
   // Токен сброса пароля
   string reset_token = 1 [
-    (buf.validate.field).string = { min_len: 1 },
+    (buf.validate.field).string = {min_len: 1},
     (google.api.field_behavior) = REQUIRED
   ];
   // Новый пароль
   string new_password = 2 [
-    (buf.validate.field).string = { min_len: 8 },
+    (buf.validate.field).string = {min_len: 8},
     (google.api.field_behavior) = REQUIRED
   ];
 }
