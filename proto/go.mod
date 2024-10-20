@@ -16,3 +16,11 @@ require (
 	golang.org/x/text v0.19.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240930140551-af27646dc61f // indirect
 )
+
+replace (
+    github.com/malytinKonstantin/go-messenger-mono/proto/auth-service => ./pkg/api/auth_service/v1
+    github.com/malytinKonstantin/go-messenger-mono/proto/friendship-service => ./pkg/api/friendship_service/v1
+    github.com/malytinKonstantin/go-messenger-mono/proto/messaging-service => ./pkg/api/messaging_service/v1
+    github.com/malytinKonstantin/go-messenger-mono/proto/notification-service => ./pkg/api/notification_service/v1
+    github.com/malytinKonstantin/go-messenger-mono/proto/user-service => ./pkg/api/user_service/v1
+)

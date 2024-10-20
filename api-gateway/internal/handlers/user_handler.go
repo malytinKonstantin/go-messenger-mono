@@ -9,7 +9,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
-	user_service "github.com/malytinKonstantin/go-messenger-mono/proto/user-service"
+	user_service "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/user_service/v1"
 )
 
 func RegisterUserService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error {

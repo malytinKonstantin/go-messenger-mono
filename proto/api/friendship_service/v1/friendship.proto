@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.friendship_service.v1;
 
-option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/api/v1/friendship_service;friendship_service";
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1;friendship_service";
 
 // Сервис для управления дружбой между пользователями
 service FriendshipService {

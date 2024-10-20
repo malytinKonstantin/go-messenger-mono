@@ -8,7 +8,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
-	friendship_service "github.com/malytinKonstantin/go-messenger-mono/proto/friendship-service"
+	friendship_service "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1"
 )
 
 func RegisterFriendshipService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error {

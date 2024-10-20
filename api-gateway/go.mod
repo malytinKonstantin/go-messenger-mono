@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.35.1-20240920164238-5a7b106cbb87.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -44,5 +45,7 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+require github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0
 
 replace github.com/malytinKonstantin/go-messenger-mono/proto => ../proto

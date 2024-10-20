@@ -10,7 +10,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
-	pb "github.com/malytinKonstantin/go-messenger-mono/proto/friendship-service"
+	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"

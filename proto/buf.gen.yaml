@@ -9,17 +9,17 @@ managed:
 plugins:
   # protoc-gen-go - генерация go типов для message и enum (https://github.com/protocolbuffers/protobuf-go)
   - local: protoc-gen-go
-    out: .
+    out: pkg/api
     opt:
       - paths=source_relative
   # protoc-gen-go-grpc - генерация grpc сервиса и клиента (https://github.com/grpc/grpc-go)
   - local: protoc-gen-go-grpc
-    out: .
+    out: pkg/api
     opt:
       - paths=source_relative
   # protoc-gen-grpc-gateway - генерация grpc-gateway RESTful HTTP proxy (https://github.com/grpc-ecosystem/grpc-gateway)
   - local: protoc-gen-grpc-gateway
-    out: .
+    out: pkg/api
     opt:
       - paths=source_relative
       - generate_unbound_methods=true

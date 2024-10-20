@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.messaging_service.v1;
 
-option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/api/v1/messaging_service;messaging_service";
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/messaging_service/v1;messaging_service";
 
 // Сервис для отправки и получения сообщений между пользователями
 service MessagingService {

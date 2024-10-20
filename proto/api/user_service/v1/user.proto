@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.user_service.v1;
 
-option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/api/user_service/v1;user_service";
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/user_service/v1;user_service";
 
 // Сервис для управления пользователями
 service UserService {

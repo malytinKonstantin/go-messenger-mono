@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.notification_service.v1;
 
-option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/api/v1/notification_service;notification_service";
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/notification_service/v1;notification_service";
 
 // Сервис для управления уведомлениями пользователей
 service NotificationService {

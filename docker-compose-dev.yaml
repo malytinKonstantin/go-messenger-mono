@@ -25,6 +25,27 @@ services:
     networks:
       - kafka_network
 
+  auth_postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${AUTH_SERVICE_DB_USER}
+      - POSTGRES_PASSWORD=${AUTH_SERVICE_DB_PASSWORD}
+      - POSTGRES_DB=${AUTH_SERVICE_DB_NAME}
+    ports:
+      - "${AUTH_SERVICE_DB_PG_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
 networks:
   kafka_network:
     driver: bridge

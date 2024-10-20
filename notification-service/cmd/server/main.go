@@ -13,7 +13,7 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
-	pb "github.com/malytinKonstantin/go-messenger-mono/proto/notification-service"
+	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/notification_service/v1"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
