@@ -16,7 +16,6 @@ func RegisterAuthService(ctx context.Context, mux *runtime.ServeMux, endpoint st
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	client := auth_service.NewAuthServiceClient(conn)
 
@@ -78,7 +77,7 @@ func handleRegister(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 
 func handleAuthenticate(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		var req auth_service.AuthRequest
+		var req auth_service.AuthenticateRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -95,7 +94,7 @@ func handleAuthenticate(client auth_service.AuthServiceClient) runtime.HandlerFu
 
 func handleOAuthAuthenticate(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		var req auth_service.OAuthRequest
+		var req auth_service.OAuthAuthenticateRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

@@ -53,10 +53,17 @@ func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 	}
 
 	for _, service := range services {
-		endpoint := fmt.Sprintf("%s-service:%s", service.name, viper.GetString(fmt.Sprintf("%s_SERVICE_GRPC_PORT", service.name)))
+		var endpoint string
+		if viper.GetString("ENV") == "local" {
+			port := viper.GetString(fmt.Sprintf("%s_SERVICE_GRPC_PORT", service.name))
+			endpoint = fmt.Sprintf("localhost:%s", port)
+		} else {
+			endpoint = fmt.Sprintf("%s-service:%s", service.name, viper.GetString(fmt.Sprintf("%s_SERVICE_GRPC_PORT", service.name)))
+		}
 		if err := service.register(ctx, grpcMux, endpoint, opts); err != nil {
 			return nil, fmt.Errorf("error registering %s service: %w", service.name, err)
 		}
+		log.Printf("Successfully connected to %s service at %s", service.name, endpoint)
 	}
 
 	return grpcMux, nil
