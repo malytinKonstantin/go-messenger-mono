@@ -46,9 +46,12 @@ vendor:	.vendor-reset .vendor-googleapis .vendor-google-protobuf .vendor-protova
 .vendor-protovalidate:
 	git clone -b main --single-branch --depth=1 --filter=tree:0 \
 		https://github.com/bufbuild/protovalidate $(VENDOR_PROTO_PATH)/protovalidate && \
-	cd $(VENDOR_PROTO_PATH)/protovalidate
+	cd $(VENDOR_PROTO_PATH)/protovalidate && \
+	git sparse-checkout init --cone && \
+	git sparse-checkout set proto/buf/validate && \
 	git checkout
-	mv $(VENDOR_PROTO_PATH)/protovalidate/proto/protovalidate/buf $(VENDOR_PROTO_PATH)
+	mkdir -p $(VENDOR_PROTO_PATH)/buf/validate
+	cp -r $(VENDOR_PROTO_PATH)/protovalidate/proto/buf/validate/* $(VENDOR_PROTO_PATH)/buf/validate/
 	rm -rf $(VENDOR_PROTO_PATH)/protovalidate
 
 # delete all non .proto files

@@ -19,6 +19,8 @@ DIR ?= .
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 	go install github.com/bufbuild/buf/cmd/buf@latest
 	go install github.com/yoheimuta/protolint/cmd/protolint@latest
+	go install github.com/envoyproxy/protoc-gen-validate@v0.6.7
+	
 
 # Проверка синтаксиса и стиля proto-файлов с помощью buf
 lint:

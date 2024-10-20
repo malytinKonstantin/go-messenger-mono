@@ -18,9 +18,9 @@ require (
 )
 
 replace (
-    github.com/malytinKonstantin/go-messenger-mono/proto/auth-service => ./pkg/api/auth_service/v1
-    github.com/malytinKonstantin/go-messenger-mono/proto/friendship-service => ./pkg/api/friendship_service/v1
-    github.com/malytinKonstantin/go-messenger-mono/proto/messaging-service => ./pkg/api/messaging_service/v1
-    github.com/malytinKonstantin/go-messenger-mono/proto/notification-service => ./pkg/api/notification_service/v1
-    github.com/malytinKonstantin/go-messenger-mono/proto/user-service => ./pkg/api/user_service/v1
+	github.com/malytinKonstantin/go-messenger-mono/proto/auth-service => ./pkg/api/auth_service/v1
+	github.com/malytinKonstantin/go-messenger-mono/proto/friendship-service => ./pkg/api/friendship_service/v1
+	github.com/malytinKonstantin/go-messenger-mono/proto/messaging-service => ./pkg/api/messaging_service/v1
+	github.com/malytinKonstantin/go-messenger-mono/proto/notification-service => ./pkg/api/notification_service/v1
+	github.com/malytinKonstantin/go-messenger-mono/proto/user-service => ./pkg/api/user_service/v1
 )

@@ -34,6 +34,12 @@ plugins:
       - logtostderr=true
       - allow_merge=true
       - merge_file_name=swagger
+  # Правильный идентификатор плагина protoc-gen-validate
+  - remote: buf.build/envoyproxy/protoc-gen-validate:v0.6.7
+    out: pkg/api
+    opt:
+      - paths=source_relative
+      - lang=go
 inputs:
   - directory: api
   # - git_repo: github.com/malytinKonstantin/go-messenger-mono
