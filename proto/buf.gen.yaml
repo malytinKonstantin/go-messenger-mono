@@ -35,7 +35,7 @@ plugins:
       - allow_merge=true
       - merge_file_name=swagger
   # Правильный идентификатор плагина protoc-gen-validate
-  - remote: buf.build/envoyproxy/protoc-gen-validate:v0.6.7
+  - remote: buf.build/envoyproxy/protoc-gen-validate:v1.1.0
     out: pkg/api
     opt:
       - paths=source_relative
