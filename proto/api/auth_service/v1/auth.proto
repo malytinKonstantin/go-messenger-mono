@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package api.auth_service.v1;
 
-// import "envoy/service/validate/validate.proto";
 import "validate/validate.proto";
 import "google/api/field_behavior.proto";
+import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/auth_service/v1;auth_service";
@@ -13,6 +13,10 @@ option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/ap
 service AuthService {
   // Регистрация нового пользователя по электронной почте и паролю
   rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Регистрация нового пользователя"
       tags: "AuthService"
@@ -21,6 +25,10 @@ service AuthService {
 
   // Аутентификация пользователя по электронной почте и паролю
   rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Аутентификация пользователя"
       tags: "AuthService"
@@ -29,6 +37,10 @@ service AuthService {
 
   // Аутентификация пользователя через OAuth провайдера
   rpc OAuthAuthenticate(OAuthAuthenticateRequest) returns (OAuthAuthenticateResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/oauth"
+      body: "*"
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Аутентификация через OAuth"
       tags: "AuthService"
@@ -37,6 +49,10 @@ service AuthService {
 
   // Подтверждение адреса электронной почты
   rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/verify-email"
+      body: "*"
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Подтверждение адреса электронной почты"
       tags: "AuthService"
@@ -45,6 +61,10 @@ service AuthService {
 
   // Запрос на сброс пароля
   rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/reset-password"
+      body: "*"
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Запрос на сброс пароля"
       tags: "AuthService"
@@ -53,6 +73,10 @@ service AuthService {
 
   // Смена пароля с использованием токена сброса
   rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/change-password"
+      body: "*"
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Смена пароля"
       tags: "AuthService"

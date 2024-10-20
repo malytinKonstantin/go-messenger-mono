@@ -33,7 +33,7 @@ plugins:
       - generate_unbound_methods=true
       - logtostderr=true
       - allow_merge=true
-      - merge_file_name=swagger
+      - merge_file_name=docs
   # Правильный идентификатор плагина protoc-gen-validate
   - local: protoc-gen-validate
     out: pkg/api

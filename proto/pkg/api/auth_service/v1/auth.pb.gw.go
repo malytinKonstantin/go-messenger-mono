@@ -202,7 +202,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/Register", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/Register"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/Register", runtime.WithHTTPPathPattern("/v1/auth/register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -227,7 +227,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/Authenticate", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/Authenticate"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/Authenticate", runtime.WithHTTPPathPattern("/v1/auth/login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -252,7 +252,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/OAuthAuthenticate", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/OAuthAuthenticate"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/OAuthAuthenticate", runtime.WithHTTPPathPattern("/v1/auth/oauth"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -277,7 +277,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/VerifyEmail", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/VerifyEmail"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/VerifyEmail", runtime.WithHTTPPathPattern("/v1/auth/verify-email"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -302,7 +302,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/ResetPassword", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/ResetPassword"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/ResetPassword", runtime.WithHTTPPathPattern("/v1/auth/reset-password"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -327,7 +327,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/ChangePassword", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/ChangePassword"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.auth_service.v1.AuthService/ChangePassword", runtime.WithHTTPPathPattern("/v1/auth/change-password"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -391,7 +391,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/Register", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/Register"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/Register", runtime.WithHTTPPathPattern("/v1/auth/register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -413,7 +413,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/Authenticate", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/Authenticate"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/Authenticate", runtime.WithHTTPPathPattern("/v1/auth/login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -435,7 +435,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/OAuthAuthenticate", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/OAuthAuthenticate"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/OAuthAuthenticate", runtime.WithHTTPPathPattern("/v1/auth/oauth"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -457,7 +457,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/VerifyEmail", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/VerifyEmail"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/VerifyEmail", runtime.WithHTTPPathPattern("/v1/auth/verify-email"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -479,7 +479,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/ResetPassword", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/ResetPassword"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/ResetPassword", runtime.WithHTTPPathPattern("/v1/auth/reset-password"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -501,7 +501,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/ChangePassword", runtime.WithHTTPPathPattern("/api.auth_service.v1.AuthService/ChangePassword"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.auth_service.v1.AuthService/ChangePassword", runtime.WithHTTPPathPattern("/v1/auth/change-password"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -521,17 +521,17 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 }
 
 var (
-	pattern_AuthService_Register_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.auth_service.v1.AuthService", "Register"}, ""))
+	pattern_AuthService_Register_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "register"}, ""))
 
-	pattern_AuthService_Authenticate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.auth_service.v1.AuthService", "Authenticate"}, ""))
+	pattern_AuthService_Authenticate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "login"}, ""))
 
-	pattern_AuthService_OAuthAuthenticate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.auth_service.v1.AuthService", "OAuthAuthenticate"}, ""))
+	pattern_AuthService_OAuthAuthenticate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "oauth"}, ""))
 
-	pattern_AuthService_VerifyEmail_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.auth_service.v1.AuthService", "VerifyEmail"}, ""))
+	pattern_AuthService_VerifyEmail_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "verify-email"}, ""))
 
-	pattern_AuthService_ResetPassword_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.auth_service.v1.AuthService", "ResetPassword"}, ""))
+	pattern_AuthService_ResetPassword_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "reset-password"}, ""))
 
-	pattern_AuthService_ChangePassword_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.auth_service.v1.AuthService", "ChangePassword"}, ""))
+	pattern_AuthService_ChangePassword_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "change-password"}, ""))
 )
 
 var (
