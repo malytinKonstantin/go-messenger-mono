@@ -56,10 +56,22 @@ services:
       - kafka_network
     restart: always
 
+  messaging_cassandra:
+    build:
+      context: ./messaging-service
+      dockerfile: Dockerfile.cassandra
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    networks:
+      - kafka_network
+    restart: always
+
 volumes:
   postgres_data:
   neo4j_data:
-
+  cassandra_data:
 networks:
   kafka_network:
     driver: bridge

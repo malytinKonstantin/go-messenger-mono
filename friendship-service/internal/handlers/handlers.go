@@ -23,7 +23,7 @@ func NewFriendshipHandler(producer *kafka.Producer, driver neo4j.Driver) *Friend
 
 func (h *FriendshipHandler) SendFriendRequest(ctx context.Context, req *pb.SendFriendRequestRequest) (*pb.SendFriendRequestResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Ошибка валидации: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
 	}
 	// Моковый ответ с учетом типа pb.SendFriendRequestResponse
 	return &pb.SendFriendRequestResponse{
@@ -33,7 +33,7 @@ func (h *FriendshipHandler) SendFriendRequest(ctx context.Context, req *pb.SendF
 
 func (h *FriendshipHandler) AcceptFriendRequest(ctx context.Context, req *pb.AcceptFriendRequestRequest) (*pb.AcceptFriendRequestResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Ошибка валидации: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
 	}
 	// Моковый ответ с учетом типа pb.AcceptFriendRequestResponse
 	return &pb.AcceptFriendRequestResponse{
@@ -43,7 +43,7 @@ func (h *FriendshipHandler) AcceptFriendRequest(ctx context.Context, req *pb.Acc
 
 func (h *FriendshipHandler) RejectFriendRequest(ctx context.Context, req *pb.RejectFriendRequestRequest) (*pb.RejectFriendRequestResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Ошибка валидации: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
 	}
 	// Моковый ответ с учетом типа pb.RejectFriendRequestResponse
 	return &pb.RejectFriendRequestResponse{
@@ -53,7 +53,7 @@ func (h *FriendshipHandler) RejectFriendRequest(ctx context.Context, req *pb.Rej
 
 func (h *FriendshipHandler) RemoveFriend(ctx context.Context, req *pb.RemoveFriendRequest) (*pb.RemoveFriendResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Ошибка валидации: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
 	}
 	// Моковый ответ
 	return &pb.RemoveFriendResponse{}, nil
@@ -61,7 +61,7 @@ func (h *FriendshipHandler) RemoveFriend(ctx context.Context, req *pb.RemoveFrie
 
 func (h *FriendshipHandler) GetFriendsList(ctx context.Context, req *pb.GetFriendsListRequest) (*pb.GetFriendsListResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Ошибка валидации: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
 	}
 	// Моковый список друзей с учетом типа pb.Friend
 	friends := []*pb.Friend{
@@ -83,7 +83,7 @@ func (h *FriendshipHandler) GetFriendsList(ctx context.Context, req *pb.GetFrien
 
 func (h *FriendshipHandler) GetPendingRequests(ctx context.Context, req *pb.GetPendingRequestsRequest) (*pb.GetPendingRequestsResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Ошибка валидации: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
 	}
 	// Моковые входящие и исходящие запросы с учетом структуры FriendRequest
 	incomingRequests := []*pb.FriendRequest{
