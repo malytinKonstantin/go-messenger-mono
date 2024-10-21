@@ -16,7 +16,6 @@ func RegisterFriendshipService(ctx context.Context, mux *runtime.ServeMux, endpo
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	client := friendship_service.NewFriendshipServiceClient(conn)
 
@@ -124,6 +123,10 @@ func handleRemoveFriend(client friendship_service.FriendshipServiceClient) runti
 func handleGetFriendsList(client friendship_service.FriendshipServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		userID := r.URL.Query().Get("user_id")
+		if userID == "" {
+			http.Error(w, "user_id is a required parameter", http.StatusBadRequest)
+			return
+		}
 		req := &friendship_service.GetFriendsListRequest{UserId: userID}
 		resp, err := client.GetFriendsList(r.Context(), req)
 		if err != nil {
@@ -138,6 +141,10 @@ func handleGetFriendsList(client friendship_service.FriendshipServiceClient) run
 func handleGetPendingRequests(client friendship_service.FriendshipServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		userID := r.URL.Query().Get("user_id")
+		if userID == "" {
+			http.Error(w, "user_id is a required parameter", http.StatusBadRequest)
+			return
+		}
 		req := &friendship_service.GetPendingRequestsRequest{UserId: userID}
 		resp, err := client.GetPendingRequests(r.Context(), req)
 		if err != nil {

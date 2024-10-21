@@ -46,7 +46,7 @@ func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 		register func(context.Context, *runtime.ServeMux, string, []grpc.DialOption) error
 	}{
 		{"auth", handlers.RegisterAuthService},
-		// {"friendship", handlers.RegisterFriendshipService},
+		{"friendship", handlers.RegisterFriendshipService},
 		// {"messaging", handlers.RegisterMessagingService},
 		// {"notification", handlers.RegisterNotificationService},
 		// {"user", handlers.RegisterUserService},

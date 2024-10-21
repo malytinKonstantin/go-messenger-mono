@@ -17,7 +17,6 @@ func RegisterNotificationService(ctx context.Context, mux *runtime.ServeMux, end
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	client := notification_service.NewNotificationServiceClient(conn)
 

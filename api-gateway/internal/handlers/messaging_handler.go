@@ -16,7 +16,6 @@ func RegisterMessagingService(ctx context.Context, mux *runtime.ServeMux, endpoi
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	client := messaging_service.NewMessagingServiceClient(conn)
 

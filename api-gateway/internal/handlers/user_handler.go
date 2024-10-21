@@ -17,7 +17,6 @@ func RegisterUserService(ctx context.Context, mux *runtime.ServeMux, endpoint st
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	client := user_service.NewUserServiceClient(conn)
 
