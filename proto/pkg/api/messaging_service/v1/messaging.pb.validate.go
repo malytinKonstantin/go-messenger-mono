@@ -35,6 +35,9 @@ var (
 	_ = sort.Sort
 )
 
+// define the regex for a UUID once up-front
+var _messaging_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on SendMessageRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -57,14 +60,51 @@ func (m *SendMessageRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SenderId
+	if err := m._validateUuid(m.GetSenderId()); err != nil {
+		err = SendMessageRequestValidationError{
+			field:  "SenderId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for RecipientId
+	if err := m._validateUuid(m.GetRecipientId()); err != nil {
+		err = SendMessageRequestValidationError{
+			field:  "RecipientId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Content
+	if utf8.RuneCountInString(m.GetContent()) < 1 {
+		err := SendMessageRequestValidationError{
+			field:  "Content",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return SendMessageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *SendMessageRequest) _validateUuid(uuid string) error {
+	if matched := _messaging_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -165,12 +205,28 @@ func (m *SendMessageResponse) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Success
-
-	// no validation rules for MessageId
+	if err := m._validateUuid(m.GetMessageId()); err != nil {
+		err = SendMessageResponseValidationError{
+			field:  "MessageId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return SendMessageResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *SendMessageResponse) _validateUuid(uuid string) error {
+	if matched := _messaging_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -271,16 +327,62 @@ func (m *GetMessagesRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = GetMessagesRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for ConversationUserId
+	if err := m._validateUuid(m.GetConversationUserId()); err != nil {
+		err = GetMessagesRequestValidationError{
+			field:  "ConversationUserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Limit
+	if m.GetLimit() <= 0 {
+		err := GetMessagesRequestValidationError{
+			field:  "Limit",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Offset
+	if m.GetOffset() < 0 {
+		err := GetMessagesRequestValidationError{
+			field:  "Offset",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetMessagesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetMessagesRequest) _validateUuid(uuid string) error {
+	if matched := _messaging_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -517,14 +619,42 @@ func (m *UpdateMessageStatusRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for MessageId
+	if err := m._validateUuid(m.GetMessageId()); err != nil {
+		err = UpdateMessageStatusRequestValidationError{
+			field:  "MessageId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = UpdateMessageStatusRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Status
 
 	if len(errors) > 0 {
 		return UpdateMessageStatusRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UpdateMessageStatusRequest) _validateUuid(uuid string) error {
+	if matched := _messaging_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -729,13 +859,52 @@ func (m *Message) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for MessageId
+	if err := m._validateUuid(m.GetMessageId()); err != nil {
+		err = MessageValidationError{
+			field:  "MessageId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for SenderId
+	if err := m._validateUuid(m.GetSenderId()); err != nil {
+		err = MessageValidationError{
+			field:  "SenderId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for RecipientId
+	if err := m._validateUuid(m.GetRecipientId()); err != nil {
+		err = MessageValidationError{
+			field:  "RecipientId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Content
+	if utf8.RuneCountInString(m.GetContent()) < 1 {
+		err := MessageValidationError{
+			field:  "Content",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Timestamp
 
@@ -743,6 +912,14 @@ func (m *Message) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return MessageMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *Message) _validateUuid(uuid string) error {
+	if matched := _messaging_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil

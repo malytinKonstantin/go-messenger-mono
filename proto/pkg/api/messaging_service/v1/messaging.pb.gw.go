@@ -57,11 +57,18 @@ func local_request_MessagingService_SendMessage_0(ctx context.Context, marshaler
 
 }
 
+var (
+	filter_MessagingService_GetMessages_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_MessagingService_GetMessages_0(ctx context.Context, marshaler runtime.Marshaler, client MessagingServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetMessagesRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_MessagingService_GetMessages_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -74,7 +81,10 @@ func local_request_MessagingService_GetMessages_0(ctx context.Context, marshaler
 	var protoReq GetMessagesRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_MessagingService_GetMessages_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -124,7 +134,7 @@ func RegisterMessagingServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/SendMessage", runtime.WithHTTPPathPattern("/api.messaging_service.v1.MessagingService/SendMessage"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/SendMessage", runtime.WithHTTPPathPattern("/v1/messaging/send-message"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -141,7 +151,7 @@ func RegisterMessagingServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 
 	})
 
-	mux.Handle("POST", pattern_MessagingService_GetMessages_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_MessagingService_GetMessages_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -149,7 +159,7 @@ func RegisterMessagingServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/GetMessages", runtime.WithHTTPPathPattern("/api.messaging_service.v1.MessagingService/GetMessages"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/GetMessages", runtime.WithHTTPPathPattern("/v1/messaging/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -174,7 +184,7 @@ func RegisterMessagingServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/UpdateMessageStatus", runtime.WithHTTPPathPattern("/api.messaging_service.v1.MessagingService/UpdateMessageStatus"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/UpdateMessageStatus", runtime.WithHTTPPathPattern("/v1/messaging/update-message-status"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -238,7 +248,7 @@ func RegisterMessagingServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/SendMessage", runtime.WithHTTPPathPattern("/api.messaging_service.v1.MessagingService/SendMessage"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/SendMessage", runtime.WithHTTPPathPattern("/v1/messaging/send-message"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -254,13 +264,13 @@ func RegisterMessagingServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 
 	})
 
-	mux.Handle("POST", pattern_MessagingService_GetMessages_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_MessagingService_GetMessages_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/GetMessages", runtime.WithHTTPPathPattern("/api.messaging_service.v1.MessagingService/GetMessages"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/GetMessages", runtime.WithHTTPPathPattern("/v1/messaging/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -282,7 +292,7 @@ func RegisterMessagingServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/UpdateMessageStatus", runtime.WithHTTPPathPattern("/api.messaging_service.v1.MessagingService/UpdateMessageStatus"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.messaging_service.v1.MessagingService/UpdateMessageStatus", runtime.WithHTTPPathPattern("/v1/messaging/update-message-status"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -302,11 +312,11 @@ func RegisterMessagingServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 }
 
 var (
-	pattern_MessagingService_SendMessage_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.messaging_service.v1.MessagingService", "SendMessage"}, ""))
+	pattern_MessagingService_SendMessage_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "messaging", "send-message"}, ""))
 
-	pattern_MessagingService_GetMessages_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.messaging_service.v1.MessagingService", "GetMessages"}, ""))
+	pattern_MessagingService_GetMessages_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "messaging", "messages"}, ""))
 
-	pattern_MessagingService_UpdateMessageStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.messaging_service.v1.MessagingService", "UpdateMessageStatus"}, ""))
+	pattern_MessagingService_UpdateMessageStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "messaging", "update-message-status"}, ""))
 )
 
 var (

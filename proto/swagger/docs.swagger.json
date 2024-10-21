@@ -28,600 +28,6 @@
     "application/json"
   ],
   "paths": {
-    "/api.friendship_service.v1.FriendshipService/AcceptFriendRequest": {
-      "post": {
-        "summary": "Принятие запроса на дружбу",
-        "operationId": "FriendshipService_AcceptFriendRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1AcceptFriendRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1AcceptFriendRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "FriendshipService"
-        ]
-      }
-    },
-    "/api.friendship_service.v1.FriendshipService/GetFriendsList": {
-      "post": {
-        "summary": "Получение списка друзей",
-        "operationId": "FriendshipService_GetFriendsList",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetFriendsListResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetFriendsListRequest"
-            }
-          }
-        ],
-        "tags": [
-          "FriendshipService"
-        ]
-      }
-    },
-    "/api.friendship_service.v1.FriendshipService/GetPendingRequests": {
-      "post": {
-        "summary": "Получение списка входящих и исходящих запросов на дружбу",
-        "operationId": "FriendshipService_GetPendingRequests",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetPendingRequestsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetPendingRequestsRequest"
-            }
-          }
-        ],
-        "tags": [
-          "FriendshipService"
-        ]
-      }
-    },
-    "/api.friendship_service.v1.FriendshipService/RejectFriendRequest": {
-      "post": {
-        "summary": "Отклонение запроса на дружбу",
-        "operationId": "FriendshipService_RejectFriendRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RejectFriendRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1RejectFriendRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "FriendshipService"
-        ]
-      }
-    },
-    "/api.friendship_service.v1.FriendshipService/RemoveFriend": {
-      "post": {
-        "summary": "Удаление пользователя из друзей",
-        "operationId": "FriendshipService_RemoveFriend",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RemoveFriendResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1RemoveFriendRequest"
-            }
-          }
-        ],
-        "tags": [
-          "FriendshipService"
-        ]
-      }
-    },
-    "/api.friendship_service.v1.FriendshipService/SendFriendRequest": {
-      "post": {
-        "summary": "Отправка запроса на добавление в друзья",
-        "operationId": "FriendshipService_SendFriendRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SendFriendRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1SendFriendRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "FriendshipService"
-        ]
-      }
-    },
-    "/api.messaging_service.v1.MessagingService/GetMessages": {
-      "post": {
-        "summary": "Получение истории переписки с пользователем",
-        "operationId": "MessagingService_GetMessages",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetMessagesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetMessagesRequest"
-            }
-          }
-        ],
-        "tags": [
-          "MessagingService"
-        ]
-      }
-    },
-    "/api.messaging_service.v1.MessagingService/SendMessage": {
-      "post": {
-        "summary": "Отправка сообщения",
-        "operationId": "MessagingService_SendMessage",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SendMessageResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1SendMessageRequest"
-            }
-          }
-        ],
-        "tags": [
-          "MessagingService"
-        ]
-      }
-    },
-    "/api.messaging_service.v1.MessagingService/UpdateMessageStatus": {
-      "post": {
-        "summary": "Обновление статуса сообщения",
-        "operationId": "MessagingService_UpdateMessageStatus",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1UpdateMessageStatusResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1UpdateMessageStatusRequest"
-            }
-          }
-        ],
-        "tags": [
-          "MessagingService"
-        ]
-      }
-    },
-    "/api.notification_service.v1.NotificationService/GetNotificationPreferences": {
-      "post": {
-        "summary": "Получение предпочтений уведомлений пользователя",
-        "operationId": "NotificationService_GetNotificationPreferences",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetNotificationPreferencesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetNotificationPreferencesRequest"
-            }
-          }
-        ],
-        "tags": [
-          "NotificationService"
-        ]
-      }
-    },
-    "/api.notification_service.v1.NotificationService/GetNotifications": {
-      "post": {
-        "summary": "Получение списка уведомлений пользователя",
-        "operationId": "NotificationService_GetNotifications",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetNotificationsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetNotificationsRequest"
-            }
-          }
-        ],
-        "tags": [
-          "NotificationService"
-        ]
-      }
-    },
-    "/api.notification_service.v1.NotificationService/MarkNotificationAsRead": {
-      "post": {
-        "summary": "Пометка уведомления как прочитанное",
-        "operationId": "NotificationService_MarkNotificationAsRead",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1MarkNotificationAsReadResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1MarkNotificationAsReadRequest"
-            }
-          }
-        ],
-        "tags": [
-          "NotificationService"
-        ]
-      }
-    },
-    "/api.notification_service.v1.NotificationService/SendNotification": {
-      "post": {
-        "summary": "Отправка уведомления пользователю",
-        "operationId": "NotificationService_SendNotification",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SendNotificationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1SendNotificationRequest"
-            }
-          }
-        ],
-        "tags": [
-          "NotificationService"
-        ]
-      }
-    },
-    "/api.notification_service.v1.NotificationService/UpdateNotificationPreferences": {
-      "post": {
-        "summary": "Обновление предпочтений уведомлений пользователя",
-        "operationId": "NotificationService_UpdateNotificationPreferences",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1UpdateNotificationPreferencesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1UpdateNotificationPreferencesRequest"
-            }
-          }
-        ],
-        "tags": [
-          "NotificationService"
-        ]
-      }
-    },
-    "/api.user_service.v1.UserService/CreateUserProfile": {
-      "post": {
-        "summary": "Создание профиля пользователя",
-        "operationId": "UserService_CreateUserProfile",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreateUserProfileResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreateUserProfileRequest"
-            }
-          }
-        ],
-        "tags": [
-          "UserService"
-        ]
-      }
-    },
-    "/api.user_service.v1.UserService/GetUser": {
-      "post": {
-        "summary": "Получение информации о пользователе",
-        "operationId": "UserService_GetUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetUserRequest"
-            }
-          }
-        ],
-        "tags": [
-          "UserService"
-        ]
-      }
-    },
-    "/api.user_service.v1.UserService/SearchUsers": {
-      "post": {
-        "summary": "Поиск пользователей",
-        "operationId": "UserService_SearchUsers",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SearchUsersResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1SearchUsersRequest"
-            }
-          }
-        ],
-        "tags": [
-          "UserService"
-        ]
-      }
-    },
-    "/api.user_service.v1.UserService/UpdateUserProfile": {
-      "post": {
-        "summary": "Обновление профиля пользователя",
-        "operationId": "UserService_UpdateUserProfile",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1UpdateUserProfileResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1UpdateUserProfileRequest"
-            }
-          }
-        ],
-        "tags": [
-          "UserService"
-        ]
-      }
-    },
     "/v1/auth/change-password": {
       "post": {
         "summary": "Смена пароля",
@@ -825,9 +231,674 @@
           "AuthService"
         ]
       }
+    },
+    "/v1/friendship/accept-friend-request": {
+      "post": {
+        "summary": "Принятие запроса на дружбу",
+        "operationId": "FriendshipService_AcceptFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AcceptFriendRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AcceptFriendRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FriendshipService"
+        ]
+      }
+    },
+    "/v1/friendship/friends": {
+      "get": {
+        "summary": "Получение списка друзей",
+        "operationId": "FriendshipService_GetFriendsList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetFriendsListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "description": "Идентификатор пользователя",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FriendshipService"
+        ]
+      }
+    },
+    "/v1/friendship/pending-requests": {
+      "get": {
+        "summary": "Получение списка запросов на дружбу",
+        "operationId": "FriendshipService_GetPendingRequests",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPendingRequestsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "description": "Идентификатор пользователя",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FriendshipService"
+        ]
+      }
+    },
+    "/v1/friendship/reject-friend-request": {
+      "post": {
+        "summary": "Отклонение запроса на дружбу",
+        "operationId": "FriendshipService_RejectFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RejectFriendRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RejectFriendRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FriendshipService"
+        ]
+      }
+    },
+    "/v1/friendship/remove-friend": {
+      "post": {
+        "summary": "Удаление пользователя из друзей",
+        "operationId": "FriendshipService_RemoveFriend",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RemoveFriendResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RemoveFriendRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FriendshipService"
+        ]
+      }
+    },
+    "/v1/friendship/send-friend-request": {
+      "post": {
+        "summary": "Отправка запроса на добавление в друзья",
+        "operationId": "FriendshipService_SendFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SendFriendRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SendFriendRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FriendshipService"
+        ]
+      }
+    },
+    "/v1/messaging/messages": {
+      "get": {
+        "summary": "Получение истории переписки с пользователем",
+        "operationId": "MessagingService_GetMessages",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetMessagesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "description": "Идентификатор пользователя",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "conversationUserId",
+            "description": "Идентификатор собеседника",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Количество сообщений для получения",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "description": "Смещение для пагинации",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "MessagingService"
+        ]
+      }
+    },
+    "/v1/messaging/send-message": {
+      "post": {
+        "summary": "Отправка сообщения",
+        "operationId": "MessagingService_SendMessage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SendMessageResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SendMessageRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MessagingService"
+        ]
+      }
+    },
+    "/v1/messaging/update-message-status": {
+      "post": {
+        "summary": "Обновление статуса сообщения",
+        "operationId": "MessagingService_UpdateMessageStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateMessageStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1UpdateMessageStatusRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MessagingService"
+        ]
+      }
+    },
+    "/v1/notifications": {
+      "get": {
+        "summary": "Получение списка уведомлений пользователя",
+        "operationId": "NotificationService_GetNotifications",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetNotificationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "description": "Идентификатор пользователя",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Максимальное количество уведомлений",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "description": "Смещение для пагинации",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "NotificationService"
+        ]
+      }
+    },
+    "/v1/notifications/mark-as-read": {
+      "post": {
+        "summary": "Пометка уведомления как прочитанное",
+        "operationId": "NotificationService_MarkNotificationAsRead",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MarkNotificationAsReadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1MarkNotificationAsReadRequest"
+            }
+          }
+        ],
+        "tags": [
+          "NotificationService"
+        ]
+      }
+    },
+    "/v1/notifications/preferences": {
+      "get": {
+        "summary": "Получение предпочтений уведомлений пользователя",
+        "operationId": "NotificationService_GetNotificationPreferences",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetNotificationPreferencesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "description": "Идентификатор пользователя",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "NotificationService"
+        ]
+      }
+    },
+    "/v1/notifications/preferences/update": {
+      "post": {
+        "summary": "Обновление предпочтений уведомлений пользователя",
+        "operationId": "NotificationService_UpdateNotificationPreferences",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateNotificationPreferencesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1UpdateNotificationPreferencesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "NotificationService"
+        ]
+      }
+    },
+    "/v1/notifications/send": {
+      "post": {
+        "summary": "Отправка уведомления пользователю",
+        "operationId": "NotificationService_SendNotification",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SendNotificationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SendNotificationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "NotificationService"
+        ]
+      }
+    },
+    "/v1/users": {
+      "post": {
+        "summary": "Создание профиля пользователя",
+        "operationId": "UserService_CreateUserProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateUserProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateUserProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/v1/users/search": {
+      "get": {
+        "summary": "Поиск пользователей",
+        "operationId": "UserService_SearchUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SearchUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "query",
+            "description": "Поисковый запрос",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Максимальное количество результатов",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "description": "Смещение для пагинации",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/v1/users/{userId}": {
+      "get": {
+        "summary": "Получение информации о пользователе",
+        "operationId": "UserService_GetUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "description": "Идентификатор пользователя",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      },
+      "put": {
+        "summary": "Обновление профиля пользователя",
+        "operationId": "UserService_UpdateUserProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateUserProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "description": "Идентификатор пользователя",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserServiceUpdateUserProfileBody"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
     }
   },
   "definitions": {
+    "UserServiceUpdateUserProfileBody": {
+      "type": "object",
+      "properties": {
+        "nickname": {
+          "type": "string",
+          "title": "Никнейм пользователя"
+        },
+        "bio": {
+          "type": "string",
+          "title": "Биография пользователя"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "title": "URL аватарки пользователя"
+        }
+      },
+      "title": "Сообщение для запроса обновления профиля пользователя"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -859,16 +930,15 @@
     "v1AcceptFriendRequestRequest": {
       "type": "object",
       "properties": {
-        "userId": {
+        "requestId": {
           "type": "string",
-          "title": "Идентификатор пользователя, принимающего запрос"
-        },
-        "friendId": {
-          "type": "string",
-          "title": "Идентификатор пользователя, отправившего запрос"
+          "title": "Идентификатор запроса на дружбу"
         }
       },
-      "title": "Сообщение для принятия запроса на дружбу"
+      "title": "Сообщение для принятия запроса на дружбу",
+      "required": [
+        "requestId"
+      ]
     },
     "v1AcceptFriendRequestResponse": {
       "type": "object",
@@ -956,7 +1026,11 @@
           "title": "URL аватарки пользователя"
         }
       },
-      "title": "Сообщение для запроса создания профиля пользователя"
+      "title": "Сообщение для запроса создания профиля пользователя",
+      "required": [
+        "userId",
+        "nickname"
+      ]
     },
     "v1CreateUserProfileResponse": {
       "type": "object",
@@ -994,13 +1068,17 @@
     "v1FriendRequest": {
       "type": "object",
       "properties": {
-        "userId": {
+        "requestId": {
           "type": "string",
-          "title": "Идентификатор пользователя, отправившего запрос"
+          "title": "Идентификатор запроса"
         },
-        "friendId": {
+        "senderId": {
           "type": "string",
-          "title": "Идентификатор пользователя, получившего запрос"
+          "title": "Идентификатор отправителя"
+        },
+        "receiverId": {
+          "type": "string",
+          "title": "Идентификатор получателя"
         },
         "status": {
           "type": "string",
@@ -1019,16 +1097,6 @@
       },
       "title": "Информация о запросе на дружбу"
     },
-    "v1GetFriendsListRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "title": "Идентификатор пользователя"
-        }
-      },
-      "title": "Сообщение для получения списка друзей"
-    },
     "v1GetFriendsListResponse": {
       "type": "object",
       "properties": {
@@ -1043,30 +1111,6 @@
       },
       "title": "Ответ с списком друзей"
     },
-    "v1GetMessagesRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "title": "Идентификатор пользователя, запрашивающего сообщения"
-        },
-        "conversationUserId": {
-          "type": "string",
-          "title": "Идентификатор собеседника"
-        },
-        "limit": {
-          "type": "integer",
-          "format": "int32",
-          "title": "Количество сообщений для получения"
-        },
-        "offset": {
-          "type": "integer",
-          "format": "int32",
-          "title": "Смещение для пагинации"
-        }
-      },
-      "title": "Сообщение для запроса получения истории переписки"
-    },
     "v1GetMessagesResponse": {
       "type": "object",
       "properties": {
@@ -1079,17 +1123,7 @@
           "title": "Список сообщений"
         }
       },
-      "title": "Сообщение с ответом на запрос истории переписки"
-    },
-    "v1GetNotificationPreferencesRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "title": "Идентификатор пользователя"
-        }
-      },
-      "title": "Сообщение для запроса получения предпочтений уведомлений пользователя"
+      "title": "Ответ с историей сообщений"
     },
     "v1GetNotificationPreferencesResponse": {
       "type": "object",
@@ -1100,26 +1134,6 @@
         }
       },
       "title": "Сообщение для ответа с предпочтениями уведомлений"
-    },
-    "v1GetNotificationsRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "title": "Идентификатор пользователя"
-        },
-        "limit": {
-          "type": "integer",
-          "format": "int32",
-          "title": "Максимальное количество уведомлений"
-        },
-        "offset": {
-          "type": "integer",
-          "format": "int32",
-          "title": "Смещение для пагинации"
-        }
-      },
-      "title": "Сообщение для запроса получения списка уведомлений пользователя"
     },
     "v1GetNotificationsResponse": {
       "type": "object",
@@ -1134,16 +1148,6 @@
         }
       },
       "title": "Сообщение для ответа с списком уведомлений"
-    },
-    "v1GetPendingRequestsRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "title": "Идентификатор пользователя"
-        }
-      },
-      "title": "Сообщение для получения списка запросов на дружбу"
     },
     "v1GetPendingRequestsResponse": {
       "type": "object",
@@ -1165,17 +1169,7 @@
           "title": "Исходящие запросы"
         }
       },
-      "title": "Ответ с списком входящих и исходящих запросов на дружбу"
-    },
-    "v1GetUserRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "title": "Идентификатор пользователя"
-        }
-      },
-      "title": "Сообщение для запроса получения информации о пользователе"
+      "title": "Ответ с списком запросов на дружбу"
     },
     "v1GetUserResponse": {
       "type": "object",
@@ -1199,7 +1193,11 @@
           "title": "Идентификатор пользователя"
         }
       },
-      "title": "Сообщение для запроса пометки уведомления как прочитанного"
+      "title": "Сообщение для запроса пометки уведомления как прочитанного",
+      "required": [
+        "notificationId",
+        "userId"
+      ]
     },
     "v1MarkNotificationAsReadResponse": {
       "type": "object",
@@ -1233,7 +1231,7 @@
         "timestamp": {
           "type": "string",
           "format": "int64",
-          "title": "Временная метка отправки (Unix timestamp)"
+          "title": "Временная метка отправки"
         },
         "status": {
           "$ref": "#/definitions/v1MessageStatus",
@@ -1252,7 +1250,7 @@
       ],
       "default": "MESSAGE_STATUS_UNSPECIFIED",
       "description": "- MESSAGE_STATUS_UNSPECIFIED: Неопределенный статус\n - MESSAGE_STATUS_SENT: Отправлено\n - MESSAGE_STATUS_DELIVERED: Доставлено\n - MESSAGE_STATUS_READ: Прочитано",
-      "title": "Статус сообщения"
+      "title": "Статусы сообщений"
     },
     "v1Notification": {
       "type": "object",
@@ -1374,16 +1372,15 @@
     "v1RejectFriendRequestRequest": {
       "type": "object",
       "properties": {
-        "userId": {
+        "requestId": {
           "type": "string",
-          "title": "Идентификатор пользователя, отклоняющего запрос"
-        },
-        "friendId": {
-          "type": "string",
-          "title": "Идентификатор пользователя, отправившего запрос"
+          "title": "Идентификатор запроса на дружбу"
         }
       },
-      "title": "Сообщение для отклонения запроса на дружбу"
+      "title": "Сообщение для отклонения запроса на дружбу",
+      "required": [
+        "requestId"
+      ]
     },
     "v1RejectFriendRequestResponse": {
       "type": "object",
@@ -1400,14 +1397,18 @@
       "properties": {
         "userId": {
           "type": "string",
-          "title": "Идентификатор пользователя, удаляющего друга"
+          "title": "Идентификатор пользователя"
         },
         "friendId": {
           "type": "string",
           "title": "Идентификатор друга, которого удаляют"
         }
       },
-      "title": "Сообщение для удаления пользователя из друзей"
+      "title": "Сообщение для удаления пользователя из друзей",
+      "required": [
+        "userId",
+        "friendId"
+      ]
     },
     "v1RemoveFriendResponse": {
       "type": "object",
@@ -1442,36 +1443,16 @@
       },
       "description": "ResetPasswordResponse содержит результат запроса сброса пароля."
     },
-    "v1SearchUsersRequest": {
-      "type": "object",
-      "properties": {
-        "query": {
-          "type": "string",
-          "title": "Строка запроса для поиска"
-        },
-        "limit": {
-          "type": "integer",
-          "format": "int32",
-          "title": "Количество результатов для получения"
-        },
-        "offset": {
-          "type": "integer",
-          "format": "int32",
-          "title": "Смещение для пагинации"
-        }
-      },
-      "title": "Сообщение для запроса поиска пользователей"
-    },
     "v1SearchUsersResponse": {
       "type": "object",
       "properties": {
-        "profiles": {
+        "users": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1UserProfile"
           },
-          "title": "Список профилей пользователей"
+          "title": "Список найденных пользователей"
         }
       },
       "title": "Сообщение с результатами поиска пользователей"
@@ -1488,14 +1469,18 @@
           "title": "Идентификатор пользователя, которому отправляется запрос"
         }
       },
-      "title": "Сообщение для отправки запроса на добавление в друзья"
+      "title": "Сообщение для отправки запроса на добавление в друзья",
+      "required": [
+        "userId",
+        "friendId"
+      ]
     },
     "v1SendFriendRequestResponse": {
       "type": "object",
       "properties": {
-        "success": {
-          "type": "boolean",
-          "title": "Успешность операции"
+        "requestId": {
+          "type": "string",
+          "title": "Идентификатор созданного запроса на дружбу"
         }
       },
       "title": "Ответ на запрос отправки запроса на добавление в друзья"
@@ -1516,21 +1501,22 @@
           "title": "Текст сообщения"
         }
       },
-      "title": "Сообщение для запроса отправки сообщения"
+      "title": "Сообщение для отправки сообщения",
+      "required": [
+        "senderId",
+        "recipientId",
+        "content"
+      ]
     },
     "v1SendMessageResponse": {
       "type": "object",
       "properties": {
-        "success": {
-          "type": "boolean",
-          "title": "Успешность операции"
-        },
         "messageId": {
           "type": "string",
           "title": "UUID отправленного сообщения"
         }
       },
-      "title": "Сообщение для ответа на отправку сообщения"
+      "title": "Ответ на отправку сообщения"
     },
     "v1SendNotificationRequest": {
       "type": "object",
@@ -1548,7 +1534,12 @@
           "title": "Тип уведомления"
         }
       },
-      "title": "Сообщение для запроса отправки уведомления"
+      "title": "Сообщение для запроса отправки уведомления",
+      "required": [
+        "userId",
+        "message",
+        "type"
+      ]
     },
     "v1SendNotificationResponse": {
       "type": "object",
@@ -1569,14 +1560,19 @@
         },
         "userId": {
           "type": "string",
-          "title": "Идентификатор пользователя, обновляющего статус"
+          "title": "Идентификатор пользователя"
         },
         "status": {
           "$ref": "#/definitions/v1MessageStatus",
           "title": "Новый статус сообщения"
         }
       },
-      "title": "Сообщение для запроса обновления статуса сообщения"
+      "title": "Запрос на обновление статуса сообщения",
+      "required": [
+        "messageId",
+        "userId",
+        "status"
+      ]
     },
     "v1UpdateMessageStatusResponse": {
       "type": "object",
@@ -1586,7 +1582,7 @@
           "title": "Успешность операции"
         }
       },
-      "title": "Сообщение с ответом на обновление статуса сообщения"
+      "title": "Ответ на обновление статуса сообщения"
     },
     "v1UpdateNotificationPreferencesRequest": {
       "type": "object",
@@ -1600,7 +1596,11 @@
           "title": "Новые предпочтения"
         }
       },
-      "title": "Сообщение для запроса обновления предпочтений уведомлений пользователя"
+      "title": "Сообщение для запроса обновления предпочтений уведомлений пользователя",
+      "required": [
+        "userId",
+        "preferences"
+      ]
     },
     "v1UpdateNotificationPreferencesResponse": {
       "type": "object",
@@ -1611,28 +1611,6 @@
         }
       },
       "title": "Сообщение для ответа на обновление предпочтений уведомлений"
-    },
-    "v1UpdateUserProfileRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "title": "Идентификатор пользователя"
-        },
-        "nickname": {
-          "type": "string",
-          "title": "Никнейм пользователя"
-        },
-        "bio": {
-          "type": "string",
-          "title": "Биография пользователя"
-        },
-        "avatarUrl": {
-          "type": "string",
-          "title": "URL аватарки пользователя"
-        }
-      },
-      "title": "Сообщение для запроса обновления профиля пользователя"
     },
     "v1UpdateUserProfileResponse": {
       "type": "object",
@@ -1666,15 +1644,15 @@
         "createdAt": {
           "type": "string",
           "format": "int64",
-          "title": "Время создания профиля (Unix timestamp)"
+          "title": "Дата создания профиля"
         },
         "updatedAt": {
           "type": "string",
           "format": "int64",
-          "title": "Время последнего обновления профиля (Unix timestamp)"
+          "title": "Дата последнего обновления профиля"
         }
       },
-      "title": "Профиль пользователя"
+      "title": "Структура профиля пользователя"
     },
     "v1VerifyEmailRequest": {
       "type": "object",

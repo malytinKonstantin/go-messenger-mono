@@ -35,6 +35,9 @@ var (
 	_ = sort.Sort
 )
 
+// define the regex for a UUID once up-front
+var _friendship_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on SendFriendRequestRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -57,12 +60,40 @@ func (m *SendFriendRequestRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = SendFriendRequestRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for FriendId
+	if err := m._validateUuid(m.GetFriendId()); err != nil {
+		err = SendFriendRequestRequestValidationError{
+			field:  "FriendId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return SendFriendRequestRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *SendFriendRequestRequest) _validateUuid(uuid string) error {
+	if matched := _friendship_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -163,10 +194,28 @@ func (m *SendFriendRequestResponse) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Success
+	if err := m._validateUuid(m.GetRequestId()); err != nil {
+		err = SendFriendRequestResponseValidationError{
+			field:  "RequestId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return SendFriendRequestResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *SendFriendRequestResponse) _validateUuid(uuid string) error {
+	if matched := _friendship_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -267,12 +316,28 @@ func (m *AcceptFriendRequestRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
-
-	// no validation rules for FriendId
+	if err := m._validateUuid(m.GetRequestId()); err != nil {
+		err = AcceptFriendRequestRequestValidationError{
+			field:  "RequestId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return AcceptFriendRequestRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *AcceptFriendRequestRequest) _validateUuid(uuid string) error {
+	if matched := _friendship_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -478,12 +543,28 @@ func (m *RejectFriendRequestRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
-
-	// no validation rules for FriendId
+	if err := m._validateUuid(m.GetRequestId()); err != nil {
+		err = RejectFriendRequestRequestValidationError{
+			field:  "RequestId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return RejectFriendRequestRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *RejectFriendRequestRequest) _validateUuid(uuid string) error {
+	if matched := _friendship_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -689,12 +770,40 @@ func (m *RemoveFriendRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = RemoveFriendRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for FriendId
+	if err := m._validateUuid(m.GetFriendId()); err != nil {
+		err = RemoveFriendRequestValidationError{
+			field:  "FriendId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return RemoveFriendRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *RemoveFriendRequest) _validateUuid(uuid string) error {
+	if matched := _friendship_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -899,10 +1008,28 @@ func (m *GetFriendsListRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = GetFriendsListRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetFriendsListRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetFriendsListRequest) _validateUuid(uuid string) error {
+	if matched := _friendship_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1139,10 +1266,28 @@ func (m *GetPendingRequestsRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = GetPendingRequestsRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetPendingRequestsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetPendingRequestsRequest) _validateUuid(uuid string) error {
+	if matched := _friendship_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1412,7 +1557,17 @@ func (m *Friend) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = FriendValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Nickname
 
@@ -1422,6 +1577,14 @@ func (m *Friend) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return FriendMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *Friend) _validateUuid(uuid string) error {
+	if matched := _friendship_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1519,9 +1682,41 @@ func (m *FriendRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetRequestId()); err != nil {
+		err = FriendRequestValidationError{
+			field:  "RequestId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for FriendId
+	if err := m._validateUuid(m.GetSenderId()); err != nil {
+		err = FriendRequestValidationError{
+			field:  "SenderId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if err := m._validateUuid(m.GetReceiverId()); err != nil {
+		err = FriendRequestValidationError{
+			field:  "ReceiverId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Status
 
@@ -1531,6 +1726,14 @@ func (m *FriendRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return FriendRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *FriendRequest) _validateUuid(uuid string) error {
+	if matched := _friendship_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil

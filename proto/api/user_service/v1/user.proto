@@ -91,7 +91,7 @@ message CreateUserProfileRequest {
   ];
   // URL аватарки пользователя
   string avatar_url = 4 [
-    (validate.rules).string = {url: true}
+    (validate.rules).string = {uri: true}
   ];
 }
 
@@ -118,7 +118,7 @@ message UpdateUserProfileRequest {
   ];
   // URL аватарки пользователя
   string avatar_url = 4 [
-    (validate.rules).string = {url: true}
+    (validate.rules).string = {uri: true}
   ];
 }
 
@@ -130,41 +130,43 @@ message UpdateUserProfileResponse {
 
 // Сообщение для запроса поиска пользователей
 message SearchUsersRequest {
-  // Строка запроса для поиска
+  // Поисковый запрос
   string query = 1 [
     (validate.rules).string = {min_len: 1},
     (google.api.field_behavior) = REQUIRED
   ];
-  // Количество результатов для получения
-  int32 limit = 2 [
-    (validate.rules).int32 = {gte: 1, lte: 100}
-  ];
+  // Максимальное количество результатов
+  int32 limit = 2;
   // Смещение для пагинации
-  int32 offset = 3 [
-    (validate.rules).int32 = {gte: 0}
-  ];
+  int32 offset = 3;
 }
 
 // Сообщение с результатами поиска пользователей
 message SearchUsersResponse {
-  // Список профилей пользователей
-  repeated UserProfile profiles = 1;
+  // Список найденных пользователей
+  repeated UserProfile users = 1;
 }
 
-// Профиль пользователя
+// Структура профиля пользователя
 message UserProfile {
   // Идентификатор пользователя
   string user_id = 1 [
     (validate.rules).string = {uuid: true}
   ];
   // Никнейм пользователя
-  string nickname = 2;
+  string nickname = 2 [
+    (validate.rules).string = {min_len: 3, max_len: 50}
+  ];
   // Биография пользователя
-  string bio = 3;
+  string bio = 3 [
+    (validate.rules).string = {max_len: 500}
+  ];
   // URL аватарки пользователя
-  string avatar_url = 4;
-  // Время создания профиля (Unix timestamp)
+  string avatar_url = 4 [
+    (validate.rules).string = {uri: true}
+  ];
+  // Дата создания профиля
   int64 created_at = 5;
-  // Время последнего обновления профиля (Unix timestamp)
+  // Дата последнего обновления профиля
   int64 updated_at = 6;
 }

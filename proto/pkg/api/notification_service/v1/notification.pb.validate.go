@@ -35,6 +35,9 @@ var (
 	_ = sort.Sort
 )
 
+// define the regex for a UUID once up-front
+var _notification_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on SendNotificationRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -57,14 +60,41 @@ func (m *SendNotificationRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = SendNotificationRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Message
+	if utf8.RuneCountInString(m.GetMessage()) < 1 {
+		err := SendNotificationRequestValidationError{
+			field:  "Message",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Type
 
 	if len(errors) > 0 {
 		return SendNotificationRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *SendNotificationRequest) _validateUuid(uuid string) error {
+	if matched := _notification_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -269,7 +299,17 @@ func (m *GetNotificationsRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = GetNotificationsRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Limit
 
@@ -277,6 +317,14 @@ func (m *GetNotificationsRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return GetNotificationsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetNotificationsRequest) _validateUuid(uuid string) error {
+	if matched := _notification_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -513,12 +561,40 @@ func (m *MarkNotificationAsReadRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for NotificationId
+	if err := m._validateUuid(m.GetNotificationId()); err != nil {
+		err = MarkNotificationAsReadRequestValidationError{
+			field:  "NotificationId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = MarkNotificationAsReadRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return MarkNotificationAsReadRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *MarkNotificationAsReadRequest) _validateUuid(uuid string) error {
+	if matched := _notification_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -726,7 +802,17 @@ func (m *UpdateNotificationPreferencesRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = UpdateNotificationPreferencesRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetPreferences()).(type) {
@@ -759,6 +845,14 @@ func (m *UpdateNotificationPreferencesRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UpdateNotificationPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UpdateNotificationPreferencesRequest) _validateUuid(uuid string) error {
+	if matched := _notification_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -969,10 +1063,28 @@ func (m *GetNotificationPreferencesRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = GetNotificationPreferencesRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetNotificationPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetNotificationPreferencesRequest) _validateUuid(uuid string) error {
+	if matched := _notification_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1209,9 +1321,29 @@ func (m *Notification) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = NotificationValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = NotificationValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Message
 
@@ -1223,6 +1355,14 @@ func (m *Notification) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return NotificationMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *Notification) _validateUuid(uuid string) error {
+	if matched := _notification_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil

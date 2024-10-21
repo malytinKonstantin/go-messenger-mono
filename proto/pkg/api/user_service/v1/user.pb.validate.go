@@ -35,6 +35,9 @@ var (
 	_ = sort.Sort
 )
 
+// define the regex for a UUID once up-front
+var _user_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on GetUserRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -57,10 +60,28 @@ func (m *GetUserRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = GetUserRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetUserRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetUserRequest) _validateUuid(uuid string) error {
+	if matched := _user_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -288,16 +309,71 @@ func (m *CreateUserProfileRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = CreateUserProfileRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Nickname
+	if l := utf8.RuneCountInString(m.GetNickname()); l < 3 || l > 50 {
+		err := CreateUserProfileRequestValidationError{
+			field:  "Nickname",
+			reason: "value length must be between 3 and 50 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Bio
+	if utf8.RuneCountInString(m.GetBio()) > 500 {
+		err := CreateUserProfileRequestValidationError{
+			field:  "Bio",
+			reason: "value length must be at most 500 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for AvatarUrl
+	if uri, err := url.Parse(m.GetAvatarUrl()); err != nil {
+		err = CreateUserProfileRequestValidationError{
+			field:  "AvatarUrl",
+			reason: "value must be a valid URI",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	} else if !uri.IsAbs() {
+		err := CreateUserProfileRequestValidationError{
+			field:  "AvatarUrl",
+			reason: "value must be absolute",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return CreateUserProfileRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CreateUserProfileRequest) _validateUuid(uuid string) error {
+	if matched := _user_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -529,16 +605,71 @@ func (m *UpdateUserProfileRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = UpdateUserProfileRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Nickname
+	if l := utf8.RuneCountInString(m.GetNickname()); l < 3 || l > 50 {
+		err := UpdateUserProfileRequestValidationError{
+			field:  "Nickname",
+			reason: "value length must be between 3 and 50 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Bio
+	if utf8.RuneCountInString(m.GetBio()) > 500 {
+		err := UpdateUserProfileRequestValidationError{
+			field:  "Bio",
+			reason: "value length must be at most 500 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for AvatarUrl
+	if uri, err := url.Parse(m.GetAvatarUrl()); err != nil {
+		err = UpdateUserProfileRequestValidationError{
+			field:  "AvatarUrl",
+			reason: "value must be a valid URI",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	} else if !uri.IsAbs() {
+		err := UpdateUserProfileRequestValidationError{
+			field:  "AvatarUrl",
+			reason: "value must be absolute",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return UpdateUserProfileRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UpdateUserProfileRequest) _validateUuid(uuid string) error {
+	if matched := _user_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -770,7 +901,16 @@ func (m *SearchUsersRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Query
+	if utf8.RuneCountInString(m.GetQuery()) < 1 {
+		err := SearchUsersRequestValidationError{
+			field:  "Query",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Limit
 
@@ -878,7 +1018,7 @@ func (m *SearchUsersResponse) validate(all bool) error {
 
 	var errors []error
 
-	for idx, item := range m.GetProfiles() {
+	for idx, item := range m.GetUsers() {
 		_, _ = idx, item
 
 		if all {
@@ -886,7 +1026,7 @@ func (m *SearchUsersResponse) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, SearchUsersResponseValidationError{
-						field:  fmt.Sprintf("Profiles[%v]", idx),
+						field:  fmt.Sprintf("Users[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -894,7 +1034,7 @@ func (m *SearchUsersResponse) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, SearchUsersResponseValidationError{
-						field:  fmt.Sprintf("Profiles[%v]", idx),
+						field:  fmt.Sprintf("Users[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -903,7 +1043,7 @@ func (m *SearchUsersResponse) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return SearchUsersResponseValidationError{
-					field:  fmt.Sprintf("Profiles[%v]", idx),
+					field:  fmt.Sprintf("Users[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1014,13 +1154,60 @@ func (m *UserProfile) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = UserProfileValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Nickname
+	if l := utf8.RuneCountInString(m.GetNickname()); l < 3 || l > 50 {
+		err := UserProfileValidationError{
+			field:  "Nickname",
+			reason: "value length must be between 3 and 50 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Bio
+	if utf8.RuneCountInString(m.GetBio()) > 500 {
+		err := UserProfileValidationError{
+			field:  "Bio",
+			reason: "value length must be at most 500 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for AvatarUrl
+	if uri, err := url.Parse(m.GetAvatarUrl()); err != nil {
+		err = UserProfileValidationError{
+			field:  "AvatarUrl",
+			reason: "value must be a valid URI",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	} else if !uri.IsAbs() {
+		err := UserProfileValidationError{
+			field:  "AvatarUrl",
+			reason: "value must be absolute",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for CreatedAt
 
@@ -1028,6 +1215,14 @@ func (m *UserProfile) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UserProfileMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UserProfile) _validateUuid(uuid string) error {
+	if matched := _user_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil

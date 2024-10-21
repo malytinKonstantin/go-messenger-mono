@@ -88,11 +88,11 @@ message GetMessagesRequest {
   ];
   // Количество сообщений для получения
   int32 limit = 3 [
-    (validate.rules).int32 = {min: 1}
+    (validate.rules).int32 = {gt: 0}
   ];
   // Смещение для пагинации
   int32 offset = 4 [
-    (validate.rules).int32 = {min: 0}
+    (validate.rules).int32 = {gte: 0}
   ];
 }
 

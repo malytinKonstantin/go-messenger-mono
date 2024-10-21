@@ -43,7 +43,7 @@ type FriendshipServiceClient interface {
 	RemoveFriend(ctx context.Context, in *RemoveFriendRequest, opts ...grpc.CallOption) (*RemoveFriendResponse, error)
 	// Получение списка друзей
 	GetFriendsList(ctx context.Context, in *GetFriendsListRequest, opts ...grpc.CallOption) (*GetFriendsListResponse, error)
-	// Получение списка входящих и исходящих запросов на дружбу
+	// Получение списка запросов на дружбу
 	GetPendingRequests(ctx context.Context, in *GetPendingRequestsRequest, opts ...grpc.CallOption) (*GetPendingRequestsResponse, error)
 }
 
@@ -131,7 +131,7 @@ type FriendshipServiceServer interface {
 	RemoveFriend(context.Context, *RemoveFriendRequest) (*RemoveFriendResponse, error)
 	// Получение списка друзей
 	GetFriendsList(context.Context, *GetFriendsListRequest) (*GetFriendsListResponse, error)
-	// Получение списка входящих и исходящих запросов на дружбу
+	// Получение списка запросов на дружбу
 	GetPendingRequests(context.Context, *GetPendingRequestsRequest) (*GetPendingRequestsResponse, error)
 	mustEmbedUnimplementedFriendshipServiceServer()
 }
