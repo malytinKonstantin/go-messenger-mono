@@ -2,67 +2,125 @@ syntax = "proto3";
 
 package api.messaging_service.v1;
 
+import "validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
 option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/messaging_service/v1;messaging_service";
 
 // Сервис для отправки и получения сообщений между пользователями
 service MessagingService {
   // Отправка сообщения
-  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {
+    option (google.api.http) = {
+      post: "/v1/messaging/send-message"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Отправка сообщения"
+      tags: "MessagingService"
+    };
+  }
 
   // Получение истории переписки с пользователем
-  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
+  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {
+    option (google.api.http) = {
+      get: "/v1/messaging/messages"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получение истории переписки с пользователем"
+      tags: "MessagingService"
+    };
+  }
 
   // Обновление статуса сообщения
-  rpc UpdateMessageStatus(UpdateMessageStatusRequest) returns (UpdateMessageStatusResponse) {}
+  rpc UpdateMessageStatus(UpdateMessageStatusRequest) returns (UpdateMessageStatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/messaging/update-message-status"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Обновление статуса сообщения"
+      tags: "MessagingService"
+    };
+  }
 }
 
-// Сообщение для запроса отправки сообщения
+// Сообщение для отправки сообщения
 message SendMessageRequest {
   // Идентификатор отправителя
-  string sender_id = 1;
+  string sender_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Идентификатор получателя
-  string recipient_id = 2;
+  string recipient_id = 2 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Текст сообщения
-  string content = 3;
+  string content = 3 [
+    (validate.rules).string = {min_len: 1},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
-// Сообщение для ответа на отправку сообщения
+// Ответ на отправку сообщения
 message SendMessageResponse {
-  // Успешность операции
-  bool success = 1;
   // UUID отправленного сообщения
-  string message_id = 2;
+  string message_id = 1 [
+    (validate.rules).string = {uuid: true}
+  ];
 }
 
-// Сообщение для запроса получения истории переписки
+// Запрос на получение истории сообщений
 message GetMessagesRequest {
-  // Идентификатор пользователя, запрашивающего сообщения
-  string user_id = 1;
+  // Идентификатор пользователя
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Идентификатор собеседника
-  string conversation_user_id = 2;
+  string conversation_user_id = 2 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Количество сообщений для получения
-  int32 limit = 3;
+  int32 limit = 3 [
+    (validate.rules).int32 = {min: 1}
+  ];
   // Смещение для пагинации
-  int32 offset = 4;
+  int32 offset = 4 [
+    (validate.rules).int32 = {min: 0}
+  ];
 }
 
-// Сообщение с ответом на запрос истории переписки
+// Ответ с историей сообщений
 message GetMessagesResponse {
   // Список сообщений
   repeated Message messages = 1;
 }
 
-// Сообщение для запроса обновления статуса сообщения
+// Запрос на обновление статуса сообщения
 message UpdateMessageStatusRequest {
   // UUID сообщения
-  string message_id = 1;
-  // Идентификатор пользователя, обновляющего статус
-  string user_id = 2;
+  string message_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
+  // Идентификатор пользователя
+  string user_id = 2 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Новый статус сообщения
-  MessageStatus status = 3;
+  MessageStatus status = 3 [
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
-// Сообщение с ответом на обновление статуса сообщения
+// Ответ на обновление статуса сообщения
 message UpdateMessageStatusResponse {
   // Успешность операции
   bool success = 1;
@@ -71,20 +129,28 @@ message UpdateMessageStatusResponse {
 // Структура сообщения
 message Message {
   // UUID сообщения
-  string message_id = 1;
+  string message_id = 1 [
+    (validate.rules).string = {uuid: true}
+  ];
   // Идентификатор отправителя
-  string sender_id = 2;
+  string sender_id = 2 [
+    (validate.rules).string = {uuid: true}
+  ];
   // Идентификатор получателя
-  string recipient_id = 3;
+  string recipient_id = 3 [
+    (validate.rules).string = {uuid: true}
+  ];
   // Текст сообщения
-  string content = 4;
-  // Временная метка отправки (Unix timestamp)
+  string content = 4 [
+    (validate.rules).string = {min_len: 1}
+  ];
+  // Временная метка отправки
   int64 timestamp = 5;
   // Статус сообщения
   MessageStatus status = 6;
 }
 
-// Статус сообщения
+// Статусы сообщений
 enum MessageStatus {
   // Неопределенный статус
   MESSAGE_STATUS_UNSPECIFIED = 0;

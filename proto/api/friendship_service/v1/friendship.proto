@@ -2,49 +2,115 @@ syntax = "proto3";
 
 package api.friendship_service.v1;
 
+import "validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
 option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1;friendship_service";
 
 // Сервис для управления дружбой между пользователями
 service FriendshipService {
   // Отправка запроса на добавление в друзья
-  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse) {}
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse) {
+    option (google.api.http) = {
+      post: "/v1/friendship/send-friend-request"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Отправка запроса на добавление в друзья"
+      tags: "FriendshipService"
+    };
+  }
 
   // Принятие запроса на дружбу
-  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (AcceptFriendRequestResponse) {}
+  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (AcceptFriendRequestResponse) {
+    option (google.api.http) = {
+      post: "/v1/friendship/accept-friend-request"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Принятие запроса на дружбу"
+      tags: "FriendshipService"
+    };
+  }
 
   // Отклонение запроса на дружбу
-  rpc RejectFriendRequest(RejectFriendRequestRequest) returns (RejectFriendRequestResponse) {}
+  rpc RejectFriendRequest(RejectFriendRequestRequest) returns (RejectFriendRequestResponse) {
+    option (google.api.http) = {
+      post: "/v1/friendship/reject-friend-request"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Отклонение запроса на дружбу"
+      tags: "FriendshipService"
+    };
+  }
 
   // Удаление пользователя из друзей
-  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
+  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {
+    option (google.api.http) = {
+      post: "/v1/friendship/remove-friend"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Удаление пользователя из друзей"
+      tags: "FriendshipService"
+    };
+  }
 
   // Получение списка друзей
-  rpc GetFriendsList(GetFriendsListRequest) returns (GetFriendsListResponse) {}
+  rpc GetFriendsList(GetFriendsListRequest) returns (GetFriendsListResponse) {
+    option (google.api.http) = {
+      get: "/v1/friendship/friends"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получение списка друзей"
+      tags: "FriendshipService"
+    };
+  }
 
-  // Получение списка входящих и исходящих запросов на дружбу
-  rpc GetPendingRequests(GetPendingRequestsRequest) returns (GetPendingRequestsResponse) {}
+  // Получение списка запросов на дружбу
+  rpc GetPendingRequests(GetPendingRequestsRequest) returns (GetPendingRequestsResponse) {
+    option (google.api.http) = {
+      get: "/v1/friendship/pending-requests"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получение списка запросов на дружбу"
+      tags: "FriendshipService"
+    };
+  }
 }
 
 // Сообщение для отправки запроса на добавление в друзья
 message SendFriendRequestRequest {
   // Идентификатор пользователя, отправляющего запрос
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Идентификатор пользователя, которому отправляется запрос
-  string friend_id = 2;
+  string friend_id = 2 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Ответ на запрос отправки запроса на добавление в друзья
 message SendFriendRequestResponse {
-  // Успешность операции
-  bool success = 1;
+  // Идентификатор созданного запроса на дружбу
+  string request_id = 1 [
+    (validate.rules).string = {uuid: true}
+  ];
 }
 
 // Сообщение для принятия запроса на дружбу
 message AcceptFriendRequestRequest {
-  // Идентификатор пользователя, принимающего запрос
-  string user_id = 1;
-  // Идентификатор пользователя, отправившего запрос
-  string friend_id = 2;
+  // Идентификатор запроса на дружбу
+  string request_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Ответ на принятие запроса на дружбу
@@ -55,10 +121,11 @@ message AcceptFriendRequestResponse {
 
 // Сообщение для отклонения запроса на дружбу
 message RejectFriendRequestRequest {
-  // Идентификатор пользователя, отклоняющего запрос
-  string user_id = 1;
-  // Идентификатор пользователя, отправившего запрос
-  string friend_id = 2;
+  // Идентификатор запроса на дружбу
+  string request_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Ответ на отклонение запроса на дружбу
@@ -69,10 +136,16 @@ message RejectFriendRequestResponse {
 
 // Сообщение для удаления пользователя из друзей
 message RemoveFriendRequest {
-  // Идентификатор пользователя, удаляющего друга
-  string user_id = 1;
+  // Идентификатор пользователя
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Идентификатор друга, которого удаляют
-  string friend_id = 2;
+  string friend_id = 2 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Ответ на удаление пользователя из друзей
@@ -84,7 +157,10 @@ message RemoveFriendResponse {
 // Сообщение для получения списка друзей
 message GetFriendsListRequest {
   // Идентификатор пользователя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Ответ с списком друзей
@@ -96,10 +172,13 @@ message GetFriendsListResponse {
 // Сообщение для получения списка запросов на дружбу
 message GetPendingRequestsRequest {
   // Идентификатор пользователя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
-// Ответ с списком входящих и исходящих запросов на дружбу
+// Ответ с списком запросов на дружбу
 message GetPendingRequestsResponse {
   // Входящие запросы
   repeated FriendRequest incoming_requests = 1;
@@ -110,7 +189,9 @@ message GetPendingRequestsResponse {
 // Информация о друге
 message Friend {
   // Идентификатор друга
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true}
+  ];
   // Никнейм друга
   string nickname = 2;
   // URL аватарки
@@ -121,14 +202,22 @@ message Friend {
 
 // Информация о запросе на дружбу
 message FriendRequest {
-  // Идентификатор пользователя, отправившего запрос
-  string user_id = 1;
-  // Идентификатор пользователя, получившего запрос
-  string friend_id = 2;
+  // Идентификатор запроса
+  string request_id = 1 [
+    (validate.rules).string = {uuid: true}
+  ];
+  // Идентификатор отправителя
+  string sender_id = 2 [
+    (validate.rules).string = {uuid: true}
+  ];
+  // Идентификатор получателя
+  string receiver_id = 3 [
+    (validate.rules).string = {uuid: true}
+  ];
   // Статус запроса ("pending", "accepted", "rejected")
-  string status = 3;
+  string status = 4;
   // Время создания запроса
-  int64 created_at = 4;
+  int64 created_at = 5;
   // Время обновления статуса
-  int64 updated_at = 5;
+  int64 updated_at = 6;
 }

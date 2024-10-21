@@ -2,27 +2,69 @@ syntax = "proto3";
 
 package api.user_service.v1;
 
+import "validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
 option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/user_service/v1;user_service";
 
 // Сервис для управления пользователями
 service UserService {
   // Получение информации о пользователе
-  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/{user_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получение информации о пользователе"
+      tags: "UserService"
+    };
+  }
 
   // Создание профиля пользователя
-  rpc CreateUserProfile(CreateUserProfileRequest) returns (CreateUserProfileResponse) {}
+  rpc CreateUserProfile(CreateUserProfileRequest) returns (CreateUserProfileResponse) {
+    option (google.api.http) = {
+      post: "/v1/users"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Создание профиля пользователя"
+      tags: "UserService"
+    };
+  }
 
   // Обновление профиля пользователя
-  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse) {}
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse) {
+    option (google.api.http) = {
+      put: "/v1/users/{user_id}"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Обновление профиля пользователя"
+      tags: "UserService"
+    };
+  }
 
   // Поиск пользователей
-  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse) {}
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/search"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Поиск пользователей"
+      tags: "UserService"
+    };
+  }
 }
 
 // Сообщение для запроса получения информации о пользователе
 message GetUserRequest {
   // Идентификатор пользователя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Сообщение с информацией о пользователе
@@ -34,13 +76,23 @@ message GetUserResponse {
 // Сообщение для запроса создания профиля пользователя
 message CreateUserProfileRequest {
   // Идентификатор пользователя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Никнейм пользователя
-  string nickname = 2;
+  string nickname = 2 [
+    (validate.rules).string = {min_len: 3, max_len: 50},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Биография пользователя
-  string bio = 3;
+  string bio = 3 [
+    (validate.rules).string = {max_len: 500}
+  ];
   // URL аватарки пользователя
-  string avatar_url = 4;
+  string avatar_url = 4 [
+    (validate.rules).string = {url: true}
+  ];
 }
 
 // Сообщение с информацией о созданном профиле пользователя
@@ -52,13 +104,22 @@ message CreateUserProfileResponse {
 // Сообщение для запроса обновления профиля пользователя
 message UpdateUserProfileRequest {
   // Идентификатор пользователя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Никнейм пользователя
-  string nickname = 2;
+  string nickname = 2 [
+    (validate.rules).string = {min_len: 3, max_len: 50}
+  ];
   // Биография пользователя
-  string bio = 3;
+  string bio = 3 [
+    (validate.rules).string = {max_len: 500}
+  ];
   // URL аватарки пользователя
-  string avatar_url = 4;
+  string avatar_url = 4 [
+    (validate.rules).string = {url: true}
+  ];
 }
 
 // Сообщение с информацией об обновленном профиле пользователя
@@ -70,11 +131,18 @@ message UpdateUserProfileResponse {
 // Сообщение для запроса поиска пользователей
 message SearchUsersRequest {
   // Строка запроса для поиска
-  string query = 1;
+  string query = 1 [
+    (validate.rules).string = {min_len: 1},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Количество результатов для получения
-  int32 limit = 2;
+  int32 limit = 2 [
+    (validate.rules).int32 = {gte: 1, lte: 100}
+  ];
   // Смещение для пагинации
-  int32 offset = 3;
+  int32 offset = 3 [
+    (validate.rules).int32 = {gte: 0}
+  ];
 }
 
 // Сообщение с результатами поиска пользователей
@@ -86,7 +154,9 @@ message SearchUsersResponse {
 // Профиль пользователя
 message UserProfile {
   // Идентификатор пользователя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true}
+  ];
   // Никнейм пользователя
   string nickname = 2;
   // Биография пользователя

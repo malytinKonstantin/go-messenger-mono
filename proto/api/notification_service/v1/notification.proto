@@ -2,34 +2,90 @@ syntax = "proto3";
 
 package api.notification_service.v1;
 
+import "validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
 option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/notification_service/v1;notification_service";
 
 // Сервис для управления уведомлениями пользователей
 service NotificationService {
   // Отправка уведомления пользователю
-  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse) {}
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse) {
+    option (google.api.http) = {
+      post: "/v1/notifications/send"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Отправка уведомления пользователю"
+      tags: "NotificationService"
+    };
+  }
 
   // Получение списка уведомлений пользователя
-  rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse) {}
+  rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/notifications"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получение списка уведомлений пользователя"
+      tags: "NotificationService"
+    };
+  }
 
   // Пометка уведомления как прочитанное
-  rpc MarkNotificationAsRead(MarkNotificationAsReadRequest) returns (MarkNotificationAsReadResponse) {}
+  rpc MarkNotificationAsRead(MarkNotificationAsReadRequest) returns (MarkNotificationAsReadResponse) {
+    option (google.api.http) = {
+      post: "/v1/notifications/mark-as-read"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Пометка уведомления как прочитанное"
+      tags: "NotificationService"
+    };
+  }
 
   // Обновление предпочтений уведомлений пользователя
-  rpc UpdateNotificationPreferences(UpdateNotificationPreferencesRequest) returns (UpdateNotificationPreferencesResponse) {}
+  rpc UpdateNotificationPreferences(UpdateNotificationPreferencesRequest) returns (UpdateNotificationPreferencesResponse) {
+    option (google.api.http) = {
+      post: "/v1/notifications/preferences/update"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Обновление предпочтений уведомлений пользователя"
+      tags: "NotificationService"
+    };
+  }
 
   // Получение предпочтений уведомлений пользователя
-  rpc GetNotificationPreferences(GetNotificationPreferencesRequest) returns (GetNotificationPreferencesResponse) {}
+  rpc GetNotificationPreferences(GetNotificationPreferencesRequest) returns (GetNotificationPreferencesResponse) {
+    option (google.api.http) = {
+      get: "/v1/notifications/preferences"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получение предпочтений уведомлений пользователя"
+      tags: "NotificationService"
+    };
+  }
 }
 
 // Сообщение для запроса отправки уведомления
 message SendNotificationRequest {
   // Идентификатор получателя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Содержание уведомления
-  string message = 2;
+  string message = 2 [
+    (validate.rules).string = {min_len: 1},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Тип уведомления
-  NotificationType type = 3;
+  NotificationType type = 3 [
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Сообщение для ответа на отправку уведомления
@@ -41,7 +97,10 @@ message SendNotificationResponse {
 // Сообщение для запроса получения списка уведомлений пользователя
 message GetNotificationsRequest {
   // Идентификатор пользователя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Максимальное количество уведомлений
   int32 limit = 2;
   // Смещение для пагинации
@@ -57,9 +116,15 @@ message GetNotificationsResponse {
 // Сообщение для запроса пометки уведомления как прочитанного
 message MarkNotificationAsReadRequest {
   // Идентификатор уведомления
-  string notification_id = 1;
+  string notification_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Идентификатор пользователя
-  string user_id = 2;
+  string user_id = 2 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Сообщение для ответа на пометку уведомления как прочитанного
@@ -71,9 +136,14 @@ message MarkNotificationAsReadResponse {
 // Сообщение для запроса обновления предпочтений уведомлений пользователя
 message UpdateNotificationPreferencesRequest {
   // Идентификатор пользователя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
   // Новые предпочтения
-  NotificationPreferences preferences = 2;
+  NotificationPreferences preferences = 2 [
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Сообщение для ответа на обновление предпочтений уведомлений
@@ -85,7 +155,10 @@ message UpdateNotificationPreferencesResponse {
 // Сообщение для запроса получения предпочтений уведомлений пользователя
 message GetNotificationPreferencesRequest {
   // Идентификатор пользователя
-  string user_id = 1;
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Сообщение для ответа с предпочтениями уведомлений
@@ -97,9 +170,13 @@ message GetNotificationPreferencesResponse {
 // Структура уведомления
 message Notification {
   // Идентификатор уведомления (UUID)
-  string id = 1;
+  string id = 1 [
+    (validate.rules).string = {uuid: true}
+  ];
   // Идентификатор получателя
-  string user_id = 2;
+  string user_id = 2 [
+    (validate.rules).string = {uuid: true}
+  ];
   // Содержание уведомления
   string message = 3;
   // Тип уведомления

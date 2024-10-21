@@ -43,6 +43,19 @@ services:
       timeout: 5s
       retries: 5
 
+  friendship_neo4j:
+    image: neo4j:latest
+    environment:
+      - NEO4J_AUTH=${FRIENDSHIP_SERVICE_NEO4J_AUTH}
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - backend
+    restart: always  
+
 volumes:
   postgres_data:
 
