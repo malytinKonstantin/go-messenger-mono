@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -19,33 +18,22 @@ func RegisterFriendshipService(ctx context.Context, mux *runtime.ServeMux, endpo
 
 	client := friendship_service.NewFriendshipServiceClient(conn)
 
-	err = mux.HandlePath("POST", "/v1/friendship/send-request", handleSendFriendRequest(client))
-	if err != nil {
+	if err := mux.HandlePath("POST", "/v1/friendship/send-request", handleSendFriendRequest(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("POST", "/v1/friendship/accept-request", handleAcceptFriendRequest(client))
-	if err != nil {
+	if err := mux.HandlePath("POST", "/v1/friendship/accept-request", handleAcceptFriendRequest(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("POST", "/v1/friendship/reject-request", handleRejectFriendRequest(client))
-	if err != nil {
+	if err := mux.HandlePath("POST", "/v1/friendship/reject-request", handleRejectFriendRequest(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("POST", "/v1/friendship/remove-friend", handleRemoveFriend(client))
-	if err != nil {
+	if err := mux.HandlePath("POST", "/v1/friendship/remove-friend", handleRemoveFriend(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("GET", "/v1/friendship/friends-list", handleGetFriendsList(client))
-	if err != nil {
+	if err := mux.HandlePath("GET", "/v1/friendship/friends-list", handleGetFriendsList(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("GET", "/v1/friendship/pending-requests", handleGetPendingRequests(client))
-	if err != nil {
+	if err := mux.HandlePath("GET", "/v1/friendship/pending-requests", handleGetPendingRequests(client)); err != nil {
 		return err
 	}
 
@@ -55,8 +43,7 @@ func RegisterFriendshipService(ctx context.Context, mux *runtime.ServeMux, endpo
 func handleSendFriendRequest(client friendship_service.FriendshipServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req friendship_service.SendFriendRequestRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.SendFriendRequest(r.Context(), &req)
@@ -64,16 +51,14 @@ func handleSendFriendRequest(client friendship_service.FriendshipServiceClient) 
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusCreated, resp)
 	}
 }
 
 func handleAcceptFriendRequest(client friendship_service.FriendshipServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req friendship_service.AcceptFriendRequestRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.AcceptFriendRequest(r.Context(), &req)
@@ -81,16 +66,14 @@ func handleAcceptFriendRequest(client friendship_service.FriendshipServiceClient
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleRejectFriendRequest(client friendship_service.FriendshipServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req friendship_service.RejectFriendRequestRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.RejectFriendRequest(r.Context(), &req)
@@ -98,16 +81,14 @@ func handleRejectFriendRequest(client friendship_service.FriendshipServiceClient
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleRemoveFriend(client friendship_service.FriendshipServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req friendship_service.RemoveFriendRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.RemoveFriend(r.Context(), &req)
@@ -115,16 +96,15 @@ func handleRemoveFriend(client friendship_service.FriendshipServiceClient) runti
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleGetFriendsList(client friendship_service.FriendshipServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		userID := r.URL.Query().Get("user_id")
+		userID := parseStringParam(r, "user_id", "")
 		if userID == "" {
-			http.Error(w, "user_id is a required parameter", http.StatusBadRequest)
+			http.Error(w, "The user_id parameter is required", http.StatusBadRequest)
 			return
 		}
 		req := &friendship_service.GetFriendsListRequest{UserId: userID}
@@ -133,16 +113,15 @@ func handleGetFriendsList(client friendship_service.FriendshipServiceClient) run
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleGetPendingRequests(client friendship_service.FriendshipServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		userID := r.URL.Query().Get("user_id")
+		userID := parseStringParam(r, "user_id", "")
 		if userID == "" {
-			http.Error(w, "user_id is a required parameter", http.StatusBadRequest)
+			http.Error(w, "The user_id parameter is required", http.StatusBadRequest)
 			return
 		}
 		req := &friendship_service.GetPendingRequestsRequest{UserId: userID}
@@ -151,7 +130,6 @@ func handleGetPendingRequests(client friendship_service.FriendshipServiceClient)
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }

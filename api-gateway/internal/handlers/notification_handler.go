@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -19,28 +18,19 @@ func RegisterNotificationService(ctx context.Context, mux *runtime.ServeMux, end
 
 	client := notification_service.NewNotificationServiceClient(conn)
 
-	err = mux.HandlePath("POST", "/v1/notification/send", handleSendNotification(client))
-	if err != nil {
+	if err := mux.HandlePath("POST", "/v1/notification/send", handleSendNotification(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("GET", "/v1/notification", handleGetNotifications(client))
-	if err != nil {
+	if err := mux.HandlePath("GET", "/v1/notification", handleGetNotifications(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("PUT", "/v1/notification/mark-read", handleMarkNotificationAsRead(client))
-	if err != nil {
+	if err := mux.HandlePath("PUT", "/v1/notification/mark-read", handleMarkNotificationAsRead(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("PUT", "/v1/notification/update-preferences", handleUpdateNotificationPreferences(client))
-	if err != nil {
+	if err := mux.HandlePath("PUT", "/v1/notification/update-preferences", handleUpdateNotificationPreferences(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("GET", "/v1/notification/preferences", handleGetNotificationPreferences(client))
-	if err != nil {
+	if err := mux.HandlePath("GET", "/v1/notification/preferences", handleGetNotificationPreferences(client)); err != nil {
 		return err
 	}
 
@@ -50,13 +40,12 @@ func RegisterNotificationService(ctx context.Context, mux *runtime.ServeMux, end
 func handleSendNotification(client notification_service.NotificationServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req notification_service.SendNotificationRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 
 		if req.UserId == "" || req.Message == "" {
-			http.Error(w, "Fields user_id and message are required", http.StatusBadRequest)
+			http.Error(w, "Поля user_id и message обязательны", http.StatusBadRequest)
 			return
 		}
 
@@ -65,55 +54,41 @@ func handleSendNotification(client notification_service.NotificationServiceClien
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusCreated, resp)
 	}
 }
 
 func handleGetNotifications(client notification_service.NotificationServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req notification_service.GetNotificationsRequest
-		req.UserId = r.URL.Query().Get("user_id")
+		req.UserId = parseStringParam(r, "user_id", "")
 
 		if req.UserId == "" {
-			http.Error(w, "Parameter user_id is required", http.StatusBadRequest)
+			http.Error(w, "Параметр user_id обязателен", http.StatusBadRequest)
 			return
 		}
 
-		limit := parseIntParam(r, "limit", 10)
-		if limit < 0 {
-			http.Error(w, "Parameter limit cannot be negative", http.StatusBadRequest)
-			return
-		}
-		req.Limit = int32(limit)
-
-		offset := parseIntParam(r, "offset", 0)
-		if offset < 0 {
-			http.Error(w, "Parameter offset cannot be negative", http.StatusBadRequest)
-			return
-		}
-		req.Offset = int32(offset)
+		req.Limit = int32(parseIntParam(r, "limit", 10))
+		req.Offset = int32(parseIntParam(r, "offset", 0))
 
 		resp, err := client.GetNotifications(r.Context(), &req)
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleMarkNotificationAsRead(client notification_service.NotificationServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req notification_service.MarkNotificationAsReadRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 
 		if req.NotificationId == "" || req.UserId == "" {
-			http.Error(w, "Fields notification_id and user_id are required", http.StatusBadRequest)
+			http.Error(w, "Поля notification_id и user_id обязательны", http.StatusBadRequest)
 			return
 		}
 
@@ -122,21 +97,19 @@ func handleMarkNotificationAsRead(client notification_service.NotificationServic
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleUpdateNotificationPreferences(client notification_service.NotificationServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req notification_service.UpdateNotificationPreferencesRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 
 		if req.UserId == "" || req.Preferences == nil {
-			http.Error(w, "Fields user_id and preferences are required", http.StatusBadRequest)
+			http.Error(w, "Поля user_id и preferences обязательны", http.StatusBadRequest)
 			return
 		}
 
@@ -145,18 +118,17 @@ func handleUpdateNotificationPreferences(client notification_service.Notificatio
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleGetNotificationPreferences(client notification_service.NotificationServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req notification_service.GetNotificationPreferencesRequest
-		req.UserId = r.URL.Query().Get("user_id")
+		req.UserId = parseStringParam(r, "user_id", "")
 
 		if req.UserId == "" {
-			http.Error(w, "Parameter user_id is required", http.StatusBadRequest)
+			http.Error(w, "Параметр user_id обязателен", http.StatusBadRequest)
 			return
 		}
 
@@ -165,7 +137,6 @@ func handleGetNotificationPreferences(client notification_service.NotificationSe
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }

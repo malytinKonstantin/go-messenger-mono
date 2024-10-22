@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -19,18 +18,13 @@ func RegisterMessagingService(ctx context.Context, mux *runtime.ServeMux, endpoi
 
 	client := messaging_service.NewMessagingServiceClient(conn)
 
-	err = mux.HandlePath("POST", "/v1/messaging/send-message", handleSendMessage(client))
-	if err != nil {
+	if err := mux.HandlePath("POST", "/v1/messaging/send-message", handleSendMessage(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("GET", "/v1/messaging/messages", handleGetMessages(client))
-	if err != nil {
+	if err := mux.HandlePath("GET", "/v1/messaging/messages", handleGetMessages(client)); err != nil {
 		return err
 	}
-
-	err = mux.HandlePath("POST", "/v1/messaging/update-message-status", handleUpdateMessageStatus(client))
-	if err != nil {
+	if err := mux.HandlePath("POST", "/v1/messaging/update-message-status", handleUpdateMessageStatus(client)); err != nil {
 		return err
 	}
 
@@ -40,8 +34,7 @@ func RegisterMessagingService(ctx context.Context, mux *runtime.ServeMux, endpoi
 func handleSendMessage(client messaging_service.MessagingServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req messaging_service.SendMessageRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid request format: "+err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.SendMessage(r.Context(), &req)
@@ -49,18 +42,15 @@ func handleSendMessage(client messaging_service.MessagingServiceClient) runtime.
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusCreated, resp)
 	}
 }
 
 func handleGetMessages(client messaging_service.MessagingServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req messaging_service.GetMessagesRequest
-
-		queryParams := r.URL.Query()
-		req.UserId = queryParams.Get("user_id")
-		req.ConversationUserId = queryParams.Get("conversation_user_id")
+		req.UserId = parseStringParam(r, "user_id", "")
+		req.ConversationUserId = parseStringParam(r, "conversation_user_id", "")
 
 		if req.UserId == "" || req.ConversationUserId == "" {
 			http.Error(w, "Parameters 'user_id' and 'conversation_user_id' are required", http.StatusBadRequest)
@@ -75,16 +65,14 @@ func handleGetMessages(client messaging_service.MessagingServiceClient) runtime.
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleUpdateMessageStatus(client messaging_service.MessagingServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req messaging_service.UpdateMessageStatusRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid request format: "+err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.UpdateMessageStatus(r.Context(), &req)
@@ -92,7 +80,6 @@ func handleUpdateMessageStatus(client messaging_service.MessagingServiceClient) 
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }

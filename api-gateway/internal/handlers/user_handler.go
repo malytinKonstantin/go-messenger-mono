@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -22,15 +21,12 @@ func RegisterUserService(ctx context.Context, mux *runtime.ServeMux, endpoint st
 	if err := mux.HandlePath("GET", "/v1/users/{user_id}", handleGetUser(client)); err != nil {
 		return err
 	}
-
 	if err := mux.HandlePath("POST", "/v1/users", handleCreateUserProfile(client)); err != nil {
 		return err
 	}
-
 	if err := mux.HandlePath("PUT", "/v1/users/{user_id}", handleUpdateUserProfile(client)); err != nil {
 		return err
 	}
-
 	if err := mux.HandlePath("GET", "/v1/users/search", handleSearchUsers(client)); err != nil {
 		return err
 	}
@@ -42,7 +38,7 @@ func handleGetUser(client user_service.UserServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		userID, ok := pathParams["user_id"]
 		if !ok {
-			http.Error(w, "user_id not provided", http.StatusBadRequest)
+			http.Error(w, "user_id не указан", http.StatusBadRequest)
 			return
 		}
 		req := &user_service.GetUserRequest{UserId: userID}
@@ -51,16 +47,14 @@ func handleGetUser(client user_service.UserServiceClient) runtime.HandlerFunc {
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleCreateUserProfile(client user_service.UserServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req user_service.CreateUserProfileRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.CreateUserProfile(r.Context(), &req)
@@ -68,8 +62,7 @@ func handleCreateUserProfile(client user_service.UserServiceClient) runtime.Hand
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusCreated, resp)
 	}
 }
 
@@ -77,12 +70,11 @@ func handleUpdateUserProfile(client user_service.UserServiceClient) runtime.Hand
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		userID, ok := pathParams["user_id"]
 		if !ok {
-			http.Error(w, "user_id not provided", http.StatusBadRequest)
+			http.Error(w, "user_id не указан", http.StatusBadRequest)
 			return
 		}
 		var req user_service.UpdateUserProfileRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		req.UserId = userID
@@ -91,19 +83,17 @@ func handleUpdateUserProfile(client user_service.UserServiceClient) runtime.Hand
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleSearchUsers(client user_service.UserServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		query := r.URL.Query().Get("query")
+		query := parseStringParam(r, "query", "")
 		if query == "" {
-			http.Error(w, "query parameter is required", http.StatusBadRequest)
+			http.Error(w, "Параметр query обязателен", http.StatusBadRequest)
 			return
 		}
-
 		limit := int32(parseIntParam(r, "limit", 10))
 		offset := int32(parseIntParam(r, "offset", 0))
 
@@ -117,7 +107,6 @@ func handleSearchUsers(client user_service.UserServiceClient) runtime.HandlerFun
 			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
