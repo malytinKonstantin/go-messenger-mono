@@ -1,0 +1,29 @@
+# For details on buf.yaml configuration, visit https://buf.build/docs/configuration/v2/buf-yaml
+version: v2
+modules:
+  - path: api
+    name: github.com/malytinKonstantin/go-messenger-mono
+lint:
+  use:
+    - STANDARD
+    - COMMENTS
+    - FILE_LOWER_SNAKE_CASE
+breaking:
+  use:
+    - PACKAGE
+    - WIRE_JSON
+    - ENUM_NO_DELETE
+    - ENUM_SAME_JSON_FORMAT
+    - ENUM_SAME_TYPE
+    - ENUM_VALUE_NO_DELETE
+    - ENUM_VALUE_NO_DELETE_UNLESS_NAME_RESERVED
+    - ENUM_VALUE_NO_DELETE_UNLESS_NUMBER_RESERVED
+    - ENUM_VALUE_SAME_NAME
+    - EXTENSION_MESSAGE_NO_DELETE
+    - EXTENSION_NO_DELETE
+    - FIELD_NO_DELETE
+# Dependency management by BSR: https://buf.build/docs/bsr/module/dependency-management#how-the-bsr-protects-your-dependencies
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/grpc-ecosystem/grpc-gateway
+  - buf.build/envoyproxy/protoc-gen-validate:v1.1.0

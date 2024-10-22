@@ -1,9 +1,10 @@
-FROM scylladb/scylla
+FROM scylladb/scylla:latest
 
 COPY init.cql /init.cql
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 9042
 
-CMD ["sh", "-c", "/usr/bin/scylla --developer-mode 1 & \
-   until cqlsh -f /init.cql; do sleep 5; done && \
-   tail -f /dev/null"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

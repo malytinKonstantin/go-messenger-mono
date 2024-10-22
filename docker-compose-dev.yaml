@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka_network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
+      KAFKA_ZOOKEEPER_CONNECT: ${KAFKA_ZOOKEEPER_CONNECT}
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka_network
+
+  auth_postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${AUTH_SERVICE_DB_USER}
+      - POSTGRES_PASSWORD=${AUTH_SERVICE_DB_PASSWORD}
+      - POSTGRES_DB=${AUTH_SERVICE_DB_NAME}
+    ports:
+      - "${AUTH_SERVICE_DB_PG_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_SERVICE_DB_USER} -d ${AUTH_SERVICE_DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  friendship_neo4j:
+    image: neo4j:latest
+    environment:
+      - NEO4J_AUTH=${FRIENDSHIP_SERVICE_NEO4J_AUTH}
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - kafka_network
+    restart: always
+
+  messaging_cassandra:
+    build:
+      context: ./messaging-service
+      dockerfile: Dockerfile.cassandra
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    networks:
+      - kafka_network
+    restart: always
+
+  notification_cassandra:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile.cassandra
+    ports:
+      - "9242:9042"
+    volumes:
+      - notification_cassandra_data:/var/lib/cassandra
+    networks:
+      - kafka_network
+    restart: always
+
+  users_scylla:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile.scylla
+    ports:
+      - "9442:9042"
+    volumes:
+      - users_scylla_data:/var/lib/scylla
+    networks:
+      - kafka_network
+    restart: always
+    environment:
+      SCYLLA_HOST: localhost
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylla
+      SCYLLA_PASSWORD: scylla
+      SCYLLA_KEYSPACE: my_keyspace
+      SCYLLA_CONSISTENCY: QUORUM
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  cassandra_data:
+  notification_cassandra_data:
+  users_scylla_data:
+
+networks:
+  kafka_network:
+    driver: bridge

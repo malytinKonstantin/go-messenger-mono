@@ -1,5 +1,2 @@
-docker build -t messaging-cassandra-image -f Dockerfile.cassandra .
-
-docker run --name messaging-cassandra \
-    -p 9042:9042 \
-    -d messaging-cassandra-image
+run dev local
+env $(cat .env.dev | xargs) go run cmd/server/main.go

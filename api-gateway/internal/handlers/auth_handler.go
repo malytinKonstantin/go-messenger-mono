@@ -2,161 +2,127 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
-	auth_service "github.com/malytinKonstantin/go-messenger-mono/proto/auth-service"
+	auth_service "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/auth_service/v1"
 )
 
 func RegisterAuthService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error {
-	conn, err := grpc.Dial(endpoint, opts...)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+	return registerService(ctx, mux, endpoint, opts, func(conn *grpc.ClientConn) error {
+		client := auth_service.NewAuthServiceClient(conn)
 
-	client := auth_service.NewAuthServiceClient(conn)
+		handlers := []struct {
+			method  string
+			pattern string
+			handler runtime.HandlerFunc
+		}{
+			{"POST", "/v1/auth/register", handleRegister(client)},
+			{"POST", "/v1/auth/authenticate", handleAuthenticate(client)},
+			{"POST", "/v1/auth/oauth", handleOAuthAuthenticate(client)},
+			{"POST", "/v1/auth/verify-email", handleVerifyEmail(client)},
+			{"POST", "/v1/auth/reset-password", handleResetPassword(client)},
+			{"POST", "/v1/auth/change-password", handleChangePassword(client)},
+		}
 
-	// Register
-	err = mux.HandlePath("POST", "/v1/auth/register", handleRegister(client))
-	if err != nil {
-		return err
-	}
+		for _, h := range handlers {
+			if err := mux.HandlePath(h.method, h.pattern, h.handler); err != nil {
+				return err
+			}
+		}
 
-	// Authenticate
-	err = mux.HandlePath("POST", "/v1/auth/authenticate", handleAuthenticate(client))
-	if err != nil {
-		return err
-	}
-
-	// OAuthAuthenticate
-	err = mux.HandlePath("POST", "/v1/auth/oauth", handleOAuthAuthenticate(client))
-	if err != nil {
-		return err
-	}
-
-	// VerifyEmail
-	err = mux.HandlePath("POST", "/v1/auth/verify-email", handleVerifyEmail(client))
-	if err != nil {
-		return err
-	}
-
-	// ResetPassword
-	err = mux.HandlePath("POST", "/v1/auth/reset-password", handleResetPassword(client))
-	if err != nil {
-		return err
-	}
-
-	// ChangePassword
-	err = mux.HandlePath("POST", "/v1/auth/change-password", handleChangePassword(client))
-	if err != nil {
-		return err
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func handleRegister(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req auth_service.RegisterRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.Register(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleAuthenticate(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		var req auth_service.AuthRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		var req auth_service.AuthenticateRequest
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.Authenticate(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleOAuthAuthenticate(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		var req auth_service.OAuthRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		var req auth_service.OAuthAuthenticateRequest
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.OAuthAuthenticate(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleVerifyEmail(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req auth_service.VerifyEmailRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.VerifyEmail(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleResetPassword(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req auth_service.ResetPasswordRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.ResetPassword(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
 
 func handleChangePassword(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		var req auth_service.ChangePasswordRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
 		resp, err := client.ChangePassword(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
