@@ -1,1 +1,2 @@
-docker run --name user-scylla -d -p 9052:9042 scylladb/scylla
+run dev local
+env $(cat .env | xargs) go run cmd/server/main.go

@@ -1,160 +1,101 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gocql/gocql"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/user_service/v1"
+	"github.com/malytinKonstantin/go-messenger-mono/user-service/internal/handlers"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
-type server struct {
-	pb.UnimplementedUserServiceServer
-	producer *kafka.Producer
-}
-
-func (s *server) GetUser(ctx context.Context, in *pb.GetUserRequest) (*pb.GetUserResponse, error) {
-	// Здесь должна быть реализация получения пользователя из базы данных
-	// Для примера возвращаем фиктивные данные
-	profile := &pb.UserProfile{
-		UserId:    in.UserId,
-		Nickname:  "Иван Иванов",
-		Bio:       "Пример биографии",
-		AvatarUrl: "https://example.com/avatar.jpg",
-	}
-
-	// Отправляем событие в Kafka
-	topic := "user_events"
-	err := s.producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Value:          []byte("Получен пользователь: " + profile.UserId),
-	}, nil)
-
-	if err != nil {
-		log.Printf("Не удалось отправить сообщение: %v", err)
-	}
-
-	return &pb.GetUserResponse{Profile: profile}, nil
-}
-
-func (s *server) CreateUserProfile(ctx context.Context, in *pb.CreateUserProfileRequest) (*pb.CreateUserProfileResponse, error) {
-	// Здесь должна быть реализация создания профиля пользователя в базе данных
-	// Для примера создаем фиктивный профиль пользователя
-	profile := &pb.UserProfile{
-		UserId:    in.UserId,
-		Nickname:  in.Nickname,
-		Bio:       in.Bio,
-		AvatarUrl: in.AvatarUrl,
-	}
-
-	// Отправляем событие в Kafka
-	topic := "user_events"
-	err := s.producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Value:          []byte("Создан новый профиль пользователя: " + profile.UserId),
-	}, nil)
-
-	if err != nil {
-		log.Printf("Не удалось отправить сообщение: %v", err)
-	}
-
-	return &pb.CreateUserProfileResponse{Profile: profile}, nil
-}
-
-func (s *server) UpdateUserProfile(ctx context.Context, in *pb.UpdateUserProfileRequest) (*pb.UpdateUserProfileResponse, error) {
-	// Здесь должна быть реализация обновления профиля пользователя в базе данных
-	// Для примера обновляем фиктивный профиль пользователя
-	profile := &pb.UserProfile{
-		UserId:    in.UserId,
-		Nickname:  in.Nickname,
-		Bio:       in.Bio,
-		AvatarUrl: in.AvatarUrl,
-	}
-
-	// Отправляем событие в Kafka
-	topic := "user_events"
-	err := s.producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Value:          []byte("Обновлен профиль пользователя: " + profile.UserId),
-	}, nil)
-
-	if err != nil {
-		log.Printf("Не удалось отправить сообщение: %v", err)
-	}
-
-	return &pb.UpdateUserProfileResponse{Profile: profile}, nil
-}
-
-func (s *server) SearchUsers(ctx context.Context, in *pb.SearchUsersRequest) (*pb.SearchUsersResponse, error) {
-	// Здесь должна быть реализация поиска пользователей в базе данных
-	// Для примера возвращаем список фиктивных профилей
-	profiles := []*pb.UserProfile{
-		{
-			UserId:    "user1",
-			Nickname:  "User One",
-			Bio:       "Биография пользователя один",
-			AvatarUrl: "https://example.com/avatar1.jpg",
-		},
-		{
-			UserId:    "user2",
-			Nickname:  "User Two",
-			Bio:       "Биография пользователя два",
-			AvatarUrl: "https://example.com/avatar2.jpg",
-		},
-	}
-
-	// Отправляем событие в Kafka
-	topic := "user_events"
-	err := s.producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Value:          []byte("Произведен поиск пользователей по запросу: " + in.Query),
-	}, nil)
-
-	if err != nil {
-		log.Printf("Не удалось отправить сообщение: %v", err)
-	}
-
-	return &pb.SearchUsersResponse{Profiles: profiles}, nil
-}
-
 func main() {
-	env := os.Getenv("ENV")
-	if env != "production" {
-		err := godotenv.Load()
-		if err != nil {
-			log.Println("Файл .env не найден, продолжаем без него")
-		}
+	if err := run(); err != nil {
+		log.Fatalf("Error starting service: %v", err)
 	}
+}
 
-	// Автоматически считываем переменные окружения
+func run() error {
+	if err := loadEnv(); err != nil {
+		log.Printf("Error loading .env file: %v", err)
+	}
 	viper.AutomaticEnv()
 
-	// Читаем параметры из переменных окружения
-	grpcPort := viper.GetString("GRPC_PORT")
-	httpPort := viper.GetString("HTTP_PORT")
+	session, err := connectToScylla()
+	if err != nil {
+		return fmt.Errorf("Error connecting to database: %w", err)
+	}
+	defer session.Close()
 
-	// Читаем параметры ScyllaDB из переменных окружения
-	scyllaHost := viper.GetString("SCYLLA_HOST")
-	scyllaPort := viper.GetString("SCYLLA_PORT")
-	scyllaKeyspace := viper.GetString("SCYLLA_KEYSPACE")
-	scyllaConsistency := viper.GetString("SCYLLA_CONSISTENCY")
+	producer, err := createKafkaProducer()
+	if err != nil {
+		return fmt.Errorf("Error creating Kafka producer: %w", err)
+	}
+	defer producer.Close()
 
-	fmt.Println(scyllaHost, scyllaPort, scyllaKeyspace, scyllaConsistency)
+	grpcServer, err := setupGRPCServer(session, producer)
+	if err != nil {
+		return fmt.Errorf("Error setting up gRPC server: %w", err)
+	}
 
-	// Настраиваем подключение к ScyllaDB
-	cluster := gocql.NewCluster(fmt.Sprintf("%s:%s", scyllaHost, scyllaPort))
-	cluster.Keyspace = scyllaKeyspace
+	httpServer := setupHTTPServer()
 
-	// Устанавливаем уровень согласованности
-	switch scyllaConsistency {
+	go func() {
+		if err := startHTTPServer(httpServer); err != nil {
+			log.Printf("Error starting HTTP server: %v", err)
+		}
+	}()
+
+	go func() {
+		if err := startGRPCServer(grpcServer); err != nil {
+			log.Printf("Error starting gRPC server: %v", err)
+		}
+	}()
+
+	waitForShutdown(httpServer, grpcServer)
+
+	return nil
+}
+
+func loadEnv() error {
+	env := os.Getenv("ENV")
+	if env != "production" {
+		if err := godotenv.Load(".env.local"); err != nil {
+			log.Println(".env.local file not found, continuing without it")
+		}
+	}
+	return nil
+}
+
+func connectToScylla() (*gocql.Session, error) {
+	host := viper.GetString("SCYLLA_HOST")
+	port := viper.GetString("SCYLLA_PORT")
+	keyspace := viper.GetString("SCYLLA_KEYSPACE")
+	consistency := viper.GetString("SCYLLA_CONSISTENCY")
+	username := viper.GetString("SCYLLA_USERNAME")
+	password := viper.GetString("SCYLLA_PASSWORD")
+
+	portNum, err := strconv.Atoi(port)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid port number: %v", err)
+	}
+
+	cluster := gocql.NewCluster(host)
+	cluster.Port = portNum
+	cluster.Keyspace = keyspace
+
+	switch consistency {
 	case "ONE":
 		cluster.Consistency = gocql.One
 	case "QUORUM":
@@ -165,41 +106,78 @@ func main() {
 		cluster.Consistency = gocql.Quorum
 	}
 
+	if username != "" && password != "" {
+		cluster.Authenticator = gocql.PasswordAuthenticator{
+			Username: username,
+			Password: password,
+		}
+	}
+
+	cluster.IgnorePeerAddr = true
+	cluster.DisableInitialHostLookup = true
+
 	session, err := cluster.CreateSession()
 	if err != nil {
-		fmt.Printf("Ошибка подключения к ScyllaDB: %v\n", err)
-		return
+		return nil, fmt.Errorf("Error connecting to ScyllaDB: %v", err)
 	}
-	defer session.Close()
+	return session, nil
+}
 
-	// Настройка Kafka producer
-	// p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost:9092"})
-	// if err != nil {
-	// 	log.Fatalf("Не удалось создать producer: %s", err)
-	// }
-	// defer p.Close()
-
-	// Запуск gRPC сервера
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
-	if err != nil {
-		log.Fatalf("Не удалось прослушать порт: %v", err)
-	}
-	s := grpc.NewServer()
-	// pb.RegisterUserServiceServer(s, &server{producer: p})
-
-	// Запуск Fiber сервера для внутреннего API
-	app := fiber.New()
-
-	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.SendString("Сервис пользователей работает")
+func createKafkaProducer() (*kafka.Producer, error) {
+	producer, err := kafka.NewProducer(&kafka.ConfigMap{
+		"bootstrap.servers": viper.GetString("KAFKA_BOOTSTRAP_SERVERS"),
 	})
-
-	go func() {
-		log.Fatal(app.Listen(fmt.Sprintf(":%s", httpPort)))
-	}()
-
-	log.Printf("gRPC сервер слушает на %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("Не удалось запустить сервер: %v", err)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create Kafka producer: %v", err)
 	}
+	return producer, nil
+}
+
+func setupGRPCServer(session *gocql.Session, producer *kafka.Producer) (*grpc.Server, error) {
+	grpcServer := grpc.NewServer()
+	userHandler := handlers.NewUserHandler(session, producer)
+	pb.RegisterUserServiceServer(grpcServer, userHandler)
+	reflection.Register(grpcServer)
+	return grpcServer, nil
+}
+
+func setupHTTPServer() *fiber.App {
+	app := fiber.New()
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.SendString("User service is running")
+	})
+	return app
+}
+
+func startHTTPServer(app *fiber.App) error {
+	if err := app.Listen(fmt.Sprintf(":%s", viper.GetString("HTTP_PORT"))); err != nil {
+		return fmt.Errorf("Error starting HTTP server: %v", err)
+	}
+	return nil
+}
+
+func startGRPCServer(grpcServer *grpc.Server) error {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", viper.GetString("GRPC_PORT")))
+	if err != nil {
+		return fmt.Errorf("Failed to listen: %v", err)
+	}
+	log.Printf("gRPC server listening at %v", lis.Addr())
+	if err := grpcServer.Serve(lis); err != nil {
+		return fmt.Errorf("Error starting gRPC server: %v", err)
+	}
+	return nil
+}
+
+func waitForShutdown(httpServer *fiber.App, grpcServer *grpc.Server) {
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down servers...")
+
+	if err := httpServer.Shutdown(); err != nil {
+		log.Printf("Error shutting down HTTP server: %v", err)
+	}
+
+	grpcServer.GracefulStop()
+	log.Println("Servers successfully shut down")
 }
