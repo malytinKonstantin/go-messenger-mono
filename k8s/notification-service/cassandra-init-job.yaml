@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cassandra-init-job
+  namespace: go-messenger
+spec:
+  template:
+    metadata:
+      labels:
+        app: cassandra-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: cassandra-init
+          image: cassandra:4.0
+          command:
+            - sh
+            - -c
+            - |
+              echo "Ожидание готовности Cassandra..."
+              until cqlsh notification-cassandra.go-messenger.svc.cluster.local 9242 -e "describe keyspaces"; do
+                sleep 5
+              done
+              echo "Инициализация базы данных..."
+              cqlsh notification-cassandra.go-messenger.svc.cluster.local 9242 -f /init.cql
+          volumeMounts:
+            - name: init-script
+              mountPath: /init.cql
+              subPath: init.cql
+      volumes:
+        - name: init-script
+          configMap:
+            name: cassandra-init-script

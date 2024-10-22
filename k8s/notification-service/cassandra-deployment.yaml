@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-cassandra
+  namespace: go-messenger
+  labels:
+    app: notification-cassandra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-cassandra
+  template:
+    metadata:
+      labels:
+        app: notification-cassandra
+    spec:
+      containers:
+        - name: cassandra
+          image: cassandra:4.0
+          ports:
+            - containerPort: 9242
+              name: cql
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "1"
+          env:
+            - name: MAX_HEAP_SIZE
+              value: "1G"
+            - name: HEAP_NEWSIZE
+              value: "200M"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: JVM_GC
+              value: "G1GC"
+            - name: JVM_EXTRA_OPTS
+              value: >
+                -Dcassandra.rpc_port=9242
+                -Dcassandra.native_transport_port=9242
+                -Dcassandra.storage_port=7001
+                -Dcassandra.jmx.local.port=7199
+                -Dcassandra.listen_address=$(POD_IP)
+                -Dcassandra.broadcast_address=$(POD_IP)
+                -Dcassandra.rpc_address=0.0.0.0
+                -Dcassandra.broadcast_rpc_address=$(POD_IP)
+                -Djava.net.preferIPv4Stack=true
+          volumeMounts:
+            - name: cassandra-data
+              mountPath: /var/lib/cassandra
+      volumes:
+        - name: cassandra-data
+          persistentVolumeClaim:
+            claimName: notification-cassandra-pv-claim

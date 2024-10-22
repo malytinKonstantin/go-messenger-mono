@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cassandra-init-script
+  namespace: go-messenger
+data:
+  init.cql: |
+    CREATE KEYSPACE IF NOT EXISTS mykeyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+    USE mykeyspace;
+
+    CREATE TABLE IF NOT EXISTS notifications (
+        user_id text,
+        notification_id timeuuid,
+        type text,
+        content text,
+        is_read boolean,
+        created_at timestamp,
+        PRIMARY KEY ((user_id), notification_id)
+    ) WITH CLUSTERING ORDER BY (notification_id DESC);

@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  messaging-service:
+    build: .
+    ports:
+      - "50054:50054"
+      - "3004:3004"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - DATABASE_HOST=cassandra
+    depends_on:
+      - cassandra
+    networks:
+      - backend
+
+  cassandra:
+    image: cassandra:latest
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    networks:
+      - backend
+    restart: always
+
+volumes:
+  cassandra_data:
+
+networks:
+  backend:
+    driver: bridge

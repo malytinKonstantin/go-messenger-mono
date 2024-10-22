@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  user-service:
+    build: .
+    ports:
+      - "50051:50051"
+      - "3001:3001"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - DATABASE_HOST=mongo
+      - DATABASE_NAME=user_db
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:latest
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend
+    restart: always
+
+volumes:
+  mongo_data:
+
+networks:
+  backend:
+    driver: bridge

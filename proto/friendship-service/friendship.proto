@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package friendship;
+
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/friendship-service";
+
+service FriendshipService {
+  // Отправка запроса на добавление в друзья
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse) {}
+
+  // Принятие запроса на дружбу
+  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (AcceptFriendRequestResponse) {}
+
+  // Отклонение запроса на дружбу
+  rpc RejectFriendRequest(RejectFriendRequestRequest) returns (RejectFriendRequestResponse) {}
+
+  // Удаление пользователя из друзей
+  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
+
+  // Получение списка друзей
+  rpc GetFriendsList(GetFriendsListRequest) returns (GetFriendsListResponse) {}
+
+  // Получение списка входящих и исходящих запросов на дружбу
+  rpc GetPendingRequests(GetPendingRequestsRequest) returns (GetPendingRequestsResponse) {}
+}
+
+message SendFriendRequestRequest {
+  string user_id = 1;      // Идентификатор пользователя, отправляющего запрос
+  string friend_id = 2;    // Идентификатор пользователя, которому отправляется запрос
+}
+
+message SendFriendRequestResponse {
+  bool success = 1;
+}
+
+message AcceptFriendRequestRequest {
+  string user_id = 1;      // Идентификатор пользователя, принимающего запрос
+  string friend_id = 2;    // Идентификатор пользователя, отправившего запрос
+}
+
+message AcceptFriendRequestResponse {
+  bool success = 1;
+}
+
+message RejectFriendRequestRequest {
+  string user_id = 1;      // Идентификатор пользователя, отклоняющего запрос
+  string friend_id = 2;    // Идентификатор пользователя, отправившего запрос
+}
+
+message RejectFriendRequestResponse {
+  bool success = 1;
+}
+
+message RemoveFriendRequest {
+  string user_id = 1;      // Идентификатор пользователя, удаляющего друга
+  string friend_id = 2;    // Идентификатор друга, которого удаляют
+}
+
+message RemoveFriendResponse {
+  bool success = 1;
+}
+
+message GetFriendsListRequest {
+  string user_id = 1;
+}
+
+message GetFriendsListResponse {
+  repeated Friend friends = 1;
+}
+
+message GetPendingRequestsRequest {
+  string user_id = 1;
+}
+
+message GetPendingRequestsResponse {
+  repeated FriendRequest incoming_requests = 1;
+  repeated FriendRequest outgoing_requests = 2;
+}
+
+message Friend {
+  string user_id = 1;         // Идентификатор друга
+  string nickname = 2;        // Никнейм друга
+  string avatar_url = 3;      // URL аватарки
+  int64 added_at = 4;         // Время добавления в друзья
+}
+
+message FriendRequest {
+  string user_id = 1;         // Идентификатор пользователя, отправившего запрос
+  string friend_id = 2;       // Идентификатор пользователя, получившего запрос
+  string status = 3;          // Статус запроса ("pending", "accepted", "rejected")
+  int64 created_at = 4;       // Время создания запроса
+  int64 updated_at = 5;       // Время обновления статуса
+}
