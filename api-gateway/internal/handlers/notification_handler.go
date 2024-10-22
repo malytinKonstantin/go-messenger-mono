@@ -11,30 +11,29 @@ import (
 )
 
 func RegisterNotificationService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error {
-	conn, err := grpc.Dial(endpoint, opts...)
-	if err != nil {
-		return err
-	}
+	return registerService(ctx, mux, endpoint, opts, func(conn *grpc.ClientConn) error {
+		client := notification_service.NewNotificationServiceClient(conn)
 
-	client := notification_service.NewNotificationServiceClient(conn)
+		handlers := []struct {
+			method  string
+			pattern string
+			handler runtime.HandlerFunc
+		}{
+			{"POST", "/v1/notification/send", handleSendNotification(client)},
+			{"GET", "/v1/notification", handleGetNotifications(client)},
+			{"PUT", "/v1/notification/mark-read", handleMarkNotificationAsRead(client)},
+			{"PUT", "/v1/notification/update-preferences", handleUpdateNotificationPreferences(client)},
+			{"GET", "/v1/notification/preferences", handleGetNotificationPreferences(client)},
+		}
 
-	if err := mux.HandlePath("POST", "/v1/notification/send", handleSendNotification(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("GET", "/v1/notification", handleGetNotifications(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("PUT", "/v1/notification/mark-read", handleMarkNotificationAsRead(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("PUT", "/v1/notification/update-preferences", handleUpdateNotificationPreferences(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("GET", "/v1/notification/preferences", handleGetNotificationPreferences(client)); err != nil {
-		return err
-	}
+		for _, h := range handlers {
+			if err := mux.HandlePath(h.method, h.pattern, h.handler); err != nil {
+				return err
+			}
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func handleSendNotification(client notification_service.NotificationServiceClient) runtime.HandlerFunc {
@@ -45,7 +44,7 @@ func handleSendNotification(client notification_service.NotificationServiceClien
 		}
 
 		if req.UserId == "" || req.Message == "" {
-			http.Error(w, "Поля user_id и message обязательны", http.StatusBadRequest)
+			http.Error(w, "Fields user_id and message are required", http.StatusBadRequest)
 			return
 		}
 
@@ -64,7 +63,7 @@ func handleGetNotifications(client notification_service.NotificationServiceClien
 		req.UserId = parseStringParam(r, "user_id", "")
 
 		if req.UserId == "" {
-			http.Error(w, "Параметр user_id обязателен", http.StatusBadRequest)
+			http.Error(w, "Parameter user_id is required", http.StatusBadRequest)
 			return
 		}
 
@@ -88,7 +87,7 @@ func handleMarkNotificationAsRead(client notification_service.NotificationServic
 		}
 
 		if req.NotificationId == "" || req.UserId == "" {
-			http.Error(w, "Поля notification_id и user_id обязательны", http.StatusBadRequest)
+			http.Error(w, "Fields notification_id and user_id are required", http.StatusBadRequest)
 			return
 		}
 
@@ -109,7 +108,7 @@ func handleUpdateNotificationPreferences(client notification_service.Notificatio
 		}
 
 		if req.UserId == "" || req.Preferences == nil {
-			http.Error(w, "Поля user_id и preferences обязательны", http.StatusBadRequest)
+			http.Error(w, "Fields user_id and preferences are required", http.StatusBadRequest)
 			return
 		}
 
@@ -128,7 +127,7 @@ func handleGetNotificationPreferences(client notification_service.NotificationSe
 		req.UserId = parseStringParam(r, "user_id", "")
 
 		if req.UserId == "" {
-			http.Error(w, "Параметр user_id обязателен", http.StatusBadRequest)
+			http.Error(w, "Parameter user_id is required", http.StatusBadRequest)
 			return
 		}
 

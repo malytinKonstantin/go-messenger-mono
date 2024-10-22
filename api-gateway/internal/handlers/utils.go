@@ -1,13 +1,28 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 )
+
+func registerService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption, registerFunc func(clientConn *grpc.ClientConn) error) error {
+	conn, err := grpc.Dial(endpoint, opts...)
+	if err != nil {
+		return err
+	}
+
+	if err := registerFunc(conn); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // parseIntParam извлекает целочисленный параметр из URL-запроса.
 func parseIntParam(r *http.Request, name string, defaultValue int) int {
@@ -46,7 +61,7 @@ func handleGrpcError(w http.ResponseWriter, err error) {
 func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(dst); err != nil {
-		http.Error(w, "Неверный формат JSON: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid JSON format: "+err.Error(), http.StatusBadRequest)
 		return err
 	}
 	return nil

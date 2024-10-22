@@ -11,24 +11,27 @@ import (
 )
 
 func RegisterMessagingService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error {
-	conn, err := grpc.Dial(endpoint, opts...)
-	if err != nil {
-		return err
-	}
+	return registerService(ctx, mux, endpoint, opts, func(conn *grpc.ClientConn) error {
+		client := messaging_service.NewMessagingServiceClient(conn)
 
-	client := messaging_service.NewMessagingServiceClient(conn)
+		handlers := []struct {
+			method  string
+			pattern string
+			handler runtime.HandlerFunc
+		}{
+			{"POST", "/v1/messaging/send-message", handleSendMessage(client)},
+			{"GET", "/v1/messaging/messages", handleGetMessages(client)},
+			{"POST", "/v1/messaging/update-message-status", handleUpdateMessageStatus(client)},
+		}
 
-	if err := mux.HandlePath("POST", "/v1/messaging/send-message", handleSendMessage(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("GET", "/v1/messaging/messages", handleGetMessages(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("POST", "/v1/messaging/update-message-status", handleUpdateMessageStatus(client)); err != nil {
-		return err
-	}
+		for _, h := range handlers {
+			if err := mux.HandlePath(h.method, h.pattern, h.handler); err != nil {
+				return err
+			}
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func handleSendMessage(client messaging_service.MessagingServiceClient) runtime.HandlerFunc {

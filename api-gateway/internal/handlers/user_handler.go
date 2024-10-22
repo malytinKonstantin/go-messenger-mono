@@ -11,34 +11,35 @@ import (
 )
 
 func RegisterUserService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error {
-	conn, err := grpc.Dial(endpoint, opts...)
-	if err != nil {
-		return err
-	}
+	return registerService(ctx, mux, endpoint, opts, func(conn *grpc.ClientConn) error {
+		client := user_service.NewUserServiceClient(conn)
 
-	client := user_service.NewUserServiceClient(conn)
+		handlers := []struct {
+			method  string
+			pattern string
+			handler runtime.HandlerFunc
+		}{
+			{"GET", "/v1/users/{user_id}", handleGetUser(client)},
+			{"POST", "/v1/users", handleCreateUserProfile(client)},
+			{"PUT", "/v1/users/{user_id}", handleUpdateUserProfile(client)},
+			{"GET", "/v1/users/search", handleSearchUsers(client)},
+		}
 
-	if err := mux.HandlePath("GET", "/v1/users/{user_id}", handleGetUser(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("POST", "/v1/users", handleCreateUserProfile(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("PUT", "/v1/users/{user_id}", handleUpdateUserProfile(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("GET", "/v1/users/search", handleSearchUsers(client)); err != nil {
-		return err
-	}
+		for _, h := range handlers {
+			if err := mux.HandlePath(h.method, h.pattern, h.handler); err != nil {
+				return err
+			}
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func handleGetUser(client user_service.UserServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		userID, ok := pathParams["user_id"]
 		if !ok {
-			http.Error(w, "user_id не указан", http.StatusBadRequest)
+			http.Error(w, "user_id is not specified", http.StatusBadRequest)
 			return
 		}
 		req := &user_service.GetUserRequest{UserId: userID}
@@ -70,7 +71,7 @@ func handleUpdateUserProfile(client user_service.UserServiceClient) runtime.Hand
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		userID, ok := pathParams["user_id"]
 		if !ok {
-			http.Error(w, "user_id не указан", http.StatusBadRequest)
+			http.Error(w, "user_id is not specified", http.StatusBadRequest)
 			return
 		}
 		var req user_service.UpdateUserProfileRequest
@@ -91,7 +92,7 @@ func handleSearchUsers(client user_service.UserServiceClient) runtime.HandlerFun
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		query := parseStringParam(r, "query", "")
 		if query == "" {
-			http.Error(w, "Параметр query обязателен", http.StatusBadRequest)
+			http.Error(w, "Query parameter is required", http.StatusBadRequest)
 			return
 		}
 		limit := int32(parseIntParam(r, "limit", 10))

@@ -11,33 +11,30 @@ import (
 )
 
 func RegisterFriendshipService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error {
-	conn, err := grpc.Dial(endpoint, opts...)
-	if err != nil {
-		return err
-	}
+	return registerService(ctx, mux, endpoint, opts, func(conn *grpc.ClientConn) error {
+		client := friendship_service.NewFriendshipServiceClient(conn)
 
-	client := friendship_service.NewFriendshipServiceClient(conn)
+		handlers := []struct {
+			method  string
+			pattern string
+			handler runtime.HandlerFunc
+		}{
+			{"POST", "/v1/friendship/send-request", handleSendFriendRequest(client)},
+			{"POST", "/v1/friendship/accept-request", handleAcceptFriendRequest(client)},
+			{"POST", "/v1/friendship/reject-request", handleRejectFriendRequest(client)},
+			{"POST", "/v1/friendship/remove-friend", handleRemoveFriend(client)},
+			{"GET", "/v1/friendship/friends-list", handleGetFriendsList(client)},
+			{"GET", "/v1/friendship/pending-requests", handleGetPendingRequests(client)},
+		}
 
-	if err := mux.HandlePath("POST", "/v1/friendship/send-request", handleSendFriendRequest(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("POST", "/v1/friendship/accept-request", handleAcceptFriendRequest(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("POST", "/v1/friendship/reject-request", handleRejectFriendRequest(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("POST", "/v1/friendship/remove-friend", handleRemoveFriend(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("GET", "/v1/friendship/friends-list", handleGetFriendsList(client)); err != nil {
-		return err
-	}
-	if err := mux.HandlePath("GET", "/v1/friendship/pending-requests", handleGetPendingRequests(client)); err != nil {
-		return err
-	}
+		for _, h := range handlers {
+			if err := mux.HandlePath(h.method, h.pattern, h.handler); err != nil {
+				return err
+			}
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func handleSendFriendRequest(client friendship_service.FriendshipServiceClient) runtime.HandlerFunc {
