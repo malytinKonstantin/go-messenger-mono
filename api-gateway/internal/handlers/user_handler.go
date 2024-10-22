@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -20,23 +19,19 @@ func RegisterUserService(ctx context.Context, mux *runtime.ServeMux, endpoint st
 
 	client := user_service.NewUserServiceClient(conn)
 
-	err = mux.HandlePath("GET", "/v1/user/get", handleGetUser(client))
-	if err != nil {
+	if err := mux.HandlePath("GET", "/v1/users/{user_id}", handleGetUser(client)); err != nil {
 		return err
 	}
 
-	err = mux.HandlePath("POST", "/v1/user/create", handleCreateUserProfile(client))
-	if err != nil {
+	if err := mux.HandlePath("POST", "/v1/users", handleCreateUserProfile(client)); err != nil {
 		return err
 	}
 
-	err = mux.HandlePath("PUT", "/v1/user/update", handleUpdateUserProfile(client))
-	if err != nil {
+	if err := mux.HandlePath("PUT", "/v1/users/{user_id}", handleUpdateUserProfile(client)); err != nil {
 		return err
 	}
 
-	err = mux.HandlePath("GET", "/v1/user/search", handleSearchUsers(client))
-	if err != nil {
+	if err := mux.HandlePath("GET", "/v1/users/search", handleSearchUsers(client)); err != nil {
 		return err
 	}
 
@@ -45,11 +40,15 @@ func RegisterUserService(ctx context.Context, mux *runtime.ServeMux, endpoint st
 
 func handleGetUser(client user_service.UserServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		userID := r.URL.Query().Get("user_id")
+		userID, ok := pathParams["user_id"]
+		if !ok {
+			http.Error(w, "user_id not provided", http.StatusBadRequest)
+			return
+		}
 		req := &user_service.GetUserRequest{UserId: userID}
 		resp, err := client.GetUser(r.Context(), req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -66,7 +65,7 @@ func handleCreateUserProfile(client user_service.UserServiceClient) runtime.Hand
 		}
 		resp, err := client.CreateUserProfile(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -76,14 +75,20 @@ func handleCreateUserProfile(client user_service.UserServiceClient) runtime.Hand
 
 func handleUpdateUserProfile(client user_service.UserServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		userID, ok := pathParams["user_id"]
+		if !ok {
+			http.Error(w, "user_id not provided", http.StatusBadRequest)
+			return
+		}
 		var req user_service.UpdateUserProfileRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		req.UserId = userID
 		resp, err := client.UpdateUserProfile(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -94,16 +99,22 @@ func handleUpdateUserProfile(client user_service.UserServiceClient) runtime.Hand
 func handleSearchUsers(client user_service.UserServiceClient) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		query := r.URL.Query().Get("query")
-		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-		offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+		if query == "" {
+			http.Error(w, "query parameter is required", http.StatusBadRequest)
+			return
+		}
+
+		limit := int32(parseIntParam(r, "limit", 10))
+		offset := int32(parseIntParam(r, "offset", 0))
+
 		req := &user_service.SearchUsersRequest{
 			Query:  query,
-			Limit:  int32(limit),
-			Offset: int32(offset),
+			Limit:  limit,
+			Offset: offset,
 		}
 		resp, err := client.SearchUsers(r.Context(), req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")

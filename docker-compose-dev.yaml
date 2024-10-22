@@ -68,10 +68,44 @@ services:
       - kafka_network
     restart: always
 
+  notification_cassandra:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile.cassandra
+    ports:
+      - "9242:9042"
+    volumes:
+      - notification_cassandra_data:/var/lib/cassandra
+    networks:
+      - kafka_network
+    restart: always
+
+  users_scylla:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile.scylla
+    ports:
+      - "9442:9042"
+    volumes:
+      - users_scylla_data:/var/lib/scylla
+    networks:
+      - kafka_network
+    restart: always
+    environment:
+      SCYLLA_HOST: localhost
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylla
+      SCYLLA_PASSWORD: scylla
+      SCYLLA_KEYSPACE: my_keyspace
+      SCYLLA_CONSISTENCY: QUORUM
+
 volumes:
   postgres_data:
   neo4j_data:
   cassandra_data:
+  notification_cassandra_data:
+  users_scylla_data:
+
 networks:
   kafka_network:
     driver: bridge

@@ -61,7 +61,7 @@ func handleSendFriendRequest(client friendship_service.FriendshipServiceClient) 
 		}
 		resp, err := client.SendFriendRequest(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -78,7 +78,7 @@ func handleAcceptFriendRequest(client friendship_service.FriendshipServiceClient
 		}
 		resp, err := client.AcceptFriendRequest(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -95,7 +95,7 @@ func handleRejectFriendRequest(client friendship_service.FriendshipServiceClient
 		}
 		resp, err := client.RejectFriendRequest(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -112,7 +112,7 @@ func handleRemoveFriend(client friendship_service.FriendshipServiceClient) runti
 		}
 		resp, err := client.RemoveFriend(r.Context(), &req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -130,7 +130,7 @@ func handleGetFriendsList(client friendship_service.FriendshipServiceClient) run
 		req := &friendship_service.GetFriendsListRequest{UserId: userID}
 		resp, err := client.GetFriendsList(r.Context(), req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -148,7 +148,7 @@ func handleGetPendingRequests(client friendship_service.FriendshipServiceClient)
 		req := &friendship_service.GetPendingRequestsRequest{UserId: userID}
 		resp, err := client.GetPendingRequests(r.Context(), req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")

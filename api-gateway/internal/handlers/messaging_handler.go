@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -47,7 +46,7 @@ func handleSendMessage(client messaging_service.MessagingServiceClient) runtime.
 		}
 		resp, err := client.SendMessage(r.Context(), &req)
 		if err != nil {
-			http.Error(w, "Error sending message: "+err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -68,27 +67,12 @@ func handleGetMessages(client messaging_service.MessagingServiceClient) runtime.
 			return
 		}
 
-		if limitStr := queryParams.Get("limit"); limitStr != "" {
-			limit, err := strconv.Atoi(limitStr)
-			if err != nil || limit <= 0 {
-				http.Error(w, "Invalid 'limit' parameter", http.StatusBadRequest)
-				return
-			}
-			req.Limit = int32(limit)
-		}
-
-		if offsetStr := queryParams.Get("offset"); offsetStr != "" {
-			offset, err := strconv.Atoi(offsetStr)
-			if err != nil || offset < 0 {
-				http.Error(w, "Invalid 'offset' parameter", http.StatusBadRequest)
-				return
-			}
-			req.Offset = int32(offset)
-		}
+		req.Limit = int32(parseIntParam(r, "limit", 0))
+		req.Offset = int32(parseIntParam(r, "offset", 0))
 
 		resp, err := client.GetMessages(r.Context(), &req)
 		if err != nil {
-			http.Error(w, "Error getting messages: "+err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -105,7 +89,7 @@ func handleUpdateMessageStatus(client messaging_service.MessagingServiceClient) 
 		}
 		resp, err := client.UpdateMessageStatus(r.Context(), &req)
 		if err != nil {
-			http.Error(w, "Error updating message status: "+err.Error(), http.StatusInternalServerError)
+			handleGrpcError(w, err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
