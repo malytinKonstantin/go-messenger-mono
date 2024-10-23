@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"context"
@@ -6,16 +6,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/db"
-	"github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/repositories/postgres"
+	"github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
-	repo *postgres.AuthRepository
+	repo *repository.AuthRepository
 }
 
-func NewAuthService(repo *postgres.AuthRepository) *AuthService {
+func NewAuthService(repo *repository.AuthRepository) *AuthService {
 	return &AuthService{repo: repo}
 }
 

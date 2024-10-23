@@ -5,7 +5,6 @@ go 1.21
 require (
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/gofiber/fiber/v2 v2.52.5
-	github.com/joho/godotenv v1.5.1
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.7
 	github.com/spf13/viper v1.19.0
 	google.golang.org/grpc v1.67.1

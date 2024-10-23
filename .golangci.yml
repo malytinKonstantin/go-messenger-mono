@@ -1,0 +1,16 @@
+linters:
+  disable:
+    - golint
+  enable:
+    - gofmt
+    - govet
+    - revive
+    - staticcheck
+    - errcheck
+    - ineffassign
+
+run:
+  modules-download-mode: readonly
+
+issues:
+  exclude-use-default: false

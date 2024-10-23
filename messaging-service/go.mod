@@ -6,7 +6,6 @@ require (
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/gocql/gocql v1.7.0
 	github.com/gofiber/fiber/v2 v2.52.5
-	github.com/joho/godotenv v1.5.1
 	github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0-00010101000000-000000000000
 	github.com/spf13/viper v1.19.0
 	google.golang.org/grpc v1.67.1

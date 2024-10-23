@@ -1,4 +1,4 @@
-package postgres
+package repository
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/db"
+	db "github.com/malytinKonstantin/go-messenger-mono/auth-service/infrastructure/database/generated"
 )
 
 type AuthRepository struct {
