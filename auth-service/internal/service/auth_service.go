@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/repository"
+	db "github.com/malytinKonstantin/go-messenger-mono/auth-service/infrastructure/database/generated"
+	repository "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
