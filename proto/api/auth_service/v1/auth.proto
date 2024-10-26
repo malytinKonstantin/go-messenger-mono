@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package api.auth_service.v1;
+
+import "validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/auth_service/v1;auth_service";
+
+// AuthService предоставляет методы для аутентификации и управления учетными записями пользователей.
+service AuthService {
+  // Регистрация нового пользователя по электронной почте и паролю
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Регистрация нового пользователя"
+      tags: "AuthService"
+    };
+  }
+
+  // Аутентификация пользователя по электронной почте и паролю
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Аутентификация пользователя"
+      tags: "AuthService"
+    };
+  }
+
+  // Аутентификация пользователя через OAuth провайдера
+  rpc OAuthAuthenticate(OAuthAuthenticateRequest) returns (OAuthAuthenticateResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/oauth"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Аутентификация через OAuth"
+      tags: "AuthService"
+    };
+  }
+
+  // Подтверждение адреса электронной почты
+  rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/verify-email"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Подтверждение адреса электронной почты"
+      tags: "AuthService"
+    };
+  }
+
+  // Запрос на сброс пароля
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/reset-password"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Запрос на сброс пароля"
+      tags: "AuthService"
+    };
+  }
+
+  // Смена пароля с использованием токена сброса
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/change-password"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Смена пароля"
+      tags: "AuthService"
+    };
+  }
+}
+
+// RegisterRequest содержит данные для регистрации нового пользователя.
+message RegisterRequest {
+  // Email пользователя
+  string email = 1 [
+    (validate.rules).string = {email: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
+  // Пароль пользователя
+  string password = 2 [
+    (validate.rules).string = {min_len: 8},
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// RegisterResponse содержит результат регистрации нового пользователя.
+message RegisterResponse {
+  // UUID нового пользователя
+  string user_id = 1 [(validate.rules).string = {uuid: true}];
+}
+
+// AuthenticateRequest содержит данные для аутентификации пользователя.
+message AuthenticateRequest {
+  // Email пользователя
+  string email = 1 [
+    (validate.rules).string = {email: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
+  // Пароль пользователя
+  string password = 2 [
+    (validate.rules).string = {min_len: 8},
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// AuthenticateResponse содержит результат аутентификации пользователя.
+message AuthenticateResponse {
+  // JWT токен доступа
+  string token = 1 [(validate.rules).string = {min_len: 1}];
+}
+
+// OAuthAuthenticateRequest содержит данные для аутентификации через OAuth.
+message OAuthAuthenticateRequest {
+  // Название провайдера (например, "google", "facebook")
+  string provider = 1 [
+    (validate.rules).string = {min_len: 1},
+    (google.api.field_behavior) = REQUIRED
+  ];
+  // Токен, полученный от OAuth провайдера
+  string provider_token = 2 [
+    (validate.rules).string = {min_len: 1},
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// OAuthAuthenticateResponse содержит результат аутентификации через OAuth.
+message OAuthAuthenticateResponse {
+  // JWT токен доступа
+  string token = 1 [(validate.rules).string = {min_len: 1}];
+}
+
+// VerifyEmailRequest содержит данные для подтверждения email.
+message VerifyEmailRequest {
+  // Идентификатор пользователя
+  string user_id = 1 [
+    (validate.rules).string = {uuid: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
+  // Код подтверждения
+  string verification_code = 2 [
+    (validate.rules).string = {min_len: 6},
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// VerifyEmailResponse содержит результат подтверждения email.
+message VerifyEmailResponse {
+  // Успешность операции
+  bool success = 1;
+}
+
+// ResetPasswordRequest содержит данные для запроса сброса пароля.
+message ResetPasswordRequest {
+  // Email пользователя
+  string email = 1 [
+    (validate.rules).string = {email: true},
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// ResetPasswordResponse содержит результат запроса сброса пароля.
+message ResetPasswordResponse {
+  // Успешность операции
+  bool success = 1;
+}
+
+// ChangePasswordRequest содержит данные для смены пароля.
+message ChangePasswordRequest {
+  // Токен сброса пароля
+  string reset_token = 1 [
+    (validate.rules).string = {min_len: 1},
+    (google.api.field_behavior) = REQUIRED
+  ];
+  // Новый пароль
+  string new_password = 2 [
+    (validate.rules).string = {min_len: 8},
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// ChangePasswordResponse содержит результат смены пароля.
+message ChangePasswordResponse {
+  // Успешность операции
+  bool success = 1;
+}
