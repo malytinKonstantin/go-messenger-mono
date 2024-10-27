@@ -20,10 +20,14 @@ func run() error {
 	viper.AutomaticEnv()
 
 	driver, err := database.ConnectToNeo4j()
-	if err != nil {
-		return fmt.Errorf("error connecting to database: %w", err)
+	if err := database.InitGogm(); err != nil {
+		return fmt.Errorf("error initializing GOGM: %w", err)
 	}
-	defer driver.Close()
+	defer database.Gogm.Close()
+
+	if err := database.RunMigrations(); err != nil {
+		return fmt.Errorf("error running migrations: %w", err)
+	}
 
 	producer, err := queue.CreateKafkaProducer()
 	if err != nil {
@@ -40,13 +44,13 @@ func run() error {
 
 	go func() {
 		if err := server.StartHTTPServer(httpServer); err != nil {
-			log.Printf("Error starting HTTP server: %v", err)
+			log.Printf("error starting HTTP server: %v", err)
 		}
 	}()
 
 	go func() {
 		if err := server.StartGRPCServer(grpcServer); err != nil {
-			log.Printf("Error starting gRPC server: %v", err)
+			log.Printf("error starting gRPC server: %v", err)
 		}
 	}()
 

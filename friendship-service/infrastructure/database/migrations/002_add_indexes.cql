@@ -1,0 +1,1 @@
+CREATE INDEX user_nickname_index IF NOT EXISTS FOR (u:User) ON (u.nickname);

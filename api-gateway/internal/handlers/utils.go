@@ -112,3 +112,13 @@ func withJWTValidation(handler runtime.HandlerFunc) runtime.HandlerFunc {
 		handler(w, r, pathParams)
 	}
 }
+
+// extractAndForwardAuthHeader извлекает заголовок Authorization из HTTP-запроса и добавляет его в контекст.
+func extractAndForwardAuthHeader(ctx context.Context, r *http.Request) context.Context {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" {
+		md := metadata.Pairs("authorization", authHeader)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
+	return ctx
+}
