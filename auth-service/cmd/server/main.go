@@ -24,7 +24,11 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("error connecting to database: %w", err)
 	}
-	defer db.Close()
+	defer database.CloseDatabaseConnection(db)
+
+	if err := database.AutoMigrate(db); err != nil {
+		return fmt.Errorf("error migrating database: %w", err)
+	}
 
 	producer, err := queue.CreateKafkaProducer()
 	if err != nil {

@@ -7,26 +7,49 @@ import (
 	"syscall"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
-	handlers "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/delivery/grpc"
+	grpcHandlers "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/delivery/grpc"
+	"github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/repository"
+	authUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/auth"
+	credentialsUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/credentials"
+	oauthUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/oauth"
+	passwordUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/password"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/auth_service/v1"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"gorm.io/gorm"
 )
 
-func SetupGRPCServer(db *pgxpool.Pool, producer *kafka.Producer) (*grpc.Server, error) {
+func SetupGRPCServer(db *gorm.DB, producer *kafka.Producer) (*grpc.Server, error) {
 	server := grpc.NewServer()
-	authHandler := handlers.NewAuthHandler(producer, db)
+
+	// Инициализация репозиториев
+	userRepo := repository.NewUserCredentialsRepository(db)
+	oauthRepo := repository.NewOauthAccountRepository(db)
+	tokenRepo := repository.NewResetPasswordTokenRepository(db)
+
+	// Инициализация usecase
+	jwtSecret := viper.GetString("JWT_SECRET")
+	registerUC := authUsecase.NewRegisterUserUsecase(userRepo)
+	authenticateUC := authUsecase.NewAuthenticateUserUsecase(userRepo, jwtSecret)
+	verifyEmailUC := credentialsUsecase.NewVerifyEmailUsecase(userRepo)
+	oauthAuthenticateUC := oauthUsecase.NewOAuthAuthenticateUsecase(userRepo, oauthRepo)
+	resetPasswordUC := passwordUsecase.NewResetPasswordUsecase(userRepo, tokenRepo)
+	changePasswordUC := passwordUsecase.NewChangePasswordUsecase(userRepo, tokenRepo)
+
+	// Инициализация хендлеров
+	authHandler := grpcHandlers.NewAuthHandler(registerUC, authenticateUC, verifyEmailUC)
+	oauthHandler := grpcHandlers.NewOAuthHandler(oauthAuthenticateUC)
+	passwordHandler := grpcHandlers.NewPasswordHandler(resetPasswordUC, changePasswordUC)
+
+	// Регистрация сервисов
 	pb.RegisterAuthServiceServer(server, authHandler)
-	reflection.Register(server)
+
 	return server, nil
 }
 
 func SetupHTTPServer() *fiber.App {
 	app := fiber.New()
 	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.SendString("Auth Service is healthy")
+		return c.SendString("auth service is healthy")
 	})
 	return app
 }
@@ -36,10 +59,10 @@ func WaitForShutdown(httpServer *fiber.App, grpcServer *grpc.Server) {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down servers...")
+	log.Println("shutting down servers...")
 	if err := httpServer.Shutdown(); err != nil {
-		log.Printf("Error shutting down HTTP server: %v", err)
+		log.Printf("error shutting down HTTP server: %v", err)
 	}
 	grpcServer.GracefulStop()
-	log.Println("Servers shut down")
+	log.Println("servers shut down")
 }
