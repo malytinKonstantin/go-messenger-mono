@@ -10,7 +10,6 @@ import (
 	grpcHandlers "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/delivery/grpc"
 	"github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/repository"
 	authUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/auth"
-	credentialsUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/credentials"
 	oauthUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/oauth"
 	passwordUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/password"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/auth_service/v1"
@@ -30,7 +29,7 @@ func SetupGRPCServer(db *gorm.DB, producer *kafka.Producer) (*grpc.Server, error
 	jwtSecret := viper.GetString("JWT_SECRET")
 	registerUC := authUsecase.NewRegisterUserUsecase(userRepo)
 	authenticateUC := authUsecase.NewAuthenticateUserUsecase(userRepo, jwtSecret)
-	verifyEmailUC := credentialsUsecase.NewVerifyEmailUsecase(userRepo)
+	verifyEmailUC := authUsecase.NewVerifyEmailUsecase(userRepo)
 	oauthAuthenticateUC := oauthUsecase.NewOAuthAuthenticateUsecase(userRepo, oauthRepo)
 	resetPasswordUC := passwordUsecase.NewResetPasswordUsecase(userRepo, tokenRepo)
 	changePasswordUC := passwordUsecase.NewChangePasswordUsecase(userRepo, tokenRepo)

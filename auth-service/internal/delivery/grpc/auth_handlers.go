@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	authUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/auth"
-	credentialsUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/credentials"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/auth_service/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,13 +14,13 @@ type AuthHandler struct {
 	pb.UnimplementedAuthServiceServer
 	registerUsecase     authUsecase.RegisterUserUsecase
 	authenticateUsecase authUsecase.AuthenticateUserUsecase
-	verifyEmailUsecase  credentialsUsecase.VerifyEmailUsecase
+	verifyEmailUsecase  authUsecase.VerifyEmailUsecase
 }
 
 func NewAuthHandler(
 	registerUC authUsecase.RegisterUserUsecase,
 	authenticateUC authUsecase.AuthenticateUserUsecase,
-	verifyEmailUC credentialsUsecase.VerifyEmailUsecase,
+	verifyEmailUC authUsecase.VerifyEmailUsecase,
 ) *AuthHandler {
 	return &AuthHandler{
 		registerUsecase:     registerUC,

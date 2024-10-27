@@ -19,10 +19,10 @@ func RegisterUserService(ctx context.Context, mux *runtime.ServeMux, endpoint st
 			pattern string
 			handler runtime.HandlerFunc
 		}{
-			{"GET", "/v1/users/{user_id}", handleGetUser(client)},
-			{"POST", "/v1/users", handleCreateUserProfile(client)},
-			{"PUT", "/v1/users/{user_id}", handleUpdateUserProfile(client)},
-			{"GET", "/v1/users/search", handleSearchUsers(client)},
+			{"GET", "/v1/users/{user_id}", withJWTValidation(handleGetUser(client))},
+			{"POST", "/v1/users", withJWTValidation(handleCreateUserProfile(client))},
+			{"PUT", "/v1/users/{user_id}", withJWTValidation(handleUpdateUserProfile(client))},
+			{"GET", "/v1/users/search", withJWTValidation(handleSearchUsers(client))},
 		}
 
 		for _, h := range handlers {

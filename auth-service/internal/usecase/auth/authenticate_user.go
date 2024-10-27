@@ -37,13 +37,13 @@ func (uc *authenticateUserUsecase) Execute(ctx context.Context, email, password 
 	// Проверяем пароль
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	if err != nil {
-		return "", errors.New("неверный пароль")
+		return "", errors.New("invalid password")
 	}
 
 	// Генерируем JWT токен
 	token, err := uc.generateJWTToken(user.ID)
 	if err != nil {
-		return "", errors.New("ошибка при создании токена")
+		return "", errors.New("error creating token")
 	}
 
 	return token, nil
