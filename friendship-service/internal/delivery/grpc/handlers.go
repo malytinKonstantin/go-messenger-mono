@@ -6,6 +6,7 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

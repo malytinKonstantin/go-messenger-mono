@@ -12,7 +12,7 @@ import (
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatalf("Error starting service: %v", err)
+		log.Fatalf("error starting service: %v", err)
 	}
 }
 
@@ -20,7 +20,7 @@ func run() error {
 	viper.AutomaticEnv()
 
 	if err := database.InitNeo4jDriver(); err != nil {
-		return fmt.Errorf("ошибка инициализации Neo4j драйвера: %w", err)
+		return fmt.Errorf("error initializing Neo4j driver: %w", err)
 	}
 	defer database.CloseNeo4jDriver()
 
@@ -34,7 +34,7 @@ func run() error {
 	}
 	defer producer.Close()
 
-	grpcServer, err := server.SetupGRPCServer(database.Gogm, producer)
+	grpcServer, err := server.SetupGRPCServer(producer, database.Neo4jDriver)
 	if err != nil {
 		return fmt.Errorf("error setting up gRPC server: %w", err)
 	}

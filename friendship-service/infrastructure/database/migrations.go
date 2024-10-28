@@ -19,7 +19,7 @@ type Migration struct {
 func RunMigrations() error {
 	ctx := context.Background()
 	// Создаем сессию
-	session := Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	session := Neo4jDriver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(ctx)
 
 	// Убедимся, что существует узел для отслеживания миграций
@@ -34,7 +34,7 @@ func RunMigrations() error {
 	}
 
 	// Читаем файлы миграций из директории
-	migrationFiles, err := ioutil.ReadDir("migrations")
+	migrationFiles, err := ioutil.ReadDir("infrastructure/database/migrations")
 	if err != nil {
 		return fmt.Errorf("failed to read migrations directory: %v", err)
 	}
@@ -44,7 +44,7 @@ func RunMigrations() error {
 	for _, file := range migrationFiles {
 		if strings.HasSuffix(file.Name(), ".cql") {
 			version := strings.Split(file.Name(), "_")[0]
-			script, err := ioutil.ReadFile("migrations/" + file.Name())
+			script, err := ioutil.ReadFile("infrastructure/database/migrations/" + file.Name())
 			if err != nil {
 				return fmt.Errorf("failed to read migration file %s: %v", file.Name(), err)
 			}
