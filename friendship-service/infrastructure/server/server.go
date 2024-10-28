@@ -8,10 +8,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	handlers "github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/delivery/grpc"
-
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gofiber/fiber/v2"
+	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/infrastructure/database"
+	handler "github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/delivery/grpc"
+	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/repositories"
+	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/usecase/friendship"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/spf13/viper"
@@ -21,7 +23,28 @@ import (
 func SetupGRPCServer(producer *kafka.Producer, driver neo4j.DriverWithContext) (*grpc.Server, error) {
 	server := grpc.NewServer()
 
-	friendshipHandler := handlers.NewFriendshipHandler(producer, driver)
+	// Инициализация репозиториев
+	friendRequestRepo := repositories.NewFriendRequestRepository(database.Neo4jDriver)
+	userRepo := repositories.NewUserRepository(database.Neo4jDriver)
+
+	// Инициализация usecase
+	sendFriendRequestUC := friendship.NewSendFriendRequestUsecase(friendRequestRepo)
+	acceptFriendRequestUC := friendship.NewAcceptFriendRequestUsecase(friendRequestRepo)
+	rejectFriendRequestUC := friendship.NewRejectFriendRequestUsecase(friendRequestRepo)
+	removeFriendUC := friendship.NewRemoveFriendUsecase(friendRequestRepo)
+	getFriendsListUC := friendship.NewGetFriendsListUsecase(userRepo)
+	getFriendRequestsUC := friendship.NewGetFriendRequestsUsecase(friendRequestRepo)
+
+	// Инициализация хендлера
+	friendshipHandler := handler.NewFriendshipHandler(
+		producer,
+		sendFriendRequestUC,
+		acceptFriendRequestUC,
+		rejectFriendRequestUC,
+		removeFriendUC,
+		getFriendsListUC,
+		getFriendRequestsUC,
+	)
 
 	pb.RegisterFriendshipServiceServer(server, friendshipHandler)
 

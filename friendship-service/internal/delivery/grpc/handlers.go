@@ -1,41 +1,77 @@
-package handlers
+package grpc
 
 import (
 	"context"
-	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/usecase/friendship"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1"
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type FriendshipHandler struct {
 	pb.UnimplementedFriendshipServiceServer
-	producer *kafka.Producer
-	driver   neo4j.DriverWithContext
+	producer              *kafka.Producer
+	sendFriendRequestUC   friendship.SendFriendRequestUsecase
+	acceptFriendRequestUC friendship.AcceptFriendRequestUsecase
+	rejectFriendRequestUC friendship.RejectFriendRequestUsecase
+	removeFriendUC        friendship.RemoveFriendUsecase
+	getFriendsListUC      friendship.GetFriendsListUsecase
+	getFriendRequestsUC   friendship.GetFriendRequestsUsecase
 }
 
-func NewFriendshipHandler(producer *kafka.Producer, driver neo4j.DriverWithContext) *FriendshipHandler {
-	return &FriendshipHandler{producer: producer, driver: driver}
+func NewFriendshipHandler(
+	producer *kafka.Producer,
+	sendFriendRequestUC friendship.SendFriendRequestUsecase,
+	acceptFriendRequestUC friendship.AcceptFriendRequestUsecase,
+	rejectFriendRequestUC friendship.RejectFriendRequestUsecase,
+	removeFriendUC friendship.RemoveFriendUsecase,
+	getFriendsListUC friendship.GetFriendsListUsecase,
+	getFriendRequestsUC friendship.GetFriendRequestsUsecase,
+) *FriendshipHandler {
+	return &FriendshipHandler{
+		producer:              producer,
+		sendFriendRequestUC:   sendFriendRequestUC,
+		acceptFriendRequestUC: acceptFriendRequestUC,
+		rejectFriendRequestUC: rejectFriendRequestUC,
+		removeFriendUC:        removeFriendUC,
+		getFriendsListUC:      getFriendsListUC,
+		getFriendRequestsUC:   getFriendRequestsUC,
+	}
 }
 
 func (h *FriendshipHandler) SendFriendRequest(ctx context.Context, req *pb.SendFriendRequestRequest) (*pb.SendFriendRequestResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "validation error: %v", err)
 	}
-	// Моковый ответ с учетом типа pb.SendFriendRequestResponse
+
+	request, err := h.sendFriendRequestUC.Execute(ctx, req.SenderId, req.ReceiverId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error sending friend request: %v", err)
+	}
+
+	// Отправка уведомления через Kafka (при необходимости)
+	// ...
+
 	return &pb.SendFriendRequestResponse{
-		RequestId: "550e8400-e29b-41d4-a716-446655440000",
+		RequestId: request.RequestID,
 	}, nil
 }
 
 func (h *FriendshipHandler) AcceptFriendRequest(ctx context.Context, req *pb.AcceptFriendRequestRequest) (*pb.AcceptFriendRequestResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "validation error: %v", err)
 	}
-	// Моковый ответ с учетом типа pb.AcceptFriendRequestResponse
+
+	err := h.acceptFriendRequestUC.Execute(ctx, req.RequestId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error accepting friend request: %v", err)
+	}
+
+	// Отправка уведомления через Kafka (при необходимости)
+	// ...
+
 	return &pb.AcceptFriendRequestResponse{
 		Success: true,
 	}, nil
@@ -43,9 +79,17 @@ func (h *FriendshipHandler) AcceptFriendRequest(ctx context.Context, req *pb.Acc
 
 func (h *FriendshipHandler) RejectFriendRequest(ctx context.Context, req *pb.RejectFriendRequestRequest) (*pb.RejectFriendRequestResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "validation error: %v", err)
 	}
-	// Моковый ответ с учетом типа pb.RejectFriendRequestResponse
+
+	err := h.rejectFriendRequestUC.Execute(ctx, req.RequestId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error rejecting friend request: %v", err)
+	}
+
+	// Отправка уведомления через Kafka (при необходимости)
+	// ...
+
 	return &pb.RejectFriendRequestResponse{
 		Success: true,
 	}, nil
@@ -53,59 +97,76 @@ func (h *FriendshipHandler) RejectFriendRequest(ctx context.Context, req *pb.Rej
 
 func (h *FriendshipHandler) RemoveFriend(ctx context.Context, req *pb.RemoveFriendRequest) (*pb.RemoveFriendResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "validation error: %v", err)
 	}
-	// Моковый ответ
-	return &pb.RemoveFriendResponse{}, nil
+
+	err := h.removeFriendUC.Execute(ctx, req.UserId, req.FriendId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error removing friend: %v", err)
+	}
+
+	// Отправка уведомления через Kafka (при необходимости)
+	// ...
+
+	return &pb.RemoveFriendResponse{
+		Success: true,
+	}, nil
 }
 
 func (h *FriendshipHandler) GetFriendsList(ctx context.Context, req *pb.GetFriendsListRequest) (*pb.GetFriendsListResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "validation error: %v", err)
 	}
-	// Моковый список друзей с учетом типа pb.Friend
-	friends := []*pb.Friend{
-		{
-			UserId:    "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-			Nickname:  "Иван Иванов",
-			AvatarUrl: "https://example.com/avatar1.png",
-			AddedAt:   time.Now().Unix(),
-		},
-		{
-			UserId:    "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
-			Nickname:  "Петр Петров",
-			AvatarUrl: "https://example.com/avatar2.png",
-			AddedAt:   time.Now().Unix(),
-		},
+
+	friends, err := h.getFriendsListUC.Execute(ctx, req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error getting friends list: %v", err)
 	}
-	return &pb.GetFriendsListResponse{Friends: friends}, nil
+
+	var friendList []*pb.Friend
+	for _, friend := range friends {
+		friendList = append(friendList, &pb.Friend{
+			UserId:    friend.UserID,
+			Nickname:  friend.Nickname,
+			AvatarUrl: friend.AvatarURL,
+			AddedAt:   friend.AddedAt,
+		})
+	}
+
+	return &pb.GetFriendsListResponse{
+		Friends: friendList,
+	}, nil
 }
 
 func (h *FriendshipHandler) GetPendingRequests(ctx context.Context, req *pb.GetPendingRequestsRequest) (*pb.GetPendingRequestsResponse, error) {
 	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Validation error: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "validation error: %v", err)
 	}
-	// Моковые входящие и исходящие запросы с учетом структуры FriendRequest
-	incomingRequests := []*pb.FriendRequest{
-		{
-			RequestId:  "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
-			SenderId:   "6ba7b813-9dad-11d1-80b4-00c04fd430c8",
-			ReceiverId: req.UserId,
-			Status:     "pending",
-			CreatedAt:  time.Now().Unix(),
-			UpdatedAt:  time.Now().Unix(),
-		},
+
+	requests, err := h.getFriendRequestsUC.Execute(ctx, req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error getting friend requests: %v", err)
 	}
-	outgoingRequests := []*pb.FriendRequest{
-		{
-			RequestId:  "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
-			SenderId:   req.UserId,
-			ReceiverId: "6ba7b815-9dad-11d1-80b4-00c04fd430c8",
-			Status:     "pending",
-			CreatedAt:  time.Now().Unix(),
-			UpdatedAt:  time.Now().Unix(),
-		},
+
+	var incomingRequests []*pb.FriendRequest
+	var outgoingRequests []*pb.FriendRequest
+
+	for _, request := range requests {
+		pbRequest := &pb.FriendRequest{
+			RequestId:  request.RequestID,
+			SenderId:   request.SenderID,
+			ReceiverId: request.ReceiverID,
+			Status:     request.Status,
+			CreatedAt:  request.CreatedAt,
+			UpdatedAt:  request.UpdatedAt,
+		}
+		if request.ReceiverID == req.UserId {
+			incomingRequests = append(incomingRequests, pbRequest)
+		} else if request.SenderID == req.UserId {
+			outgoingRequests = append(outgoingRequests, pbRequest)
+		}
 	}
+
 	return &pb.GetPendingRequestsResponse{
 		IncomingRequests: incomingRequests,
 		OutgoingRequests: outgoingRequests,

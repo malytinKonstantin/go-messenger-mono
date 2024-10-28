@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/models"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -70,7 +72,7 @@ func (r *userRepository) GetUserByID(ctx context.Context, userID string) (*model
 				AvatarURL: values[2].(string),
 			}, nil
 		}
-		return nil, neo4j.ErrNoResults
+		return nil, errors.New("user not found")
 	})
 	if err != nil {
 		return nil, err
@@ -178,6 +180,7 @@ func (r *userRepository) GetFriends(ctx context.Context, userID string) ([]*mode
 				UserID:    values[0].(string),
 				Nickname:  values[1].(string),
 				AvatarURL: values[2].(string),
+				AddedAt:   time.Now().Unix(),
 			}
 			friends = append(friends, friend)
 		}
