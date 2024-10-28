@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mindstand/gogm/v2"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
 type Migration struct {
@@ -17,20 +17,18 @@ type Migration struct {
 }
 
 func RunMigrations() error {
-	// Получаем сессию GOGM
-	sess, err := Gogm.NewSessionV2(gogm.SessionConfig{AccessMode: gogm.Write})
-	if err != nil {
-		return fmt.Errorf("failed to create session: %v", err)
-	}
-	defer sess.Close()
+	ctx := context.Background()
+	// Создаем сессию
+	session := Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(ctx)
 
 	// Убедимся, что существует узел для отслеживания миграций
-	if err := createMigrationNode(sess); err != nil {
+	if err := createMigrationNode(ctx, session); err != nil {
 		return err
 	}
 
 	// Получаем список выполненных миграций
-	appliedMigrations, err := getAppliedMigrations(sess)
+	appliedMigrations, err := getAppliedMigrations(ctx, session)
 	if err != nil {
 		return err
 	}
@@ -64,7 +62,7 @@ func RunMigrations() error {
 	for _, migration := range migrations {
 		if !contains(appliedMigrations, migration.Version) {
 			log.Printf("Applying migration %s", migration.Version)
-			if err := applyMigration(sess, migration); err != nil {
+			if err := applyMigration(ctx, session, migration); err != nil {
 				return err
 			}
 		}
@@ -73,58 +71,63 @@ func RunMigrations() error {
 	return nil
 }
 
-func createMigrationNode(sess gogm.SessionV2) error {
-	ctx := context.Background()
-	query := `MERGE (m:MigrationVersion {id: 1})`
-	_, err := sess.QueryRaw(ctx, query, nil)
-	return err
-}
-
-func getAppliedMigrations(sess gogm.SessionV2) ([]string, error) {
-	ctx := context.Background()
-	var result struct {
-		Versions []string `json:"versions"`
-	}
-	query := `MATCH (m:MigrationVersion) RETURN m.versions AS versions`
-	records, err := sess.QueryRaw(ctx, query, nil)
-	if err != nil {
+func createMigrationNode(ctx context.Context, session neo4j.SessionWithContext) error {
+	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		query := `MERGE (m:MigrationVersion {id: 1})`
+		_, err := tx.Run(ctx, query, nil)
 		return nil, err
-	}
-	if len(records) > 0 {
-		data, ok := records[0].Props["versions"].([]interface{})
-		if ok {
-			var versions []string
-			for _, v := range data {
-				versions = append(versions, v.(string))
-			}
-			return versions, nil
-		}
-	}
-	return []string{}, nil
-}
-
-func applyMigration(sess gogm.SessionV2, migration Migration) error {
-	ctx := context.Background()
-	// Выполняем скрипт миграции
-	_, err := sess.QueryRaw(ctx, migration.Script, nil)
-	if err != nil {
-		return fmt.Errorf("failed to apply migration %s: %v", migration.Version, err)
-	}
-	// Обновляем список выполненных миграций
-	query := `
-    MATCH (m:MigrationVersion {id: 1})
-    SET m.versions = coalesce(m.versions, []) + $version
-    `
-	params := map[string]interface{}{
-		"version": migration.Version,
-	}
-	_, err = sess.QueryRaw(ctx, query, params)
+	})
 	return err
 }
 
-func contains(slice []string, item string) bool {
-	for _, v := range slice {
-		if v == item {
+func getAppliedMigrations(ctx context.Context, session neo4j.SessionWithContext) ([]string, error) {
+	var appliedMigrations []string
+	_, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		query := `MATCH (m:MigrationVersion) RETURN m.versions AS versions`
+		result, err := tx.Run(ctx, query, nil)
+		if err != nil {
+			return nil, err
+		}
+		if result.Next(ctx) {
+			record := result.Record()
+			if versions, ok := record.Get("versions"); ok && versions != nil {
+				if vs, ok := versions.([]interface{}); ok {
+					for _, v := range vs {
+						appliedMigrations = append(appliedMigrations, v.(string))
+					}
+				}
+			}
+		}
+		return nil, result.Err()
+	})
+	return appliedMigrations, err
+}
+
+func applyMigration(ctx context.Context, session neo4j.SessionWithContext, migration Migration) error {
+	// Выполняем скрипт миграции
+	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		_, err := tx.Run(ctx, migration.Script, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply migration %s: %v", migration.Version, err)
+		}
+
+		// Обновляем список выполненных миграций
+		query := `
+			MATCH (m:MigrationVersion {id: 1})
+			SET m.versions = coalesce(m.versions, []) + $version
+		`
+		params := map[string]interface{}{
+			"version": migration.Version,
+		}
+		_, err = tx.Run(ctx, query, params)
+		return nil, err
+	})
+	return err
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
 			return true
 		}
 	}

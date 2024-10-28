@@ -1,31 +1,38 @@
 package database
 
 import (
-	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/models"
-	"github.com/mindstand/gogm/v2"
+	"context"
+	"fmt"
+
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/spf13/viper"
 )
 
-var Gogm *gogm.Gogm
+var Driver neo4j.DriverWithContext
 
-func InitGogm() error {
-	config := gogm.Config{
-		IndexStrategy: gogm.IGNORE_INDEX,
-		Username:      viper.GetString("NEO4J_USER"),
-		Password:      viper.GetString("NEO4J_PASSWORD"),
-		Host:          viper.GetString("DATABASE_HOST"),
-		Port:          viper.GetInt("DATABASE_PORT"),
-		Protocol:      "bolt",
-		PoolSize:      50,
-		IsCluster:     false,
-		LogLevel:      "DEBUG",
-	}
-
+func InitNeo4jDriver() error {
+	uri := fmt.Sprintf("bolt://%s:%d", viper.GetString("DATABASE_HOST"), viper.GetInt("DATABASE_PORT"))
+	auth := neo4j.BasicAuth(viper.GetString("NEO4J_USER"), viper.GetString("NEO4J_PASSWORD"), "")
 	var err error
-	Gogm, err = gogm.New(&config, gogm.UUIDPrimaryKeyStrategy, &models.User{}, &models.FriendRequest{})
+	Driver, err = neo4j.NewDriverWithContext(uri, auth)
 	if err != nil {
 		return err
 	}
 
+	// Проверяем соединение
+	ctx := context.Background()
+	err = Driver.VerifyConnectivity(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CloseNeo4jDriver() error {
+	if Driver != nil {
+		ctx := context.Background()
+		return Driver.Close(ctx)
+	}
 	return nil
 }

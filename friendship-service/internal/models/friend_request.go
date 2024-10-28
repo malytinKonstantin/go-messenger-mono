@@ -1,17 +1,10 @@
 package models
 
-import (
-	"time"
-
-	"github.com/mindstand/gogm/v2"
-)
-
 type FriendRequest struct {
-	gogm.BaseNode
-
-	RequestID string    `gogm:"name=request_id;unique"`
-	From      *User     `gogm:"direction=outgoing;relationship=FROM"`
-	To        *User     `gogm:"direction=outgoing;relationship=TO"`
-	SentAt    time.Time `gogm:"name=sent_at"`
-	Status    string    `gogm:"name=status"`
+	RequestID  string `json:"request_id"`
+	SenderID   string `json:"sender_id"`
+	ReceiverID string `json:"receiver_id"`
+	Status     string `json:"status"` // Возможные значения: "pending", "accepted", "rejected"
+	CreatedAt  int64  `json:"created_at"`
+	UpdatedAt  int64  `json:"updated_at"`
 }

@@ -13,18 +13,30 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gofiber/fiber/v2"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1"
-	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
-func SetupGRPCServer(driver neo4j.Driver, producer *kafka.Producer) (*grpc.Server, error) {
-	grpcServer := grpc.NewServer()
+func SetupGRPCServer(producer *kafka.Producer, driver neo4j.DriverWithContext) (*grpc.Server, error) {
+	server := grpc.NewServer()
+
 	friendshipHandler := handlers.NewFriendshipHandler(producer, driver)
-	pb.RegisterFriendshipServiceServer(grpcServer, friendshipHandler)
-	reflection.Register(grpcServer)
-	return grpcServer, nil
+
+	pb.RegisterFriendshipServiceServer(server, friendshipHandler)
+
+	listener, err := net.Listen("tcp", ":50053")
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		if err := server.Serve(listener); err != nil {
+			panic(err)
+		}
+	}()
+
+	return server, nil
 }
 
 func SetupHTTPServer() *fiber.App {

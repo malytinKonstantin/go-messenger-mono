@@ -6,7 +6,6 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1"
-	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -14,10 +13,10 @@ import (
 type FriendshipHandler struct {
 	pb.UnimplementedFriendshipServiceServer
 	producer *kafka.Producer
-	driver   neo4j.Driver
+	driver   neo4j.DriverWithContext
 }
 
-func NewFriendshipHandler(producer *kafka.Producer, driver neo4j.Driver) *FriendshipHandler {
+func NewFriendshipHandler(producer *kafka.Producer, driver neo4j.DriverWithContext) *FriendshipHandler {
 	return &FriendshipHandler{producer: producer, driver: driver}
 }
 

@@ -19,10 +19,10 @@ func main() {
 func run() error {
 	viper.AutomaticEnv()
 
-	if err := database.InitGogm(); err != nil {
-		return fmt.Errorf("error initializing GOGM: %w", err)
+	if err := database.InitNeo4jDriver(); err != nil {
+		return fmt.Errorf("ошибка инициализации Neo4j драйвера: %w", err)
 	}
-	defer database.Gogm.Close()
+	defer database.CloseNeo4jDriver()
 
 	if err := database.RunMigrations(); err != nil {
 		return fmt.Errorf("error running migrations: %w", err)
@@ -34,7 +34,7 @@ func run() error {
 	}
 	defer producer.Close()
 
-	grpcServer, err := server.SetupGRPCServer(driver, producer)
+	grpcServer, err := server.SetupGRPCServer(database.Gogm, producer)
 	if err != nil {
 		return fmt.Errorf("error setting up gRPC server: %w", err)
 	}

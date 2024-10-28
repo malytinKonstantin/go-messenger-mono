@@ -5,11 +5,8 @@ go 1.22.0
 toolchain go1.23.2
 
 require (
-	github.com/adam-hanna/arrayOperations v1.0.1
 	github.com/confluentinc/confluent-kafka-go v1.9.2
-	github.com/cornelk/hashmap v1.0.8
 	github.com/gofiber/fiber/v2 v2.52.5
-	github.com/neo4j/neo4j-go-driver/v4 v4.4.7
 	github.com/spf13/viper v1.19.0
 	google.golang.org/grpc v1.67.1
 )
@@ -26,14 +23,11 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
-	github.com/mindstand/go-cypherdsl v0.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
@@ -56,7 +50,7 @@ require (
 
 require (
 	github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0
-	github.com/mindstand/gogm/v2 v2.3.6
+	github.com/neo4j/neo4j-go-driver/v5 v5.25.0
 )
 
 replace github.com/malytinKonstantin/go-messenger-mono/proto => ../proto
