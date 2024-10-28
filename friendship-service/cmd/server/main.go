@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/malytinKonstantin/go-messenger-mono/auth-service/infrastructure/queue"
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/infrastructure/database"
+	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/infrastructure/queue"
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/infrastructure/server"
 	"github.com/spf13/viper"
 )
@@ -19,7 +19,6 @@ func main() {
 func run() error {
 	viper.AutomaticEnv()
 
-	driver, err := database.ConnectToNeo4j()
 	if err := database.InitGogm(); err != nil {
 		return fmt.Errorf("error initializing GOGM: %w", err)
 	}

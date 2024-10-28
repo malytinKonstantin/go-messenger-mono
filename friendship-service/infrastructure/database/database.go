@@ -14,7 +14,7 @@ func InitGogm() error {
 		Username:      viper.GetString("NEO4J_USER"),
 		Password:      viper.GetString("NEO4J_PASSWORD"),
 		Host:          viper.GetString("DATABASE_HOST"),
-		Port:          viper.GetString("DATABASE_PORT"),
+		Port:          viper.GetInt("DATABASE_PORT"),
 		Protocol:      "bolt",
 		PoolSize:      50,
 		IsCluster:     false,

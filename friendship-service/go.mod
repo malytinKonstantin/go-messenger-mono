@@ -55,11 +55,8 @@ require (
 )
 
 require (
-	github.com/malytinKonstantin/go-messenger-mono/auth-service v0.0.0-20241026112307-c55d068f8c57
 	github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0
 	github.com/mindstand/gogm/v2 v2.3.6
 )
 
 replace github.com/malytinKonstantin/go-messenger-mono/proto => ../proto
-
-replace github.com/malytinKonstantin/go-messenger-mono/auth-service => ../auth-service
