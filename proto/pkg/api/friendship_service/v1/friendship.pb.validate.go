@@ -60,9 +60,9 @@ func (m *SendFriendRequestRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetUserId()); err != nil {
+	if err := m._validateUuid(m.GetSenderId()); err != nil {
 		err = SendFriendRequestRequestValidationError{
-			field:  "UserId",
+			field:  "SenderId",
 			reason: "value must be a valid UUID",
 			cause:  err,
 		}
@@ -72,9 +72,9 @@ func (m *SendFriendRequestRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetFriendId()); err != nil {
+	if err := m._validateUuid(m.GetReceiverId()); err != nil {
 		err = SendFriendRequestRequestValidationError{
-			field:  "FriendId",
+			field:  "ReceiverId",
 			reason: "value must be a valid UUID",
 			cause:  err,
 		}
@@ -1573,7 +1573,34 @@ func (m *Friend) validate(all bool) error {
 
 	// no validation rules for AvatarUrl
 
-	// no validation rules for AddedAt
+	if all {
+		switch v := interface{}(m.GetAddedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, FriendValidationError{
+					field:  "AddedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, FriendValidationError{
+					field:  "AddedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAddedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return FriendValidationError{
+				field:  "AddedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return FriendMultiError(errors)
@@ -1720,9 +1747,63 @@ func (m *FriendRequest) validate(all bool) error {
 
 	// no validation rules for Status
 
-	// no validation rules for CreatedAt
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, FriendRequestValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, FriendRequestValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return FriendRequestValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
-	// no validation rules for UpdatedAt
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, FriendRequestValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, FriendRequestValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return FriendRequestValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return FriendRequestMultiError(errors)
