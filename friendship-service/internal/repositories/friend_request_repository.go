@@ -46,32 +46,33 @@ func (r *friendRequestRepository) CreateFriendRequest(ctx context.Context, reque
 	defer session.Close(ctx)
 
 	// Устанавливаем текущие временные метки
-	now := time.Now().Unix()
+	now := time.Now()
 	request.CreatedAt = now
 	request.UpdatedAt = now
 
 	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
 		query := `
-            MATCH (sender:User {user_id: $senderID}), (receiver:User {user_id: $receiverID})
-            CREATE (sender)-[r:FRIEND_REQUEST {
-                request_id: $requestID,
-                status: $status,
-                created_at: $createdAt,
-                updated_at: $updatedAt
-            }]->(receiver)
+            MATCH (sender:User {user_id: $senderId}), (receiver:User {user_id: $receiverId})
+            CREATE (sender)-[:FRIEND_REQUEST {request_id: $requestId, status: $status, created_at: $createdAt, updated_at: $updatedAt}]->(receiver)
         `
 		params := map[string]interface{}{
-			"requestID":  request.RequestID,
-			"senderID":   request.SenderID,
-			"receiverID": request.ReceiverID,
+			"senderId":   request.SenderID,
+			"receiverId": request.ReceiverID,
+			"requestId":  request.RequestID,
 			"status":     request.Status,
 			"createdAt":  request.CreatedAt,
 			"updatedAt":  request.UpdatedAt,
 		}
 		_, err := tx.Run(ctx, query, params)
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *friendRequestRepository) GetFriendRequestByID(ctx context.Context, requestID string) (*models.FriendRequest, error) {
@@ -98,8 +99,8 @@ func (r *friendRequestRepository) GetFriendRequestByID(ctx context.Context, requ
 				SenderID:   values[1].(string),
 				ReceiverID: values[2].(string),
 				Status:     values[3].(string),
-				CreatedAt:  values[4].(int64),
-				UpdatedAt:  values[5].(int64),
+				CreatedAt:  time.Unix(values[4].(int64), 0),
+				UpdatedAt:  time.Unix(values[5].(int64), 0),
 			}, nil
 		}
 		return nil, errors.New("no results")
@@ -182,8 +183,8 @@ func (r *friendRequestRepository) GetIncomingRequests(ctx context.Context, userI
 				SenderID:   values[1].(string),
 				ReceiverID: values[2].(string),
 				Status:     values[3].(string),
-				CreatedAt:  values[4].(int64),
-				UpdatedAt:  values[5].(int64),
+				CreatedAt:  time.Unix(values[4].(int64), 0),
+				UpdatedAt:  time.Unix(values[5].(int64), 0),
 			}
 			requests = append(requests, request)
 		}
@@ -221,8 +222,8 @@ func (r *friendRequestRepository) GetOutgoingRequests(ctx context.Context, userI
 				SenderID:   values[1].(string),
 				ReceiverID: values[2].(string),
 				Status:     values[3].(string),
-				CreatedAt:  values[4].(int64),
-				UpdatedAt:  values[5].(int64),
+				CreatedAt:  time.Unix(values[4].(int64), 0),
+				UpdatedAt:  time.Unix(values[5].(int64), 0),
 			}
 			requests = append(requests, request)
 		}
@@ -286,8 +287,8 @@ func (r *friendRequestRepository) GetIncomingAndOutgoingRequests(ctx context.Con
 					SenderID:   userID,
 					ReceiverID: record.Values[1].(neo4j.Node).Props["user_id"].(string),
 					Status:     rel.Props["status"].(string),
-					CreatedAt:  rel.Props["created_at"].(int64),
-					UpdatedAt:  rel.Props["updated_at"].(int64),
+					CreatedAt:  time.Unix(rel.Props["created_at"].(int64), 0),
+					UpdatedAt:  time.Unix(rel.Props["updated_at"].(int64), 0),
 				}
 				requests = append(requests, request)
 			}
@@ -299,8 +300,8 @@ func (r *friendRequestRepository) GetIncomingAndOutgoingRequests(ctx context.Con
 					SenderID:   record.Values[3].(neo4j.Node).Props["user_id"].(string),
 					ReceiverID: userID,
 					Status:     rel.Props["status"].(string),
-					CreatedAt:  rel.Props["created_at"].(int64),
-					UpdatedAt:  rel.Props["updated_at"].(int64),
+					CreatedAt:  time.Unix(rel.Props["created_at"].(int64), 0),
+					UpdatedAt:  time.Unix(rel.Props["updated_at"].(int64), 0),
 				}
 				requests = append(requests, request)
 			}

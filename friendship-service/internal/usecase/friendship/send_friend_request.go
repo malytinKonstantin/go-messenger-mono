@@ -27,8 +27,8 @@ func (uc *sendFriendRequestUsecase) Execute(ctx context.Context, senderID, recei
 		SenderID:   senderID,
 		ReceiverID: receiverID,
 		Status:     "pending",
-		CreatedAt:  time.Now().Unix(),
-		UpdatedAt:  time.Now().Unix(),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 
 	err := uc.repo.CreateFriendRequest(ctx, request)

@@ -2,12 +2,14 @@ package grpc
 
 import (
 	"context"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/usecase/friendship"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type FriendshipHandler struct {
@@ -129,7 +131,7 @@ func (h *FriendshipHandler) GetFriendsList(ctx context.Context, req *pb.GetFrien
 			UserId:    friend.UserID,
 			Nickname:  friend.Nickname,
 			AvatarUrl: friend.AvatarURL,
-			AddedAt:   friend.AddedAt,
+			AddedAt:   timestamppb.New(time.Unix(friend.AddedAt, 0)),
 		})
 	}
 
@@ -156,9 +158,9 @@ func (h *FriendshipHandler) GetPendingRequests(ctx context.Context, req *pb.GetP
 			RequestId:  request.RequestID,
 			SenderId:   request.SenderID,
 			ReceiverId: request.ReceiverID,
-			Status:     request.Status,
-			CreatedAt:  request.CreatedAt,
-			UpdatedAt:  request.UpdatedAt,
+			Status:     convertStatusToEnum(request.Status),
+			CreatedAt:  timestamppb.New(request.CreatedAt),
+			UpdatedAt:  timestamppb.New(request.UpdatedAt),
 		}
 		if request.ReceiverID == req.UserId {
 			incomingRequests = append(incomingRequests, pbRequest)
@@ -171,4 +173,17 @@ func (h *FriendshipHandler) GetPendingRequests(ctx context.Context, req *pb.GetP
 		IncomingRequests: incomingRequests,
 		OutgoingRequests: outgoingRequests,
 	}, nil
+}
+
+func convertStatusToEnum(status string) pb.FriendRequestStatus {
+	switch status {
+	case "pending":
+		return pb.FriendRequestStatus_PENDING
+	case "accepted":
+		return pb.FriendRequestStatus_ACCEPTED
+	case "rejected":
+		return pb.FriendRequestStatus_REJECTED
+	default:
+		return pb.FriendRequestStatus_UNKNOWN
+	}
 }
