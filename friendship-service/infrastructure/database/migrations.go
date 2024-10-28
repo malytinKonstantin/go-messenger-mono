@@ -104,14 +104,27 @@ func getAppliedMigrations(ctx context.Context, session neo4j.SessionWithContext)
 }
 
 func applyMigration(ctx context.Context, session neo4j.SessionWithContext, migration Migration) error {
-	// Выполняем скрипт миграции
-	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
-		_, err := tx.Run(ctx, migration.Script, nil)
-		if err != nil {
-			return nil, fmt.Errorf("failed to apply migration %s: %v", migration.Version, err)
+	// Разбиваем скрипт на отдельные операторы по символу ';'
+	statements := strings.Split(migration.Script, ";")
+	for _, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
+			continue
 		}
-
-		// Обновляем список выполненных миграций
+		// Выполняем каждый оператор отдельно
+		_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+			_, err := tx.Run(ctx, stmt, nil)
+			if err != nil {
+				return nil, fmt.Errorf("failed to apply migration %s: %v", migration.Version, err)
+			}
+			return nil, nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+	// После успешного выполнения всех операторов обновляем версию миграции
+	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
 		query := `
 			MATCH (m:MigrationVersion {id: 1})
 			SET m.versions = coalesce(m.versions, []) + $version
@@ -119,7 +132,7 @@ func applyMigration(ctx context.Context, session neo4j.SessionWithContext, migra
 		params := map[string]interface{}{
 			"version": migration.Version,
 		}
-		_, err = tx.Run(ctx, query, params)
+		_, err := tx.Run(ctx, query, params)
 		return nil, err
 	})
 	return err

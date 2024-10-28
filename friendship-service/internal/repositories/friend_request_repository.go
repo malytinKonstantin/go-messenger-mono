@@ -2,11 +2,18 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/models"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
+
+var validStatuses = map[string]bool{
+	"pending":  true,
+	"accepted": true,
+	"rejected": true,
+}
 
 type FriendRequestRepository interface {
 	CreateFriendRequest(ctx context.Context, request *models.FriendRequest) error
@@ -28,6 +35,10 @@ func NewFriendRequestRepository(driver neo4j.DriverWithContext) FriendRequestRep
 }
 
 func (r *friendRequestRepository) CreateFriendRequest(ctx context.Context, request *models.FriendRequest) error {
+	if !validStatuses[request.Status] {
+		return fmt.Errorf("invalid status: %s", request.Status)
+	}
+
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(ctx)
 
@@ -97,6 +108,10 @@ func (r *friendRequestRepository) GetFriendRequestByID(ctx context.Context, requ
 }
 
 func (r *friendRequestRepository) UpdateFriendRequestStatus(ctx context.Context, requestID, status string) error {
+	if !validStatuses[status] {
+		return fmt.Errorf("invalid status: %s", status)
+	}
+
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(ctx)
 
