@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/gofiber/fiber/v2"
 	grpcHandlers "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/delivery/grpc"
 	"github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/repository"
 	authUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/auth"
@@ -41,6 +42,8 @@ func SetupGRPCServer(db *gorm.DB, producer *kafka.Producer) (*grpc.Server, error
 
 	// Регистрация сервисов
 	pb.RegisterAuthServiceServer(server, authHandler)
+	pb.RegisterOAuthServiceServer(server, oauthHandler)
+	pb.RegisterPasswordServiceServer(server, passwordHandler)
 
 	return server, nil
 }
