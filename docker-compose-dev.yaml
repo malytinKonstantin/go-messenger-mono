@@ -57,9 +57,7 @@ services:
     restart: always
 
   messaging_cassandra:
-    build:
-      context: ./messaging-service
-      dockerfile: Dockerfile.cassandra
+    image: cassandra:4.0
     ports:
       - "9042:9042"
     volumes:
@@ -69,9 +67,7 @@ services:
     restart: always
 
   notification_cassandra:
-    build:
-      context: ./notification-service
-      dockerfile: Dockerfile.cassandra
+    image: cassandra:4.0
     ports:
       - "9242:9042"
     volumes:
@@ -81,9 +77,8 @@ services:
     restart: always
 
   users_scylla:
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile.scylla
+    image: scylladb/scylla:5.2.1
+    platform: linux/arm64
     ports:
       - "9442:9042"
     volumes:
@@ -91,13 +86,18 @@ services:
     networks:
       - kafka_network
     restart: always
+    command: ["--developer-mode", "1"]
     environment:
-      SCYLLA_HOST: localhost
-      SCYLLA_PORT: 9042
-      SCYLLA_USERNAME: scylla
-      SCYLLA_PASSWORD: scylla
-      SCYLLA_KEYSPACE: my_keyspace
-      SCYLLA_CONSISTENCY: QUORUM
+      - SCYLLA_LISTEN_ADDRESS=0.0.0.0
+      - SCYLLA_RPC_ADDRESS=0.0.0.0
+      - SCYLLA_BROADCAST_ADDRESS=0.0.0.0
+      - SCYLLA_BROADCAST_RPC_ADDRESS=0.0.0.0
+      - SCYLLA_SEEDS=0.0.0.0
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 volumes:
   postgres_data:

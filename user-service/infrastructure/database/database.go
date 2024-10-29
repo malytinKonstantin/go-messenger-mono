@@ -2,53 +2,61 @@ package database
 
 import (
 	"fmt"
-	"strconv"
+	"time"
 
 	"github.com/gocql/gocql"
 	"github.com/spf13/viper"
 )
 
-func ConnectToScylla() (*gocql.Session, error) {
-	host := viper.GetString("SCYLLA_HOST")
-	port := viper.GetString("SCYLLA_PORT")
-	keyspace := viper.GetString("SCYLLA_KEYSPACE")
-	consistency := viper.GetString("SCYLLA_CONSISTENCY")
-	username := viper.GetString("SCYLLA_USERNAME")
-	password := viper.GetString("SCYLLA_PASSWORD")
+var ScyllaSession *gocql.Session
 
-	portNum, err := strconv.Atoi(port)
-	if err != nil {
-		return nil, fmt.Errorf("invalid port number: %v", err)
-	}
+func ConnectToScylla() error {
+	host := viper.GetString("SCYLLA_HOST")
+	port := viper.GetInt("SCYLLA_PORT")
 
 	cluster := gocql.NewCluster(host)
-	cluster.Port = portNum
-	cluster.Keyspace = keyspace
-
-	switch consistency {
-	case "ONE":
-		cluster.Consistency = gocql.One
-	case "QUORUM":
-		cluster.Consistency = gocql.Quorum
-	case "ALL":
-		cluster.Consistency = gocql.All
-	default:
-		cluster.Consistency = gocql.Quorum
-	}
-
-	if username != "" && password != "" {
-		cluster.Authenticator = gocql.PasswordAuthenticator{
-			Username: username,
-			Password: password,
-		}
-	}
-
-	cluster.IgnorePeerAddr = true
+	cluster.Port = port
+	cluster.Consistency = gocql.Quorum
+	cluster.Timeout = 10 * time.Second
+	cluster.ConnectTimeout = 20 * time.Second
+	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 5}
 	cluster.DisableInitialHostLookup = true
+	cluster.IgnorePeerAddr = true
+	// Уберите аутентификацию, если она не нужна
+	// cluster.Authenticator = gocql.PasswordAuthenticator{
+	// 	Username: viper.GetString("SCYLLA_USERNAME"),
+	// 	Password: viper.GetString("SCYLLA_PASSWORD"),
+	// }
 
 	session, err := cluster.CreateSession()
 	if err != nil {
-		return nil, fmt.Errorf("error connecting to ScyllaDB: %v", err)
+		return fmt.Errorf("error connecting to ScyllaDB: %w", err)
 	}
-	return session, nil
+	defer session.Close()
+
+	// Создаем keyspace
+	keyspace := viper.GetString("SCYLLA_KEYSPACE")
+	if err := createKeyspace(session, keyspace); err != nil {
+		return fmt.Errorf("error creating keyspace: %w", err)
+	}
+
+	// Переподключаемся с указанным keyspace
+	cluster.Keyspace = keyspace
+	ScyllaSession, err = cluster.CreateSession()
+	if err != nil {
+		return fmt.Errorf("error reconnecting to ScyllaDB with keyspace: %w", err)
+	}
+
+	return nil
+}
+
+func createKeyspace(session *gocql.Session, keyspace string) error {
+	query := fmt.Sprintf(`
+        CREATE KEYSPACE IF NOT EXISTS %s 
+        WITH replication = {
+            'class': 'SimpleStrategy',
+            'replication_factor': '1'
+        }`, keyspace)
+
+	return session.Query(query).Exec()
 }

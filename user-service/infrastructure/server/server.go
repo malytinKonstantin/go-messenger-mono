@@ -8,48 +8,72 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gocql/gocql"
 	"github.com/gofiber/fiber/v2"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/user_service/v1"
 	handlers "github.com/malytinKonstantin/go-messenger-mono/user-service/internal/delivery/grpc"
-
+	"github.com/malytinKonstantin/go-messenger-mono/user-service/internal/repositories"
+	"github.com/malytinKonstantin/go-messenger-mono/user-service/internal/usecases/user"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
-func SetupGRPCServer(session *gocql.Session, producer *kafka.Producer) (*grpc.Server, error) {
+func SetupGRPCServer(session *gocql.Session) (*grpc.Server, error) {
+	// Инициализация репозитория
+	userRepo := repositories.NewUserRepository(session)
+
+	// Инициализация usecase
+	getUserUC := user.NewGetUserUsecase(userRepo)
+	createUserUC := user.NewCreateUserProfileUsecase(userRepo)
+	updateUserUC := user.NewUpdateUserProfileUsecase(userRepo)
+	searchUsersUC := user.NewSearchUsersUsecase(userRepo)
+
+	// Инициализация gRPC хендлера
+	userHandler := handlers.NewUserHandler(getUserUC, createUserUC, updateUserUC, searchUsersUC)
+
+	// Создание gRPC сервера и регистрация сервисов
 	grpcServer := grpc.NewServer()
-	userHandler := handlers.NewUserHandler(session, producer)
 	pb.RegisterUserServiceServer(grpcServer, userHandler)
 	reflection.Register(grpcServer)
+
 	return grpcServer, nil
+}
+
+func StartGRPCServer(grpcServer *grpc.Server) error {
+	port := viper.GetString("GRPC_PORT")
+	if port == "" {
+		port = "50051"
+	}
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+	if err != nil {
+		return fmt.Errorf("failed to start server: %v", err)
+	}
+
+	fmt.Printf("gRPC server started on port %s\n", port)
+	if err := grpcServer.Serve(lis); err != nil {
+		return fmt.Errorf("error running gRPC server: %v", err)
+	}
+
+	return nil
 }
 
 func SetupHTTPServer() *fiber.App {
 	app := fiber.New()
 	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.SendString("User service is running")
+		return c.SendString("User Service is healthy")
 	})
 	return app
 }
 
 func StartHTTPServer(app *fiber.App) error {
-	if err := app.Listen(fmt.Sprintf(":%s", viper.GetString("HTTP_PORT"))); err != nil {
+	port := viper.GetString("HTTP_PORT")
+	if port == "" {
+		port = "8080"
+	}
+	if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil {
 		return fmt.Errorf("error starting HTTP server: %v", err)
-	}
-	return nil
-}
-
-func StartGRPCServer(grpcServer *grpc.Server) error {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", viper.GetString("GRPC_PORT")))
-	if err != nil {
-		return fmt.Errorf("failed to listen: %v", err)
-	}
-	log.Printf("gRPC server listening at %v", lis.Addr())
-	if err := grpcServer.Serve(lis); err != nil {
-		return fmt.Errorf("error starting gRPC server: %v", err)
 	}
 	return nil
 }

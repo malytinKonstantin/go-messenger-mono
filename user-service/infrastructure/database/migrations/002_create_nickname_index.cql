@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS user_profiles_nickname_idx ON user_service.user_profiles (nickname);
