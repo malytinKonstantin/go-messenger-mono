@@ -25,6 +25,10 @@ func run() error {
 	}
 	defer session.Close()
 
+	if err := database.RunMigrations(session, "infrastructure/database/migrations"); err != nil {
+		return fmt.Errorf("error running migrations: %w", err)
+	}
+
 	producer, err := queue.CreateKafkaProducer()
 	if err != nil {
 		return fmt.Errorf("error creating Kafka producer: %w", err)
@@ -40,13 +44,13 @@ func run() error {
 
 	go func() {
 		if err := server.StartHTTPServer(httpServer); err != nil {
-			log.Printf("Error starting HTTP server: %v", err)
+			log.Printf("error starting HTTP server: %v", err)
 		}
 	}()
 
 	go func() {
 		if err := server.StartGRPCServer(grpcServer); err != nil {
-			log.Printf("Error starting gRPC server: %v", err)
+			log.Printf("error starting gRPC server: %v", err)
 		}
 	}()
 

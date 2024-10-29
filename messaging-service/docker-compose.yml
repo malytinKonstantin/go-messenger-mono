@@ -16,6 +16,12 @@ services:
 
   cassandra:
     image: cassandra:latest
+    environment:
+      - CASSANDRA_HOST=cassandra
+      - CASSANDRA_PORT=9042
+      - CASSANDRA_KEYSPACE=messaging_service
+      - CASSANDRA_USERNAME=cassandra
+      - CASSANDRA_PASSWORD=cassandra
     ports:
       - "9042:9042"
     volumes:

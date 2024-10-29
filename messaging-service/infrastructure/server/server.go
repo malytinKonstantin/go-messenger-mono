@@ -12,6 +12,8 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/gofiber/fiber/v2"
 	handlers "github.com/malytinKonstantin/go-messenger-mono/messaging-service/internal/delivery/grpc"
+	"github.com/malytinKonstantin/go-messenger-mono/messaging-service/internal/repositories"
+	"github.com/malytinKonstantin/go-messenger-mono/messaging-service/internal/usecase/message"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/messaging_service/v1"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -19,17 +21,34 @@ import (
 )
 
 func SetupGRPCServer(session *gocql.Session, producer *kafka.Producer) (*grpc.Server, error) {
+	// Инициализация репозиториев
+	messageRepo := repositories.NewMessageRepository(session)
+
+	// Инициализация usecase
+	sendMessageUsecase := message.NewSendMessageUsecase(messageRepo, producer)
+	getMessagesUsecase := message.NewGetMessagesUsecase(messageRepo)
+	updateMessageStatusUsecase := message.NewUpdateMessageStatusUsecase(messageRepo)
+
+	// Создание gRPC сервера
 	grpcServer := grpc.NewServer()
-	messagingHandler := handlers.NewMessagingHandler(producer, session)
-	pb.RegisterMessagingServiceServer(grpcServer, messagingHandler)
+
+	// Регистрация сервиса
+	pb.RegisterMessagingServiceServer(grpcServer, handlers.NewMessagingHandler(
+		sendMessageUsecase,
+		getMessagesUsecase,
+		updateMessageStatusUsecase,
+	))
+
+	// Отражение сервера (для инструментов типа grpcurl)
 	reflection.Register(grpcServer)
+
 	return grpcServer, nil
 }
 
 func SetupHTTPServer() *fiber.App {
 	app := fiber.New()
 	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.SendString("Messaging Service is healthy")
+		return c.SendString("messaging Service is healthy")
 	})
 	return app
 }
@@ -57,12 +76,12 @@ func WaitForShutdown(httpServer *fiber.App, grpcServer *grpc.Server) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down servers...")
+	log.Println("shutting down servers...")
 
 	if err := httpServer.Shutdown(); err != nil {
-		log.Printf("Error shutting down HTTP server: %v", err)
+		log.Printf("error shutting down HTTP server: %v", err)
 	}
 
 	grpcServer.GracefulStop()
-	log.Println("Servers successfully shut down")
+	log.Println("servers successfully shut down")
 }
