@@ -577,7 +577,7 @@
           },
           {
             "name": "limit",
-            "description": "Максимальное количество уведомлений",
+            "description": "Количество уведомлений для получения",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -1156,6 +1156,11 @@
             "$ref": "#/definitions/v1Notification"
           },
           "title": "Список уведомлений"
+        },
+        "totalCount": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Общее количество уведомлений"
         }
       },
       "title": "Сообщение для ответа с списком уведомлений"

@@ -7,7 +7,6 @@ toolchain go1.23.2
 require (
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/gocql/gocql v1.7.0
-	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/spf13/viper v1.19.0
 	google.golang.org/grpc v1.67.1
 )
@@ -16,7 +15,9 @@ require (
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/gofiber/fiber/v2 v2.52.5 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -36,7 +37,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.56.0 // indirect
+	github.com/valyala/fasthttp v1.57.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
@@ -51,9 +52,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require (
-	github.com/google/uuid v1.6.0
-	github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0-00010101000000-000000000000
-)
+require github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0-00010101000000-000000000000
 
 replace github.com/malytinKonstantin/go-messenger-mono/proto => ../proto

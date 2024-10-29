@@ -2,39 +2,33 @@ package database
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/gocql/gocql"
 	"github.com/spf13/viper"
 )
 
 func ConnectToCassandra() (*gocql.Session, error) {
-	host := viper.GetString("CASSANDRA_HOST")
-	portStr := viper.GetString("CASSANDRA_PORT")
-	keyspace := viper.GetString("CASSANDRA_KEYSPACE")
-	username := viper.GetString("CASSANDRA_USERNAME")
-	password := viper.GetString("CASSANDRA_PASSWORD")
-
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid Cassandra port number: %v", err)
-	}
-
-	cluster := gocql.NewCluster(host)
-	cluster.Port = port
-	cluster.Keyspace = keyspace
+	cluster := gocql.NewCluster(viper.GetString("CASSANDRA_HOST"))
+	cluster.Port = viper.GetInt("CASSANDRA_PORT")
 	cluster.Consistency = gocql.Quorum
+	return cluster.CreateSession()
+}
 
-	if username != "" && password != "" {
-		cluster.Authenticator = gocql.PasswordAuthenticator{
-			Username: username,
-			Password: password,
-		}
-	}
+func ReconnectToCassandraWithKeyspace() (*gocql.Session, error) {
+	cluster := gocql.NewCluster(viper.GetString("CASSANDRA_HOST"))
+	cluster.Port = viper.GetInt("CASSANDRA_PORT")
+	cluster.Keyspace = "notification_service"
+	cluster.Consistency = gocql.Quorum
+	return cluster.CreateSession()
+}
 
-	session, err := cluster.CreateSession()
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to Cassandra: %v", err)
+func CreateKeyspace(session *gocql.Session) error {
+	keyspaceQuery := `CREATE KEYSPACE IF NOT EXISTS notification_service WITH replication = {
+        'class': 'NetworkTopologyStrategy',
+        'datacenter1': 1
+    };`
+	if err := session.Query(keyspaceQuery).Exec(); err != nil {
+		return fmt.Errorf("failed to create keyspace: %v", err)
 	}
-	return session, nil
+	return nil
 }

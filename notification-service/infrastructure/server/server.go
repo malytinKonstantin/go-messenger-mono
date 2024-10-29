@@ -12,6 +12,9 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/gofiber/fiber/v2"
 	handlers "github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/delivery/grpc"
+	"github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/repositories"
+	notification_uc "github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/usecase/notification"
+	preferences_uc "github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/usecase/preferences"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/notification_service/v1"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -19,10 +22,35 @@ import (
 )
 
 func SetupGRPCServer(session *gocql.Session, producer *kafka.Producer) (*grpc.Server, error) {
+	// Инициализация репозиториев
+	notificationRepo := repositories.NewNotificationRepository(session)
+	preferencesRepo := repositories.NewNotificationPreferencesRepository(session)
+
+	// Инициализация usecase
+	sendNotificationUsecase := notification_uc.NewSendNotificationUsecase(notificationRepo)
+	getNotificationsUsecase := notification_uc.NewGetNotificationsUsecase(notificationRepo)
+	markAsReadUsecase := notification_uc.NewMarkNotificationAsReadUsecase(notificationRepo)
+	updatePreferencesUsecase := preferences_uc.NewUpdatePreferencesUsecase(preferencesRepo)
+	getPreferencesUsecase := preferences_uc.NewGetPreferencesUsecase(preferencesRepo)
+
+	// Создание gRPC сервера
 	grpcServer := grpc.NewServer()
-	notificationHandler := handlers.NewNotificationServiceServer(producer, session)
+
+	// Инициализация обработчика сервиса уведомлений
+	notificationHandler := handlers.NewNotificationServiceServer(
+		sendNotificationUsecase,
+		getNotificationsUsecase,
+		markAsReadUsecase,
+		updatePreferencesUsecase,
+		getPreferencesUsecase,
+	)
+
+	// Регистрация сервиса
 	pb.RegisterNotificationServiceServer(grpcServer, notificationHandler)
+
+	// Включение отражения сервера (для инструментов типа grpcurl)
 	reflection.Register(grpcServer)
+
 	return grpcServer, nil
 }
 

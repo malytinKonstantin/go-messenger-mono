@@ -101,16 +101,24 @@ message GetNotificationsRequest {
     (validate.rules).string = {uuid: true},
     (google.api.field_behavior) = REQUIRED
   ];
-  // Максимальное количество уведомлений
-  int32 limit = 2;
+  // Количество уведомлений для получения
+  int32 limit = 2 [
+    (validate.rules).int32 = { gt: 0 },
+    (google.api.field_behavior) = OPTIONAL
+  ];
   // Смещение для пагинации
-  int32 offset = 3;
+  int32 offset = 3 [
+    (validate.rules).int32 = { gte: 0 },
+    (google.api.field_behavior) = OPTIONAL
+  ];
 }
 
 // Сообщение для ответа с списком уведомлений
 message GetNotificationsResponse {
   // Список уведомлений
   repeated Notification notifications = 1;
+  // Общее количество уведомлений
+  int32 total_count = 2;
 }
 
 // Сообщение для запроса пометки уведомления как прочитанного

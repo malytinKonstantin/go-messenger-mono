@@ -1,108 +1,171 @@
-package handlers
+package grpc
 
 import (
 	"context"
-	"time"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gocql/gocql"
-	"github.com/google/uuid"
+	"github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/models"
+	"github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/usecase/notification"
+	"github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/usecase/preferences"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/notification_service/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type NotificationServiceServer struct {
 	pb.UnimplementedNotificationServiceServer
-	producer *kafka.Producer
-	session  *gocql.Session
+	sendNotificationUsecase       notification.SendNotificationUsecase
+	getNotificationsUsecase       notification.GetNotificationsUsecase
+	markNotificationAsReadUsecase notification.MarkNotificationAsReadUsecase
+	updatePreferencesUsecase      preferences.UpdatePreferencesUsecase
+	getPreferencesUsecase         preferences.GetPreferencesUsecase
 }
 
-func NewNotificationServiceServer(producer *kafka.Producer, session *gocql.Session) *NotificationServiceServer {
-	return &NotificationServiceServer{producer: producer, session: session}
+func NewNotificationServiceServer(
+	sendNotificationUC notification.SendNotificationUsecase,
+	getNotificationsUC notification.GetNotificationsUsecase,
+	markAsReadUC notification.MarkNotificationAsReadUsecase,
+	updatePreferencesUC preferences.UpdatePreferencesUsecase,
+	getPreferencesUC preferences.GetPreferencesUsecase,
+) *NotificationServiceServer {
+	return &NotificationServiceServer{
+		sendNotificationUsecase:       sendNotificationUC,
+		getNotificationsUsecase:       getNotificationsUC,
+		markNotificationAsReadUsecase: markAsReadUC,
+		updatePreferencesUsecase:      updatePreferencesUC,
+		getPreferencesUsecase:         getPreferencesUC,
+	}
 }
 
+// Отправка уведомления пользователю
 func (s *NotificationServiceServer) SendNotification(ctx context.Context, req *pb.SendNotificationRequest) (*pb.SendNotificationResponse, error) {
-	// Моковая логика отправки уведомления
+	userID, err := gocql.ParseUUID(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid user_id: %v", err)
+	}
+
+	notifType := models.NotificationType(req.Type)
+
+	err = s.sendNotificationUsecase.Execute(ctx, userID, req.Message, notifType)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to send notification: %v", err)
+	}
+
 	return &pb.SendNotificationResponse{
 		Success: true,
 	}, nil
 }
 
+// Получение списка уведомлений пользователя
 func (s *NotificationServiceServer) GetNotifications(ctx context.Context, req *pb.GetNotificationsRequest) (*pb.GetNotificationsResponse, error) {
-	// Моковые данные уведомлений
-	notifications := []*pb.Notification{
-		{
-			Id:        uuid.New().String(),
-			UserId:    req.UserId,
-			Message:   "У вас новое сообщение от пользователя Иван Иванов",
-			Type:      pb.NotificationType_NOTIFICATION_TYPE_NEW_MESSAGE,
-			CreatedAt: time.Now().Unix(),
-			IsRead:    false,
-		},
-		{
-			Id:        uuid.New().String(),
-			UserId:    req.UserId,
-			Message:   "Пользователь Мария Петрова отправила вам запрос в друзья",
-			Type:      pb.NotificationType_NOTIFICATION_TYPE_FRIEND_REQUEST,
-			CreatedAt: time.Now().Add(-2 * time.Hour).Unix(),
-			IsRead:    false,
-		},
-		{
-			Id:        uuid.New().String(),
-			UserId:    req.UserId,
-			Message:   "Системное уведомление: новое приложение доступно для загрузки",
-			Type:      pb.NotificationType_NOTIFICATION_TYPE_SYSTEM,
-			CreatedAt: time.Now().Add(-24 * time.Hour).Unix(),
-			IsRead:    true,
-		},
+	userID, err := gocql.ParseUUID(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid user_id: %v", err)
 	}
 
-	start := req.Offset
-	end := start + req.Limit
-	totalNotifications := int32(len(notifications))
-
-	if start > totalNotifications {
-		paginatedNotifications := []*pb.Notification{}
-
-		return &pb.GetNotificationsResponse{
-			Notifications: paginatedNotifications,
-		}, nil
+	limit := int(req.Limit)
+	if limit <= 0 {
+		limit = 10 // Значение по умолчанию
 	}
 
-	if end > totalNotifications || req.Limit == 0 {
-		end = totalNotifications
+	offset := int(req.Offset)
+	if offset < 0 {
+		offset = 0
 	}
 
-	paginatedNotifications := notifications[start:end]
+	// Получаем уведомления и общее количество
+	notifications, totalCount, err := s.getNotificationsUsecase.Execute(ctx, userID, limit, offset)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to get notifications: %v", err)
+	}
 
-	return &pb.GetNotificationsResponse{
-		Notifications: paginatedNotifications,
-	}, nil
+	// Преобразуем уведомления в формат protobuf
+	pbNotifications := make([]*pb.Notification, len(notifications))
+	for i, n := range notifications {
+		pbNotifications[i] = &pb.Notification{
+			Id:        n.NotificationID.String(),
+			UserId:    n.UserID.String(),
+			Message:   n.Message,
+			Type:      pb.NotificationType(n.Type),
+			CreatedAt: n.CreatedAt.Unix(),
+			IsRead:    n.IsRead,
+		}
+	}
+
+	// Формируем ответ
+	resp := &pb.GetNotificationsResponse{
+		Notifications: pbNotifications,
+		TotalCount:    int32(totalCount),
+	}
+
+	return resp, nil
 }
 
+// Пометка уведомления как прочитанного
 func (s *NotificationServiceServer) MarkNotificationAsRead(ctx context.Context, req *pb.MarkNotificationAsReadRequest) (*pb.MarkNotificationAsReadResponse, error) {
-	// Моковая логика пометки уведомления как прочитанного
+	notificationID, err := gocql.ParseUUID(req.NotificationId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid notification_id: %v", err)
+	}
+
+	userID, err := gocql.ParseUUID(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid user_id: %v", err)
+	}
+
+	err = s.markNotificationAsReadUsecase.Execute(ctx, notificationID, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to mark notification as read: %v", err)
+	}
+
 	return &pb.MarkNotificationAsReadResponse{
 		Success: true,
 	}, nil
 }
 
+// Обновление предпочтений уведомлений пользователя
 func (s *NotificationServiceServer) UpdateNotificationPreferences(ctx context.Context, req *pb.UpdateNotificationPreferencesRequest) (*pb.UpdateNotificationPreferencesResponse, error) {
-	// Моковая логика обновления предпочтений
+	userID, err := gocql.ParseUUID(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid user_id: %v", err)
+	}
+
+	preferences := &models.NotificationPreferences{
+		UserID:        userID,
+		NewMessage:    req.Preferences.NewMessage,
+		FriendRequest: req.Preferences.FriendRequest,
+		System:        req.Preferences.System,
+	}
+
+	err = s.updatePreferencesUsecase.Execute(ctx, preferences)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to update notification preferences: %v", err)
+	}
 
 	return &pb.UpdateNotificationPreferencesResponse{
 		Success: true,
 	}, nil
 }
 
+// Получение предпочтений уведомлений пользователя
 func (s *NotificationServiceServer) GetNotificationPreferences(ctx context.Context, req *pb.GetNotificationPreferencesRequest) (*pb.GetNotificationPreferencesResponse, error) {
-	// Моковые данные предпочтений уведомлений
-	preferences := &pb.NotificationPreferences{
-		NewMessage:    true,
-		FriendRequest: true,
-		System:        false,
+	userID, err := gocql.ParseUUID(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid user_id: %v", err)
+	}
+
+	preferences, err := s.getPreferencesUsecase.Execute(ctx, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to get notification preferences: %v", err)
+	}
+
+	pbPreferences := &pb.NotificationPreferences{
+		NewMessage:    preferences.NewMessage,
+		FriendRequest: preferences.FriendRequest,
+		System:        preferences.System,
 	}
 
 	return &pb.GetNotificationPreferencesResponse{
-		Preferences: preferences,
+		Preferences: pbPreferences,
 	}, nil
 }
