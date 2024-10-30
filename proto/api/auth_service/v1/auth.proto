@@ -131,9 +131,14 @@ message OAuthAuthenticateRequest {
     (validate.rules).string = {min_len: 1},
     (google.api.field_behavior) = REQUIRED
   ];
-  // Токен, полученный от OAuth провайдера
-  string provider_token = 2 [
+  // Идентификатор пользователя от OAuth провайдера
+  string provider_user_id = 2 [
     (validate.rules).string = {min_len: 1},
+    (google.api.field_behavior) = REQUIRED
+  ];
+  // Email пользователя
+  string email = 3 [
+    (validate.rules).string = {email: true},
     (google.api.field_behavior) = REQUIRED
   ];
 }
@@ -182,7 +187,7 @@ message ResetPasswordResponse {
 // ChangePasswordRequest содержит данные для смены пароля.
 message ChangePasswordRequest {
   // Токен сброса пароля
-  string reset_token = 1 [
+  string token = 1 [
     (validate.rules).string = {min_len: 1},
     (google.api.field_behavior) = REQUIRED
   ];
