@@ -11,11 +11,13 @@ import (
 
 type OAuthAuthenticateUsecase interface {
 	Execute(ctx context.Context, provider, providerUserID, email string) (*model.UserCredential, error)
+	GenerateJWT(userID string) (string, error)
 }
 
 type oauthAuthenticateUsecase struct {
 	userRepo  repository.UserCredentialsRepository
 	oauthRepo repository.OauthAccountRepository
+	jwtSecret string
 }
 
 func NewOAuthAuthenticateUsecase(userRepo repository.UserCredentialsRepository, oauthRepo repository.OauthAccountRepository) OAuthAuthenticateUsecase {
@@ -74,4 +76,8 @@ func (uc *oauthAuthenticateUsecase) Execute(ctx context.Context, provider, provi
 	}
 
 	return user, nil
+}
+
+func (uc *oauthAuthenticateUsecase) GenerateJWT(userID string) (string, error) {
+	return "", nil
 }

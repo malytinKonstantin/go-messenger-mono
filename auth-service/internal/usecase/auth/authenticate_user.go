@@ -40,8 +40,13 @@ func (uc *authenticateUserUsecase) Execute(ctx context.Context, email, password 
 		return "", errors.New("invalid password")
 	}
 
+	userID, err := uuid.Parse(user.UserID)
+	if err != nil {
+		return "", errors.New("invalid user_id")
+	}
+
 	// Генерируем JWT токен
-	token, err := uc.generateJWTToken(user.ID)
+	token, err := uc.generateJWTToken(userID)
 	if err != nil {
 		return "", errors.New("error creating token")
 	}

@@ -9,23 +9,23 @@ import (
 	"github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/repository"
 )
 
-type ResetPasswordUsecase interface {
+type ResetPasswordRequestUsecase interface {
 	Execute(ctx context.Context, email string) (*model.ResetPasswordToken, error)
 }
 
-type resetPasswordUsecase struct {
+type resetPasswordRequestUsecase struct {
 	userRepo  repository.UserCredentialsRepository
 	tokenRepo repository.ResetPasswordTokenRepository
 }
 
-func NewResetPasswordUsecase(userRepo repository.UserCredentialsRepository, tokenRepo repository.ResetPasswordTokenRepository) ResetPasswordUsecase {
-	return &resetPasswordUsecase{
+func NewResetPasswordRequestUsecase(userRepo repository.UserCredentialsRepository, tokenRepo repository.ResetPasswordTokenRepository) ResetPasswordRequestUsecase {
+	return &resetPasswordRequestUsecase{
 		userRepo:  userRepo,
 		tokenRepo: tokenRepo,
 	}
 }
 
-func (uc *resetPasswordUsecase) Execute(ctx context.Context, email string) (*model.ResetPasswordToken, error) {
+func (uc *resetPasswordRequestUsecase) Execute(ctx context.Context, email string) (*model.ResetPasswordToken, error) {
 	// Получаем пользователя по email
 	user, err := uc.userRepo.GetByEmail(ctx, email)
 	if err != nil {

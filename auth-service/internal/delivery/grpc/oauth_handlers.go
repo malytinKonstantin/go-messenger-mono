@@ -30,10 +30,12 @@ func (h *OAuthHandler) OAuthAuthenticate(ctx context.Context, req *pb.OAuthAuthe
 		return nil, status.Errorf(codes.Internal, "oauth authentication error: %v", err)
 	}
 
-	token, err := h.oauthAuthenticateUsecase.GenerateToken(user.UserID)
+	token, err := h.oauthAuthenticateUsecase.GenerateJWT(user.UserID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "token generation error: %v", err)
 	}
 
-	return &pb.OAuthAuthenticateResponse{Token: token}, nil
+	return &pb.OAuthAuthenticateResponse{
+		Token: token,
+	}, nil
 }
