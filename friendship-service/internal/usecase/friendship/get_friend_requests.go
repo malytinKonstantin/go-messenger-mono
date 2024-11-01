@@ -2,6 +2,7 @@ package friendship
 
 import (
 	"context"
+	"errors"
 
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/models"
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/repositories"
@@ -19,10 +20,10 @@ func NewGetFriendRequestsUsecase(repo repositories.FriendRequestRepository) GetF
 	return &getFriendRequestsUsecase{repo: repo}
 }
 
-func (uc *getFriendRequestsUsecase) Execute(ctx context.Context, userID string) ([]*models.FriendRequest, error) {
-	requests, err := uc.repo.GetIncomingAndOutgoingRequests(ctx, userID)
-	if err != nil {
-		return nil, err
+func (u *getFriendRequestsUsecase) Execute(ctx context.Context, userID string) ([]*models.FriendRequest, error) {
+	if userID == "" {
+		return nil, errors.New("user ID cannot be empty")
 	}
-	return requests, nil
+
+	return u.repo.GetIncomingAndOutgoingRequests(ctx, userID)
 }

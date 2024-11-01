@@ -2,6 +2,7 @@ package friendship
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/repositories"
@@ -20,6 +21,10 @@ func NewRejectFriendRequestUsecase(repo repositories.FriendRequestRepository) Re
 }
 
 func (uc *rejectFriendRequestUsecase) Execute(ctx context.Context, requestID string) error {
+	if requestID == "" {
+		return errors.New("request ID cannot be empty")
+	}
+
 	updatedAt := time.Now().Unix()
 	err := uc.repo.UpdateFriendRequestStatus(ctx, requestID, "rejected", updatedAt)
 	if err != nil {
