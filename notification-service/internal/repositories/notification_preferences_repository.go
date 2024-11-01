@@ -2,10 +2,11 @@ package repositories
 
 import (
 	"context"
-
-	"github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/models"
+	"errors"
 
 	"github.com/gocql/gocql"
+	"github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/models"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/platform/cassandra"
 )
 
 type NotificationPreferencesRepository interface {
@@ -16,19 +17,17 @@ type NotificationPreferencesRepository interface {
 }
 
 type notificationPreferencesRepository struct {
-	session *gocql.Session
+	session cassandra.Session
 }
 
-func NewNotificationPreferencesRepository(session *gocql.Session) NotificationPreferencesRepository {
+func NewNotificationPreferencesRepository(session cassandra.Session) NotificationPreferencesRepository {
 	return &notificationPreferencesRepository{
 		session: session,
 	}
 }
 
 func (r *notificationPreferencesRepository) CreatePreferences(ctx context.Context, preferences *models.NotificationPreferences) error {
-	query := `INSERT INTO notification_preferences (
-        user_id, new_message, friend_request, system
-    ) VALUES (?, ?, ?, ?)`
+	query := `INSERT INTO notification_preferences (user_id, new_message, friend_request, system) VALUES (?, ?, ?, ?)`
 	return r.session.Query(query,
 		preferences.UserID,
 		preferences.NewMessage,
@@ -38,18 +37,20 @@ func (r *notificationPreferencesRepository) CreatePreferences(ctx context.Contex
 }
 
 func (r *notificationPreferencesRepository) GetPreferences(ctx context.Context, userID gocql.UUID) (*models.NotificationPreferences, error) {
-	query := `SELECT new_message, friend_request, system FROM notification_preferences WHERE user_id = ?`
-	var preferences models.NotificationPreferences
-	err := r.session.Query(query, userID).WithContext(ctx).Scan(
-		&preferences.NewMessage,
-		&preferences.FriendRequest,
-		&preferences.System,
-	)
-	if err != nil {
+	query := `SELECT user_id, new_message, friend_request, system FROM notification_preferences WHERE user_id = ?`
+	var p models.NotificationPreferences
+	if err := r.session.Query(query, userID).WithContext(ctx).Scan(
+		&p.UserID,
+		&p.NewMessage,
+		&p.FriendRequest,
+		&p.System,
+	); err != nil {
+		if errors.Is(err, gocql.ErrNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
-	preferences.UserID = userID
-	return &preferences, nil
+	return &p, nil
 }
 
 func (r *notificationPreferencesRepository) UpdatePreferences(ctx context.Context, preferences *models.NotificationPreferences) error {

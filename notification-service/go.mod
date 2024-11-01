@@ -14,7 +14,7 @@ require (
 require (
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
-	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
@@ -54,6 +54,9 @@ require (
 require (
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0-00010101000000-000000000000
+	github.com/malytinKonstantin/go-messenger-mono/shared v0.0.0-00010101000000-000000000000
 )
 
 replace github.com/malytinKonstantin/go-messenger-mono/proto => ../proto
+
+replace github.com/malytinKonstantin/go-messenger-mono/shared => ../shared
