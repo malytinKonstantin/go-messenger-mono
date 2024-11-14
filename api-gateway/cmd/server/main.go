@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
@@ -21,14 +23,14 @@ func main() {
 }
 
 func run() error {
-
 	viper.AutomaticEnv()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	grpcMux, err := setupGRPCMux(ctx)
-	if err != nil {
+	grpcMux := runtime.NewServeMux()
+
+	if err := setupGRPCMux(ctx, grpcMux); err != nil {
 		return fmt.Errorf("error setting up gRPC mux: %w", err)
 	}
 
@@ -37,8 +39,9 @@ func run() error {
 	return startServer(app)
 }
 
-func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
-	grpcMux := runtime.NewServeMux()
+func setupGRPCMux(ctx context.Context, grpcMux *runtime.ServeMux) error {
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -56,21 +59,50 @@ func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 	}
 
 	for _, service := range services {
-		var endpoint string
-		if viper.GetString("ENV") == "local" {
-			port := viper.GetString(fmt.Sprintf("%s_SERVICE_GRPC_PORT", service.name))
-			endpoint = fmt.Sprintf("localhost:%s", port)
-		} else {
-			endpoint = fmt.Sprintf("%s-service:%s", service.name, viper.GetString(fmt.Sprintf("%s_SERVICE_GRPC_PORT", service.name)))
-		}
-		if err := service.register(ctx, grpcMux, endpoint, opts); err != nil {
-			log.Printf("failed to connect to service %s at %s: %v", service.name, endpoint, err)
-		} else {
-			log.Printf("successfully connected to service %s at %s", service.name, endpoint)
-		}
+		wg.Add(1)
+		go func(srv struct {
+			name     string
+			register func(context.Context, *runtime.ServeMux, string, []grpc.DialOption) error
+		}) {
+			defer wg.Done()
+
+			var endpoint string
+			if viper.GetString("ENV") == "local" {
+				port := viper.GetString(fmt.Sprintf("%s_SERVICE_GRPC_PORT", srv.name))
+				endpoint = fmt.Sprintf("localhost:%s", port)
+			} else {
+				endpoint = fmt.Sprintf("%s-service:%s", srv.name, viper.GetString(fmt.Sprintf("%s_SERVICE_GRPC_PORT", srv.name)))
+			}
+
+			maxRetries := 3
+			retryInterval := 2 * time.Second
+
+			var err error
+			for i := 1; i <= maxRetries; i++ {
+				if ctx.Err() != nil {
+					return
+				}
+				err = srv.register(ctx, grpcMux, endpoint, opts)
+				if err == nil {
+					mu.Lock()
+					log.Printf("Successfully connected to service %s at %s", srv.name, endpoint)
+					mu.Unlock()
+					return
+				}
+				mu.Lock()
+				log.Printf("Failed to connect to service %s at %s: %v. Attempt %d of %d", srv.name, endpoint, err, i, maxRetries)
+				mu.Unlock()
+				time.Sleep(retryInterval)
+			}
+			mu.Lock()
+			log.Printf("Failed to connect to service %s after %d attempts", srv.name, maxRetries)
+			mu.Unlock()
+		}(service)
 	}
 
-	return grpcMux, nil
+	wg.Wait()
+
+	return nil
 }
 
 func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
@@ -84,6 +116,6 @@ func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
 
 func startServer(app *fiber.App) error {
 	port := viper.GetString("HTTP_PORT")
-	log.Printf("starting API gateway on port :%s", port)
+	log.Printf("Starting API Gateway on port :%s", port)
 	return app.Listen(fmt.Sprintf(":%s", port))
 }
