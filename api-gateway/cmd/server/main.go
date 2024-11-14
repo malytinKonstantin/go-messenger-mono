@@ -4,15 +4,21 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
+	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/malytinKonstantin/go-messenger-mono/api-gateway/internal/handlers"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -36,15 +42,42 @@ func run() error {
 
 	app := setupFiberApp(grpcMux)
 
-	return startServer(app)
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := startServer(app); err != nil {
+			log.Printf("Server error: %v", err)
+		}
+	}()
+
+	<-quit
+	log.Println("Shutting down server...")
+
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := app.Shutdown(); err != nil {
+		return fmt.Errorf("Server shutdown failed: %w", err)
+	}
+
+	log.Println("Server exited gracefully")
+	return nil
 }
 
 func setupGRPCMux(ctx context.Context, grpcMux *runtime.ServeMux) error {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
+	retryOpts := []grpc_retry.CallOption{
+		grpc_retry.WithBackoff(grpc_retry.BackoffLinear(100 * time.Millisecond)),
+		grpc_retry.WithCodes(codes.Unavailable, codes.DeadlineExceeded),
+		grpc_retry.WithMax(3),
+	}
+
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(grpc_retry.UnaryClientInterceptor(retryOpts...)),
 	}
 
 	services := []struct {
@@ -107,6 +140,10 @@ func setupGRPCMux(ctx context.Context, grpcMux *runtime.ServeMux) error {
 
 func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
 	app := fiber.New()
+	app.Use(limiter.New(limiter.Config{
+		Max:        100,
+		Expiration: 1 * time.Second,
+	}))
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
