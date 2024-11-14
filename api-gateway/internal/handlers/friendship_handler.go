@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -43,11 +44,19 @@ func handleSendFriendRequest(client friendship_service.FriendshipServiceClient) 
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.SendFriendRequest(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.SendFriendRequest(ctx, &req)
+		})
+
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*friendship_service.SendFriendRequestResponse)
 		writeJSONResponse(w, http.StatusCreated, resp)
 	}
 }
@@ -58,11 +67,18 @@ func handleAcceptFriendRequest(client friendship_service.FriendshipServiceClient
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.AcceptFriendRequest(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.AcceptFriendRequest(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*friendship_service.AcceptFriendRequestResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -73,11 +89,18 @@ func handleRejectFriendRequest(client friendship_service.FriendshipServiceClient
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.RejectFriendRequest(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.RejectFriendRequest(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*friendship_service.RejectFriendRequestResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -88,11 +111,18 @@ func handleRemoveFriend(client friendship_service.FriendshipServiceClient) runti
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.RemoveFriend(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.RemoveFriend(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*friendship_service.RemoveFriendResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -105,11 +135,18 @@ func handleGetFriendsList(client friendship_service.FriendshipServiceClient) run
 			return
 		}
 		req := &friendship_service.GetFriendsListRequest{UserId: userID}
-		resp, err := client.GetFriendsList(r.Context(), req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.GetFriendsList(ctx, req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*friendship_service.GetFriendsListResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -122,11 +159,18 @@ func handleGetPendingRequests(client friendship_service.FriendshipServiceClient)
 			return
 		}
 		req := &friendship_service.GetPendingRequestsRequest{UserId: userID}
-		resp, err := client.GetPendingRequests(r.Context(), req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.GetPendingRequests(ctx, req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*friendship_service.GetPendingRequestsResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }

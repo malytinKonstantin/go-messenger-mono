@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -44,11 +45,20 @@ func handleRegister(client auth_service.AuthServiceClient) runtime.HandlerFunc {
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.Register(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.Register(ctx, &req)
+		})
+
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+
+		resp := respInterface.(*auth_service.RegisterResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -59,11 +69,20 @@ func handleAuthenticate(client auth_service.AuthServiceClient) runtime.HandlerFu
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.Authenticate(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.Authenticate(ctx, &req)
+		})
+
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+
+		resp := respInterface.(*auth_service.AuthenticateResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -74,11 +93,20 @@ func handleOAuthAuthenticate(client auth_service.AuthServiceClient) runtime.Hand
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.OAuthAuthenticate(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.OAuthAuthenticate(ctx, &req)
+		})
+
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+
+		resp := respInterface.(*auth_service.OAuthAuthenticateResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -89,11 +117,20 @@ func handleVerifyEmail(client auth_service.AuthServiceClient) runtime.HandlerFun
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.VerifyEmail(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.VerifyEmail(ctx, &req)
+		})
+
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+
+		resp := respInterface.(*auth_service.VerifyEmailResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -104,11 +141,20 @@ func handleResetPassword(client auth_service.AuthServiceClient) runtime.HandlerF
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.ResetPassword(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.ResetPassword(ctx, &req)
+		})
+
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+
+		resp := respInterface.(*auth_service.ResetPasswordResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -119,11 +165,20 @@ func handleChangePassword(client auth_service.AuthServiceClient) runtime.Handler
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.ChangePassword(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.ChangePassword(ctx, &req)
+		})
+
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+
+		resp := respInterface.(*auth_service.ChangePasswordResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
