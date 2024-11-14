@@ -8,8 +8,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -107,9 +110,10 @@ func withJWTValidation(handler runtime.HandlerFunc) runtime.HandlerFunc {
 		}
 
 		claims, _ := token.Claims.(jwt.MapClaims)
-		ctx := context.WithValue(r.Context(), "user", claims["user"])
+		md := metadata.Pairs("user", claims["user"].(string))
+		ctx := metadata.NewIncomingContext(r.Context(), md)
 
-		handler(w, r, pathParams)
+		handler(w, r.WithContext(ctx), pathParams)
 	}
 }
 

@@ -47,6 +47,9 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0
+require (
+	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/malytinKonstantin/go-messenger-mono/proto v0.0.0
+)
 
 replace github.com/malytinKonstantin/go-messenger-mono/proto => ../proto

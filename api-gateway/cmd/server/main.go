@@ -42,7 +42,7 @@ func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(middleware.JWTInterceptor),
+		// grpc.WithUnaryInterceptor(middleware.JWTInterceptor),
 	}
 
 	services := []struct {
