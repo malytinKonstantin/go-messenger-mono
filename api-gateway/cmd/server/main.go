@@ -10,17 +10,21 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/malytinKonstantin/go-messenger-mono/api-gateway/internal/handlers"
+	"github.com/malytinKonstantin/go-messenger-mono/api-gateway/internal/middleware"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+var redisClient *redis.Client
 
 func main() {
 	if err := run(); err != nil {
@@ -30,6 +34,16 @@ func main() {
 
 func run() error {
 	viper.AutomaticEnv()
+
+	redisClient = redis.NewClient(&redis.Options{
+		Addr:     viper.GetString("REDIS_HOST"),
+		Password: viper.GetString("REDIS_PASSWORD"),
+		DB:       0,
+	})
+
+	if err := redisClient.Ping(context.Background()).Err(); err != nil {
+		return fmt.Errorf("Ошибка подключения к Redis: %w", err)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -140,6 +154,7 @@ func setupGRPCMux(ctx context.Context, grpcMux *runtime.ServeMux) error {
 
 func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
 	app := fiber.New()
+	app.Use(middleware.IdempotencyMiddleware(redisClient))
 	app.Use(limiter.New(limiter.Config{
 		Max:        100,
 		Expiration: 1 * time.Second,
