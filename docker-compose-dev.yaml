@@ -25,6 +25,22 @@ services:
     networks:
       - kafka_network
 
+  api_gateway_redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass password
+    volumes:
+      - redis_data:/data
+    networks:
+      - kafka_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   auth_postgres:
     image: postgres:latest
     environment:
@@ -105,6 +121,7 @@ volumes:
   cassandra_data:
   notification_cassandra_data:
   users_scylla_data:
+  redis_data:
 
 networks:
   kafka_network:
