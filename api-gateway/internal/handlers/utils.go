@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -17,13 +19,16 @@ import (
 )
 
 func registerService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption, registerFunc func(clientConn *grpc.ClientConn) error) error {
-	conn, err := grpc.Dial(endpoint, opts...)
+	dialCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	conn, err := grpc.DialContext(dialCtx, endpoint, append(opts, grpc.WithBlock())...)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to establish connection: %w", err)
 	}
 
 	if err := registerFunc(conn); err != nil {
-		return err
+		return fmt.Errorf("error registering service: %w", err)
 	}
 
 	return nil

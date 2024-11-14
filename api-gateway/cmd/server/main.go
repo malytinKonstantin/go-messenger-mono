@@ -42,7 +42,6 @@ func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		// grpc.WithUnaryInterceptor(middleware.JWTInterceptor),
 	}
 
 	services := []struct {
@@ -65,9 +64,10 @@ func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 			endpoint = fmt.Sprintf("%s-service:%s", service.name, viper.GetString(fmt.Sprintf("%s_SERVICE_GRPC_PORT", service.name)))
 		}
 		if err := service.register(ctx, grpcMux, endpoint, opts); err != nil {
-			return nil, fmt.Errorf("error registering %s service: %w", service.name, err)
+			log.Printf("failed to connect to service %s at %s: %v", service.name, endpoint, err)
+		} else {
+			log.Printf("successfully connected to service %s at %s", service.name, endpoint)
 		}
-		log.Printf("successfully connected to %s service at %s", service.name, endpoint)
 	}
 
 	return grpcMux, nil
