@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -20,15 +21,32 @@ import (
 )
 
 func SetupGRPCServer(db *gorm.DB, producer *kafka.Producer) (*grpc.Server, error) {
+	if db == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+
 	server := grpc.NewServer()
 
-	// Инициализация репозиториев
 	userRepo := repository.NewUserCredentialsRepository(db)
+	if userRepo == nil {
+		return nil, fmt.Errorf("failed to create user repository")
+	}
+
 	oauthRepo := repository.NewOauthAccountRepository(db)
+	if oauthRepo == nil {
+		return nil, fmt.Errorf("failed to create oauth repository")
+	}
+
 	tokenRepo := repository.NewResetPasswordTokenRepository(db)
+	if tokenRepo == nil {
+		return nil, fmt.Errorf("failed to create token repository")
+	}
 
 	// Инициализация usecase
 	jwtSecret := viper.GetString("JWT_SECRET")
+	if jwtSecret == "" {
+		return nil, fmt.Errorf("JWT_SECRET is not set")
+	}
 	registerUC := authUsecase.NewRegisterUserUsecase(userRepo)
 	authenticateUC := authUsecase.NewAuthenticateUserUsecase(userRepo, jwtSecret)
 	verifyEmailUC := authUsecase.NewVerifyEmailUsecase(userRepo)

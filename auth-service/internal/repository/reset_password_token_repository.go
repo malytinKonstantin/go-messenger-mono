@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/malytinKonstantin/go-messenger-mono/auth-service/infrastructure/database/generated"
@@ -21,6 +22,9 @@ type resetPasswordTokenRepository struct {
 }
 
 func NewResetPasswordTokenRepository(db *gorm.DB) ResetPasswordTokenRepository {
+	if db == nil {
+		log.Fatal("Database connection is nil")
+	}
 	return &resetPasswordTokenRepository{
 		db: db,
 	}

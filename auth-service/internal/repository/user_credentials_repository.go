@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"errors"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/malytinKonstantin/go-messenger-mono/auth-service/infrastructure/database/generated"
@@ -24,13 +26,30 @@ type userCredentialsRepository struct {
 }
 
 func NewUserCredentialsRepository(db *gorm.DB) UserCredentialsRepository {
+	if db == nil {
+		log.Fatal("Database connection is nil")
+	}
 	return &userCredentialsRepository{
 		db: db,
 	}
 }
 
 func (r *userCredentialsRepository) Create(ctx context.Context, user *model.UserCredential) error {
-	return generated.UserCredential.WithContext(ctx).Create(user)
+	userModel := generated.Use(r.db).UserCredential
+
+	generatedUser := &model.UserCredential{
+		UserID:       user.UserID,
+		Email:        user.Email,
+		PasswordHash: user.PasswordHash,
+		IsVerified:   user.IsVerified,
+	}
+
+	err := userModel.WithContext(ctx).Create(generatedUser)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *userCredentialsRepository) GetByID(ctx context.Context, userID uuid.UUID) (*model.UserCredential, error) {
@@ -38,7 +57,24 @@ func (r *userCredentialsRepository) GetByID(ctx context.Context, userID uuid.UUI
 }
 
 func (r *userCredentialsRepository) GetByEmail(ctx context.Context, email string) (*model.UserCredential, error) {
-	return generated.UserCredential.WithContext(ctx).Where(generated.UserCredential.Email.Eq(email)).First()
+	userModel := generated.Use(r.db).UserCredential
+
+	generatedUser, err := userModel.WithContext(ctx).Where(userModel.Email.Eq(email)).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	user := &model.UserCredential{
+		UserID:       generatedUser.UserID,
+		Email:        generatedUser.Email,
+		PasswordHash: generatedUser.PasswordHash,
+		IsVerified:   generatedUser.IsVerified,
+	}
+
+	return user, nil
 }
 
 func (r *userCredentialsRepository) Update(ctx context.Context, user *model.UserCredential) error {
