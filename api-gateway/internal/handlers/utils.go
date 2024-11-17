@@ -12,27 +12,17 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/sony/gobreaker"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/circuitbreaker"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
-var cb *gobreaker.CircuitBreaker
+var cb *circuitbreaker.CircuitBreaker
 
 func init() {
-	cbSettings := gobreaker.Settings{
-		Name:        "MicroserviceCircuitBreaker",
-		MaxRequests: 5,
-		Interval:    60 * time.Second,
-		Timeout:     30 * time.Second,
-		ReadyToTrip: func(counts gobreaker.Counts) bool {
-			return counts.ConsecutiveFailures > 4
-		},
-	}
-
-	cb = gobreaker.NewCircuitBreaker(cbSettings)
+	cb = circuitbreaker.NewCircuitBreaker("APIGatewayCircuitBreaker")
 }
 
 func registerService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption, registerFunc func(clientConn *grpc.ClientConn) error) error {
@@ -151,4 +141,18 @@ func extractAndForwardAuthHeader(ctx context.Context, r *http.Request) context.C
 
 func withTimeout(parentCtx context.Context, duration time.Duration) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(parentCtx, duration)
+}
+
+func extractAndForwardHeaders(ctx context.Context, r *http.Request) context.Context {
+	md := metadata.MD{}
+
+	if authHeader := r.Header.Get("Authorization"); authHeader != "" {
+		md.Append("authorization", authHeader)
+	}
+
+	if idempotencyKey := r.Header.Get("Idempotency-Key"); idempotencyKey != "" {
+		md.Append("idempotency-key", idempotencyKey)
+	}
+
+	return metadata.NewOutgoingContext(ctx, md)
 }

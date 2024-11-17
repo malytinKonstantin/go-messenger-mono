@@ -4,27 +4,28 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/malytinKonstantin/go-messenger-mono/api-gateway/internal/handlers"
 	"github.com/malytinKonstantin/go-messenger-mono/api-gateway/internal/middleware"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/cache"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/ratelimiter"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
-
-var redisClient *redis.Client
 
 func main() {
 	if err := run(); err != nil {
@@ -35,24 +36,42 @@ func main() {
 func run() error {
 	viper.AutomaticEnv()
 
-	redisClient = redis.NewClient(&redis.Options{
-		Addr:     viper.GetString("REDIS_HOST"),
-		Password: viper.GetString("REDIS_PASSWORD"),
-		DB:       0,
-	})
+	cache.InitRedis(viper.GetString("REDIS_HOST"), viper.GetString("REDIS_PASSWORD"), 0)
 
-	if err := redisClient.Ping(context.Background()).Err(); err != nil {
-		return fmt.Errorf("Ошибка подключения к Redis: %w", err)
+	if err := cache.Ping(context.Background()); err != nil {
+		return fmt.Errorf("error connecting to Redis: %w", err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	grpcMux := runtime.NewServeMux()
+	grpcMux := runtime.NewServeMux(
+		runtime.WithIncomingHeaderMatcher(runtime.DefaultHeaderMatcher),
+		runtime.WithMetadata(annotator),
+	)
 
 	if err := setupGRPCMux(ctx, grpcMux); err != nil {
 		return fmt.Errorf("error setting up gRPC mux: %w", err)
 	}
+
+	idempotencyInterceptor := middleware.NewIdempotencyInterceptor()
+
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(idempotencyInterceptor.Unary()),
+	)
+
+	go func() {
+		grpcPort := viper.GetString("GRPC_PORT")
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
+		if err != nil {
+			log.Printf("Failed to listen for gRPC: %v", err)
+			return
+		}
+		log.Printf("Starting gRPC server on port :%s", grpcPort)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Printf("Failed to serve gRPC: %v", err)
+		}
+	}()
 
 	app := setupFiberApp(grpcMux)
 
@@ -70,6 +89,9 @@ func run() error {
 
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	// Graceful shutdown для gRPC сервера
+	grpcServer.GracefulStop()
 
 	if err := app.Shutdown(); err != nil {
 		return fmt.Errorf("Server shutdown failed: %w", err)
@@ -154,11 +176,7 @@ func setupGRPCMux(ctx context.Context, grpcMux *runtime.ServeMux) error {
 
 func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
 	app := fiber.New()
-	app.Use(middleware.IdempotencyMiddleware(redisClient))
-	app.Use(limiter.New(limiter.Config{
-		Max:        100,
-		Expiration: 1 * time.Second,
-	}))
+	app.Use(ratelimiter.NewRateLimiter(100, time.Second))
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
@@ -170,4 +188,12 @@ func startServer(app *fiber.App) error {
 	port := viper.GetString("HTTP_PORT")
 	log.Printf("Starting API Gateway on port :%s", port)
 	return app.Listen(fmt.Sprintf(":%s", port))
+}
+
+func annotator(ctx context.Context, r *http.Request) metadata.MD {
+	md := metadata.MD{}
+	if idempotencyKey := r.Header.Get("Idempotency-Key"); idempotencyKey != "" {
+		md.Set("idempotency-key", idempotencyKey)
+	}
+	return md
 }

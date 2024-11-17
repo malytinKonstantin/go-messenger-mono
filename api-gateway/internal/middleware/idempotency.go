@@ -3,46 +3,81 @@ package middleware
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/hex"
+	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/gofiber/fiber/v2"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/cache"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
 )
 
-func IdempotencyMiddleware(redisClient *redis.Client) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		idempotencyKey := c.Get("Idempotency-Key")
-		if idempotencyKey == "" {
-			return c.Next()
+type IdempotencyInterceptor struct {
+	redisClient *redis.Client
+}
+
+func NewIdempotencyInterceptor() *IdempotencyInterceptor {
+	return &IdempotencyInterceptor{
+		redisClient: cache.GetRedisClient(),
+	}
+}
+
+func (i *IdempotencyInterceptor) Unary() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (interface{}, error) {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return handler(ctx, req)
 		}
 
-		method := c.Method()
-		path := c.Path()
+		idempotencyKeys := md.Get("idempotency-key")
+		if len(idempotencyKeys) == 0 {
+			return handler(ctx, req)
+		}
 
-		hash := sha256.Sum256([]byte(idempotencyKey + method + path))
-		cacheKey := "idempotency:" + hex.EncodeToString(hash[:])
+		idempotencyKey := idempotencyKeys[0]
+		hash := sha256.Sum256([]byte(idempotencyKey))
+		key := fmt.Sprintf("idempotency:%x", hash)
 
-		val, err := redisClient.Get(context.Background(), cacheKey).Result()
+		// Попытка получить сохраненный результат из Redis
+		val, err := i.redisClient.Get(ctx, key).Bytes()
 		if err == redis.Nil {
-			if err := c.Next(); err != nil {
-				return err
+			// Ключ не найден, выполняем запрос и сохраняем результат
+			resp, err := handler(ctx, req)
+			if err != nil {
+				return nil, err
 			}
 
-			respBody := c.Response().Body()
-
-			expiration := 24 * time.Hour
-			if err := redisClient.Set(context.Background(), cacheKey, respBody, expiration).Err(); err != nil {
-				return fiber.NewError(fiber.StatusInternalServerError, "Error saving idempotent response")
+			// Сериализуем ответ
+			respData, err := proto.Marshal(resp.(proto.Message))
+			if err != nil {
+				return nil, err
 			}
 
-			return nil
+			// Сохраняем ответ в Redis с временем жизни
+			err = i.redisClient.Set(ctx, key, respData, time.Hour).Err()
+			if err != nil {
+				return nil, err
+			}
+
+			return resp, nil
 		} else if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, "Server error")
-		}
+			// Ошибка при обращении к Redis
+			return nil, err
+		} else {
+			// Ключ найден, возвращаем сохраненный результат
+			resp := proto.Clone(req.(proto.Message))
+			err = proto.Unmarshal(val, resp.(proto.Message))
+			if err != nil {
+				return nil, err
+			}
 
-		c.Response().SetBody([]byte(val))
-		c.Response().Header.SetContentType("application/json")
-		return nil
+			return resp, nil
+		}
 	}
 }
