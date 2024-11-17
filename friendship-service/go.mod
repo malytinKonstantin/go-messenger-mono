@@ -58,3 +58,4 @@ require (
 )
 
 replace github.com/malytinKonstantin/go-messenger-mono/proto => ../proto
+replace github.com/malytinKonstantin/go-messenger-mono/shared => ../shared

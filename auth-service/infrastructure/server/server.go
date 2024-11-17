@@ -15,6 +15,7 @@ import (
 	oauthUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/oauth"
 	passwordUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/password"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/auth_service/v1"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/middleware"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
@@ -25,7 +26,8 @@ func SetupGRPCServer(db *gorm.DB, producer *kafka.Producer) (*grpc.Server, error
 		return nil, fmt.Errorf("database connection is nil")
 	}
 
-	server := grpc.NewServer()
+	recoveryInterceptor := middleware.PanicRecoveryInterceptor()
+	server := grpc.NewServer(grpc.UnaryInterceptor(recoveryInterceptor))
 
 	userRepo := repository.NewUserCredentialsRepository(db)
 	if userRepo == nil {

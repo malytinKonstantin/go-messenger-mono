@@ -14,6 +14,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/malytinKonstantin/go-messenger-mono/api-gateway/internal/handlers"
@@ -176,6 +177,7 @@ func setupGRPCMux(ctx context.Context, grpcMux *runtime.ServeMux) error {
 
 func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
 	app := fiber.New()
+	app.Use(recover.New())
 	app.Use(ratelimiter.NewRateLimiter(100, time.Second))
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
