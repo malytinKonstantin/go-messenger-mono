@@ -981,7 +981,7 @@
     "v1ChangePasswordRequest": {
       "type": "object",
       "properties": {
-        "resetToken": {
+        "token": {
           "type": "string",
           "title": "Токен сброса пароля"
         },
@@ -992,7 +992,7 @@
       },
       "description": "ChangePasswordRequest содержит данные для смены пароля.",
       "required": [
-        "resetToken",
+        "token",
         "newPassword"
       ]
     },
@@ -1336,15 +1336,20 @@
           "type": "string",
           "title": "Название провайдера (например, \"google\", \"facebook\")"
         },
-        "providerToken": {
+        "providerUserId": {
           "type": "string",
-          "title": "Токен, полученный от OAuth провайдера"
+          "title": "Идентификатор пользователя от OAuth провайдера"
+        },
+        "email": {
+          "type": "string",
+          "title": "Email пользователя"
         }
       },
       "description": "OAuthAuthenticateRequest содержит данные для аутентификации через OAuth.",
       "required": [
         "provider",
-        "providerToken"
+        "providerUserId",
+        "email"
       ]
     },
     "v1OAuthAuthenticateResponse": {

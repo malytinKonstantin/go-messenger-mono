@@ -2,10 +2,11 @@ package repositories
 
 import (
 	"context"
-
-	"github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/models"
+	"errors"
 
 	"github.com/gocql/gocql"
+	"github.com/malytinKonstantin/go-messenger-mono/notification-service/internal/models"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/platform/cassandra"
 )
 
 type NotificationRepository interface {
@@ -18,79 +19,79 @@ type NotificationRepository interface {
 }
 
 type notificationRepository struct {
-	session *gocql.Session
+	session cassandra.Session
 }
 
-func NewNotificationRepository(session *gocql.Session) NotificationRepository {
+func NewNotificationRepository(session cassandra.Session) NotificationRepository {
 	return &notificationRepository{
 		session: session,
 	}
 }
 
 func (r *notificationRepository) CreateNotification(ctx context.Context, notification *models.Notification) error {
-	query := `INSERT INTO notifications (
-        notification_id, user_id, message, type, created_at, is_read
-    ) VALUES (?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO notifications (notification_id, user_id, message, type, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)`
 	return r.session.Query(query,
 		notification.NotificationID,
 		notification.UserID,
 		notification.Message,
 		int32(notification.Type),
-		notification.CreatedAt,
 		notification.IsRead,
+		notification.CreatedAt,
 	).WithContext(ctx).Exec()
 }
 
 func (r *notificationRepository) GetNotificationByID(ctx context.Context, notificationID, userID gocql.UUID) (*models.Notification, error) {
-	query := `SELECT notification_id, user_id, message, type, created_at, is_read
-              FROM notifications WHERE notification_id = ? AND user_id = ?`
-	var notification models.Notification
-	err := r.session.Query(query, notificationID, userID).WithContext(ctx).Scan(
-		&notification.NotificationID,
-		&notification.UserID,
-		&notification.Message,
-		&notification.Type,
-		&notification.CreatedAt,
-		&notification.IsRead,
-	)
-	if err != nil {
+	query := `SELECT notification_id, user_id, message, type, is_read, created_at FROM notifications WHERE notification_id = ? AND user_id = ?`
+	var n models.Notification
+	if err := r.session.Query(query, notificationID, userID).WithContext(ctx).Scan(
+		&n.NotificationID,
+		&n.UserID,
+		&n.Message,
+		&n.Type,
+		&n.IsRead,
+		&n.CreatedAt,
+	); err != nil {
+		if errors.Is(err, gocql.ErrNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
-	return &notification, nil
+	return &n, nil
 }
 
 func (r *notificationRepository) GetNotifications(ctx context.Context, userID gocql.UUID, limit int, offset int) ([]*models.Notification, int, error) {
-	// Получаем общее количество уведомлений
-	var totalCount int
-	err := r.session.Query("SELECT COUNT(*) FROM notifications WHERE user_id = ?", userID).WithContext(ctx).Scan(&totalCount)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// Формируем запрос с использованием LIMIT
-	query := "SELECT notification_id, user_id, message, type, created_at, is_read FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?"
-	iter := r.session.Query(query, userID, limit+offset).WithContext(ctx).Iter()
+	query := `SELECT notification_id, user_id, message, type, is_read, created_at FROM notifications WHERE user_id = ?`
+	iter := r.session.Query(query, userID).WithContext(ctx).PageSize(limit + offset).Iter()
 
 	var notifications []*models.Notification
-	n := models.Notification{}
-	count := 0
-	for iter.Scan(&n.NotificationID, &n.UserID, &n.Message, &n.Type, &n.CreatedAt, &n.IsRead) {
-		if count < offset {
-			count++
-			continue
-		}
-		notification := n // Создаем копию структуры
-		notifications = append(notifications, &notification)
-		if len(notifications) >= limit {
-			break
-		}
+	var n models.Notification
+	for iter.Scan(
+		&n.NotificationID,
+		&n.UserID,
+		&n.Message,
+		&n.Type,
+		&n.IsRead,
+		&n.CreatedAt,
+	) {
+		nCopy := n
+		notifications = append(notifications, &nCopy)
 	}
 
 	if err := iter.Close(); err != nil {
 		return nil, 0, err
 	}
 
-	return notifications, totalCount, nil
+	total := len(notifications)
+	if offset > total {
+		return []*models.Notification{}, total, nil
+	}
+
+	end := offset + limit
+	if end > total {
+		end = total
+	}
+
+	return notifications[offset:end], total, nil
 }
 
 func (r *notificationRepository) UpdateNotification(ctx context.Context, notification *models.Notification) error {

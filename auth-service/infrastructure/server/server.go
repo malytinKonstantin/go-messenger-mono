@@ -14,6 +14,7 @@ import (
 	oauthUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/oauth"
 	passwordUsecase "github.com/malytinKonstantin/go-messenger-mono/auth-service/internal/usecase/password"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/auth_service/v1"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
@@ -32,18 +33,19 @@ func SetupGRPCServer(db *gorm.DB, producer *kafka.Producer) (*grpc.Server, error
 	authenticateUC := authUsecase.NewAuthenticateUserUsecase(userRepo, jwtSecret)
 	verifyEmailUC := authUsecase.NewVerifyEmailUsecase(userRepo)
 	oauthAuthenticateUC := oauthUsecase.NewOAuthAuthenticateUsecase(userRepo, oauthRepo)
-	resetPasswordUC := passwordUsecase.NewResetPasswordUsecase(userRepo, tokenRepo)
+	resetPasswordRequestUC := passwordUsecase.NewResetPasswordRequestUsecase(userRepo, tokenRepo)
 	changePasswordUC := passwordUsecase.NewChangePasswordUsecase(userRepo, tokenRepo)
 
 	// Инициализация хендлеров
 	authHandler := grpcHandlers.NewAuthHandler(registerUC, authenticateUC, verifyEmailUC)
 	oauthHandler := grpcHandlers.NewOAuthHandler(oauthAuthenticateUC)
-	passwordHandler := grpcHandlers.NewPasswordHandler(resetPasswordUC, changePasswordUC)
+	passwordHandler := grpcHandlers.NewPasswordHandler(resetPasswordRequestUC, changePasswordUC)
 
-	// Регистрация сервисов
-	pb.RegisterAuthServiceServer(server, authHandler)
-	pb.RegisterOAuthServiceServer(server, oauthHandler)
-	pb.RegisterPasswordServiceServer(server, passwordHandler)
+	// Создание составного обработчика
+	combinedHandler := grpcHandlers.NewCombinedAuthHandler(authHandler, oauthHandler, passwordHandler)
+
+	// Регистрация сервиса с использованием составного обработчика
+	pb.RegisterAuthServiceServer(server, combinedHandler)
 
 	return server, nil
 }

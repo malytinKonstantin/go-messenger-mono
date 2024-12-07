@@ -12,3 +12,5 @@ kubectl create secret generic api-gateway-env-secret --from-file=api-gateway/.en
 docker-compose --env-file .env.local -f docker-compose-dev.yaml up -d
 
 docker-compose --env-file .env.local -f docker-compose-dev.yaml up -d --build
+
+export GO111MODULE=on
