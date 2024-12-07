@@ -19,11 +19,11 @@ func RegisterNotificationService(ctx context.Context, mux *runtime.ServeMux, end
 			pattern string
 			handler runtime.HandlerFunc
 		}{
-			{"POST", "/v1/notification/send", handleSendNotification(client)},
-			{"GET", "/v1/notification", handleGetNotifications(client)},
-			{"PUT", "/v1/notification/mark-read", handleMarkNotificationAsRead(client)},
-			{"PUT", "/v1/notification/update-preferences", handleUpdateNotificationPreferences(client)},
-			{"GET", "/v1/notification/preferences", handleGetNotificationPreferences(client)},
+			{"POST", "/v1/notification/send", withJWTValidation(handleSendNotification(client))},
+			{"GET", "/v1/notification", withJWTValidation(handleGetNotifications(client))},
+			{"PUT", "/v1/notification/mark-read", withJWTValidation(handleMarkNotificationAsRead(client))},
+			{"PUT", "/v1/notification/update-preferences", withJWTValidation(handleUpdateNotificationPreferences(client))},
+			{"GET", "/v1/notification/preferences", withJWTValidation(handleGetNotificationPreferences(client))},
 		}
 
 		for _, h := range handlers {

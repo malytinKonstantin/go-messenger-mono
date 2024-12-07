@@ -311,9 +311,27 @@ func (m *GetNotificationsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Limit
+	if m.GetLimit() <= 0 {
+		err := GetNotificationsRequestValidationError{
+			field:  "Limit",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Offset
+	if m.GetOffset() < 0 {
+		err := GetNotificationsRequestValidationError{
+			field:  "Offset",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetNotificationsRequestMultiError(errors)
@@ -458,6 +476,8 @@ func (m *GetNotificationsResponse) validate(all bool) error {
 		}
 
 	}
+
+	// no validation rules for TotalCount
 
 	if len(errors) > 0 {
 		return GetNotificationsResponseMultiError(errors)

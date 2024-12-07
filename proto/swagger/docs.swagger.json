@@ -577,7 +577,7 @@
           },
           {
             "name": "limit",
-            "description": "Максимальное количество уведомлений",
+            "description": "Количество уведомлений для получения",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -1059,7 +1059,7 @@
         },
         "addedAt": {
           "type": "string",
-          "format": "int64",
+          "format": "date-time",
           "title": "Время добавления в друзья"
         }
       },
@@ -1081,21 +1081,32 @@
           "title": "Идентификатор получателя"
         },
         "status": {
-          "type": "string",
-          "title": "Статус запроса (\"pending\", \"accepted\", \"rejected\")"
+          "$ref": "#/definitions/v1FriendRequestStatus",
+          "title": "Статус запроса"
         },
         "createdAt": {
           "type": "string",
-          "format": "int64",
+          "format": "date-time",
           "title": "Время создания запроса"
         },
         "updatedAt": {
           "type": "string",
-          "format": "int64",
+          "format": "date-time",
           "title": "Время обновления статуса"
         }
       },
       "title": "Информация о запросе на дружбу"
+    },
+    "v1FriendRequestStatus": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "PENDING",
+        "ACCEPTED",
+        "REJECTED"
+      ],
+      "default": "UNKNOWN",
+      "title": "Перечисление статусов запроса на дружбу"
     },
     "v1GetFriendsListResponse": {
       "type": "object",
@@ -1109,7 +1120,7 @@
           "title": "Список друзей"
         }
       },
-      "title": "Ответ с списком друзей"
+      "title": "Ответ со списком друзей"
     },
     "v1GetMessagesResponse": {
       "type": "object",
@@ -1145,6 +1156,11 @@
             "$ref": "#/definitions/v1Notification"
           },
           "title": "Список уведомлений"
+        },
+        "totalCount": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Общее количество уведомлений"
         }
       },
       "title": "Сообщение для ответа с списком уведомлений"
@@ -1169,7 +1185,7 @@
           "title": "Исходящие запросы"
         }
       },
-      "title": "Ответ с списком запросов на дружбу"
+      "title": "Ответ со списком запросов на дружбу"
     },
     "v1GetUserResponse": {
       "type": "object",
@@ -1460,19 +1476,19 @@
     "v1SendFriendRequestRequest": {
       "type": "object",
       "properties": {
-        "userId": {
+        "senderId": {
           "type": "string",
           "title": "Идентификатор пользователя, отправляющего запрос"
         },
-        "friendId": {
+        "receiverId": {
           "type": "string",
           "title": "Идентификатор пользователя, которому отправляется запрос"
         }
       },
       "title": "Сообщение для отправки запроса на добавление в друзья",
       "required": [
-        "userId",
-        "friendId"
+        "senderId",
+        "receiverId"
       ]
     },
     "v1SendFriendRequestResponse": {

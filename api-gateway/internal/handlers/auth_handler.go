@@ -10,6 +10,7 @@ import (
 	auth_service "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/auth_service/v1"
 )
 
+// Регистрация сервиса аутентификации с использованием JWT-валидации для конкретных маршрутов
 func RegisterAuthService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error {
 	return registerService(ctx, mux, endpoint, opts, func(conn *grpc.ClientConn) error {
 		client := auth_service.NewAuthServiceClient(conn)
@@ -23,8 +24,8 @@ func RegisterAuthService(ctx context.Context, mux *runtime.ServeMux, endpoint st
 			{"POST", "/v1/auth/authenticate", handleAuthenticate(client)},
 			{"POST", "/v1/auth/oauth", handleOAuthAuthenticate(client)},
 			{"POST", "/v1/auth/verify-email", handleVerifyEmail(client)},
-			{"POST", "/v1/auth/reset-password", handleResetPassword(client)},
-			{"POST", "/v1/auth/change-password", handleChangePassword(client)},
+			{"POST", "/v1/auth/reset-password", withJWTValidation(handleResetPassword(client))},
+			{"POST", "/v1/auth/change-password", withJWTValidation(handleChangePassword(client))},
 		}
 
 		for _, h := range handlers {

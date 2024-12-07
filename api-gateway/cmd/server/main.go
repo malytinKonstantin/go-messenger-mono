@@ -16,7 +16,7 @@ import (
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatalf("Error starting application: %v", err)
+		log.Fatalf("error starting application: %v", err)
 	}
 }
 
@@ -29,7 +29,7 @@ func run() error {
 
 	grpcMux, err := setupGRPCMux(ctx)
 	if err != nil {
-		return fmt.Errorf("error setting up gRPC multiplexer: %w", err)
+		return fmt.Errorf("error setting up gRPC mux: %w", err)
 	}
 
 	app := setupFiberApp(grpcMux)
@@ -39,7 +39,11 @@ func run() error {
 
 func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 	grpcMux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(middleware.JWTInterceptor),
+	}
 
 	services := []struct {
 		name     string
@@ -63,7 +67,7 @@ func setupGRPCMux(ctx context.Context) (*runtime.ServeMux, error) {
 		if err := service.register(ctx, grpcMux, endpoint, opts); err != nil {
 			return nil, fmt.Errorf("error registering %s service: %w", service.name, err)
 		}
-		log.Printf("Successfully connected to %s service at %s", service.name, endpoint)
+		log.Printf("successfully connected to %s service at %s", service.name, endpoint)
 	}
 
 	return grpcMux, nil
@@ -80,6 +84,6 @@ func setupFiberApp(grpcMux *runtime.ServeMux) *fiber.App {
 
 func startServer(app *fiber.App) error {
 	port := viper.GetString("HTTP_PORT")
-	log.Printf("Starting API Gateway on port :%s", port)
+	log.Printf("starting API gateway on port :%s", port)
 	return app.Listen(fmt.Sprintf(":%s", port))
 }

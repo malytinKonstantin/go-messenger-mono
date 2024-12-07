@@ -19,12 +19,12 @@ func RegisterFriendshipService(ctx context.Context, mux *runtime.ServeMux, endpo
 			pattern string
 			handler runtime.HandlerFunc
 		}{
-			{"POST", "/v1/friendship/send-request", handleSendFriendRequest(client)},
-			{"POST", "/v1/friendship/accept-request", handleAcceptFriendRequest(client)},
-			{"POST", "/v1/friendship/reject-request", handleRejectFriendRequest(client)},
-			{"POST", "/v1/friendship/remove-friend", handleRemoveFriend(client)},
-			{"GET", "/v1/friendship/friends-list", handleGetFriendsList(client)},
-			{"GET", "/v1/friendship/pending-requests", handleGetPendingRequests(client)},
+			{"POST", "/v1/friendship/send-request", withJWTValidation(handleSendFriendRequest(client))},
+			{"POST", "/v1/friendship/accept-request", withJWTValidation(handleAcceptFriendRequest(client))},
+			{"POST", "/v1/friendship/reject-request", withJWTValidation(handleRejectFriendRequest(client))},
+			{"POST", "/v1/friendship/remove-friend", withJWTValidation(handleRemoveFriend(client))},
+			{"GET", "/v1/friendship/friends-list", withJWTValidation(handleGetFriendsList(client))},
+			{"GET", "/v1/friendship/pending-requests", withJWTValidation(handleGetPendingRequests(client))},
 		}
 
 		for _, h := range handlers {

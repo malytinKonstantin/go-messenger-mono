@@ -3,8 +3,10 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -72,4 +74,51 @@ func writeJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(data)
+}
+
+// Функция-обёртка для валидации JWT
+func withJWTValidation(handler runtime.HandlerFunc) runtime.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, "missing Authorization header", http.StatusUnauthorized)
+			return
+		}
+
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			http.Error(w, "invalid Authorization header format", http.StatusUnauthorized)
+			return
+		}
+
+		tokenString := parts[1]
+		secretKey := []byte(viper.GetString("JWT_SECRET"))
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("invalid token signing method")
+			}
+			return secretKey, nil
+		})
+
+		if err != nil || !token.Valid {
+			http.Error(w, "invalid token", http.StatusUnauthorized)
+			return
+		}
+
+		claims, _ := token.Claims.(jwt.MapClaims)
+		ctx := context.WithValue(r.Context(), "user", claims["user"])
+
+		handler(w, r, pathParams)
+	}
+}
+
+// extractAndForwardAuthHeader извлекает заголовок Authorization из HTTP-запроса и добавляет его в контекст.
+func extractAndForwardAuthHeader(ctx context.Context, r *http.Request) context.Context {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" {
+		md := metadata.Pairs("authorization", authHeader)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
+	return ctx
 }

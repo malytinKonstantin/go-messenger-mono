@@ -19,9 +19,9 @@ func RegisterMessagingService(ctx context.Context, mux *runtime.ServeMux, endpoi
 			pattern string
 			handler runtime.HandlerFunc
 		}{
-			{"POST", "/v1/messaging/send-message", handleSendMessage(client)},
-			{"GET", "/v1/messaging/messages", handleGetMessages(client)},
-			{"POST", "/v1/messaging/update-message-status", handleUpdateMessageStatus(client)},
+			{"POST", "/v1/messaging/send-message", withJWTValidation(handleSendMessage(client))},
+			{"GET", "/v1/messaging/messages", withJWTValidation(handleGetMessages(client))},
+			{"POST", "/v1/messaging/update-message-status", withJWTValidation(handleUpdateMessageStatus(client))},
 		}
 
 		for _, h := range handlers {

@@ -6,6 +6,7 @@ import "validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1;friendship_service";
 
@@ -82,15 +83,23 @@ service FriendshipService {
   }
 }
 
+// Перечисление статусов запроса на дружбу
+enum FriendRequestStatus {
+  UNKNOWN = 0;
+  PENDING = 1;
+  ACCEPTED = 2;
+  REJECTED = 3;
+}
+
 // Сообщение для отправки запроса на добавление в друзья
 message SendFriendRequestRequest {
   // Идентификатор пользователя, отправляющего запрос
-  string user_id = 1 [
+  string sender_id = 1 [
     (validate.rules).string = {uuid: true},
     (google.api.field_behavior) = REQUIRED
   ];
   // Идентификатор пользователя, которому отправляется запрос
-  string friend_id = 2 [
+  string receiver_id = 2 [
     (validate.rules).string = {uuid: true},
     (google.api.field_behavior) = REQUIRED
   ];
@@ -163,7 +172,7 @@ message GetFriendsListRequest {
   ];
 }
 
-// Ответ с списком друзей
+// Ответ со списком друзей
 message GetFriendsListResponse {
   // Список друзей
   repeated Friend friends = 1;
@@ -178,7 +187,7 @@ message GetPendingRequestsRequest {
   ];
 }
 
-// Ответ с списком запросов на дружбу
+// Ответ со списком запросов на дружбу
 message GetPendingRequestsResponse {
   // Входящие запросы
   repeated FriendRequest incoming_requests = 1;
@@ -197,7 +206,7 @@ message Friend {
   // URL аватарки
   string avatar_url = 3;
   // Время добавления в друзья
-  int64 added_at = 4;
+  google.protobuf.Timestamp added_at = 4;
 }
 
 // Информация о запросе на дружбу
@@ -214,10 +223,10 @@ message FriendRequest {
   string receiver_id = 3 [
     (validate.rules).string = {uuid: true}
   ];
-  // Статус запроса ("pending", "accepted", "rejected")
-  string status = 4;
+  // Статус запроса
+  FriendRequestStatus status = 4;
   // Время создания запроса
-  int64 created_at = 5;
+  google.protobuf.Timestamp created_at = 5;
   // Время обновления статуса
-  int64 updated_at = 6;
+  google.protobuf.Timestamp updated_at = 6;
 }
