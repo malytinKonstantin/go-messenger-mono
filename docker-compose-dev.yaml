@@ -14,16 +14,36 @@ services:
   kafka:
     image: confluentinc/cp-kafka:latest
     environment:
-      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
+      KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: ${KAFKA_ZOOKEEPER_CONNECT}
       KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
     ports:
       - "9092:9092"
     depends_on:
       - zookeeper
     networks:
       - kafka_network
+
+  api_gateway_redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass password
+    volumes:
+      - redis_data:/data
+    networks:
+      - kafka_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   auth_postgres:
     image: postgres:latest
@@ -105,6 +125,7 @@ volumes:
   cassandra_data:
   notification_cassandra_data:
   users_scylla_data:
+  redis_data:
 
 networks:
   kafka_network:

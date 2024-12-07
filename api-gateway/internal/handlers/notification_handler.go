@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -48,11 +49,17 @@ func handleSendNotification(client notification_service.NotificationServiceClien
 			return
 		}
 
-		resp, err := client.SendNotification(r.Context(), &req)
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.SendNotification(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*notification_service.SendNotificationResponse)
 		writeJSONResponse(w, http.StatusCreated, resp)
 	}
 }
@@ -70,11 +77,17 @@ func handleGetNotifications(client notification_service.NotificationServiceClien
 		req.Limit = int32(parseIntParam(r, "limit", 10))
 		req.Offset = int32(parseIntParam(r, "offset", 0))
 
-		resp, err := client.GetNotifications(r.Context(), &req)
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.GetNotifications(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*notification_service.GetNotificationsResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -91,11 +104,17 @@ func handleMarkNotificationAsRead(client notification_service.NotificationServic
 			return
 		}
 
-		resp, err := client.MarkNotificationAsRead(r.Context(), &req)
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.MarkNotificationAsRead(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*notification_service.MarkNotificationAsReadResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -112,11 +131,17 @@ func handleUpdateNotificationPreferences(client notification_service.Notificatio
 			return
 		}
 
-		resp, err := client.UpdateNotificationPreferences(r.Context(), &req)
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.UpdateNotificationPreferences(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*notification_service.UpdateNotificationPreferencesResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -131,11 +156,17 @@ func handleGetNotificationPreferences(client notification_service.NotificationSe
 			return
 		}
 
-		resp, err := client.GetNotificationPreferences(r.Context(), &req)
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.GetNotificationPreferences(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*notification_service.GetNotificationPreferencesResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }

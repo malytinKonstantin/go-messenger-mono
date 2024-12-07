@@ -15,6 +15,7 @@ import (
 	"github.com/malytinKonstantin/go-messenger-mono/messaging-service/internal/repositories"
 	"github.com/malytinKonstantin/go-messenger-mono/messaging-service/internal/usecase/message"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/messaging_service/v1"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/middleware"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -29,20 +30,22 @@ func SetupGRPCServer(session *gocql.Session, producer *kafka.Producer) (*grpc.Se
 	getMessagesUsecase := message.NewGetMessagesUsecase(messageRepo)
 	updateMessageStatusUsecase := message.NewUpdateMessageStatusUsecase(messageRepo)
 
+	recoveryInterceptor := middleware.PanicRecoveryInterceptor()
+
 	// Создание gRPC сервера
-	grpcServer := grpc.NewServer()
+	server := grpc.NewServer(grpc.UnaryInterceptor(recoveryInterceptor))
 
 	// Регистрация сервиса
-	pb.RegisterMessagingServiceServer(grpcServer, handlers.NewMessagingHandler(
+	pb.RegisterMessagingServiceServer(server, handlers.NewMessagingHandler(
 		sendMessageUsecase,
 		getMessagesUsecase,
 		updateMessageStatusUsecase,
 	))
 
 	// Отражение сервера (для инструментов типа grpcurl)
-	reflection.Register(grpcServer)
+	reflection.Register(server)
 
-	return grpcServer, nil
+	return server, nil
 }
 
 func SetupHTTPServer() *fiber.App {

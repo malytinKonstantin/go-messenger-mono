@@ -4,23 +4,38 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/circuitbreaker"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
+var cb *circuitbreaker.CircuitBreaker
+
+func init() {
+	cb = circuitbreaker.NewCircuitBreaker("APIGatewayCircuitBreaker")
+}
+
 func registerService(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption, registerFunc func(clientConn *grpc.ClientConn) error) error {
-	conn, err := grpc.Dial(endpoint, opts...)
+	dialCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	conn, err := grpc.DialContext(dialCtx, endpoint, append(opts, grpc.WithBlock())...)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to establish connection: %w", err)
 	}
 
 	if err := registerFunc(conn); err != nil {
-		return err
+		return fmt.Errorf("error registering service: %w", err)
 	}
 
 	return nil
@@ -107,9 +122,10 @@ func withJWTValidation(handler runtime.HandlerFunc) runtime.HandlerFunc {
 		}
 
 		claims, _ := token.Claims.(jwt.MapClaims)
-		ctx := context.WithValue(r.Context(), "user", claims["user"])
+		md := metadata.Pairs("user", claims["user"].(string))
+		ctx := metadata.NewIncomingContext(r.Context(), md)
 
-		handler(w, r, pathParams)
+		handler(w, r.WithContext(ctx), pathParams)
 	}
 }
 
@@ -121,4 +137,22 @@ func extractAndForwardAuthHeader(ctx context.Context, r *http.Request) context.C
 		ctx = metadata.NewOutgoingContext(ctx, md)
 	}
 	return ctx
+}
+
+func withTimeout(parentCtx context.Context, duration time.Duration) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(parentCtx, duration)
+}
+
+func extractAndForwardHeaders(ctx context.Context, r *http.Request) context.Context {
+	md := metadata.MD{}
+
+	if authHeader := r.Header.Get("Authorization"); authHeader != "" {
+		md.Append("authorization", authHeader)
+	}
+
+	if idempotencyKey := r.Header.Get("Idempotency-Key"); idempotencyKey != "" {
+		md.Append("idempotency-key", idempotencyKey)
+	}
+
+	return metadata.NewOutgoingContext(ctx, md)
 }
