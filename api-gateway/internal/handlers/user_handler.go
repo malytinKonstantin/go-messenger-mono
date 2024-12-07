@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -43,11 +44,18 @@ func handleGetUser(client user_service.UserServiceClient) runtime.HandlerFunc {
 			return
 		}
 		req := &user_service.GetUserRequest{UserId: userID}
-		resp, err := client.GetUser(r.Context(), req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.GetUser(ctx, req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*user_service.GetUserResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -58,11 +66,18 @@ func handleCreateUserProfile(client user_service.UserServiceClient) runtime.Hand
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.CreateUserProfile(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.CreateUserProfile(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*user_service.CreateUserProfileResponse)
 		writeJSONResponse(w, http.StatusCreated, resp)
 	}
 }
@@ -79,11 +94,18 @@ func handleUpdateUserProfile(client user_service.UserServiceClient) runtime.Hand
 			return
 		}
 		req.UserId = userID
-		resp, err := client.UpdateUserProfile(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.UpdateUserProfile(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*user_service.UpdateUserProfileResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -103,11 +125,18 @@ func handleSearchUsers(client user_service.UserServiceClient) runtime.HandlerFun
 			Limit:  limit,
 			Offset: offset,
 		}
-		resp, err := client.SearchUsers(r.Context(), req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.SearchUsers(ctx, req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*user_service.SearchUsersResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }

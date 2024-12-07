@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -40,11 +41,18 @@ func handleSendMessage(client messaging_service.MessagingServiceClient) runtime.
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.SendMessage(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.SendMessage(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*messaging_service.SendMessageResponse)
 		writeJSONResponse(w, http.StatusCreated, resp)
 	}
 }
@@ -63,11 +71,17 @@ func handleGetMessages(client messaging_service.MessagingServiceClient) runtime.
 		req.Limit = int32(parseIntParam(r, "limit", 0))
 		req.Offset = int32(parseIntParam(r, "offset", 0))
 
-		resp, err := client.GetMessages(r.Context(), &req)
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.GetMessages(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*messaging_service.GetMessagesResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }
@@ -78,11 +92,18 @@ func handleUpdateMessageStatus(client messaging_service.MessagingServiceClient) 
 		if err := decodeJSONBody(w, r, &req); err != nil {
 			return
 		}
-		resp, err := client.UpdateMessageStatus(r.Context(), &req)
+
+		ctx, cancel := withTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		respInterface, err := cb.Execute(func() (interface{}, error) {
+			return client.UpdateMessageStatus(ctx, &req)
+		})
 		if err != nil {
 			handleGrpcError(w, err)
 			return
 		}
+		resp := respInterface.(*messaging_service.UpdateMessageStatusResponse)
 		writeJSONResponse(w, http.StatusOK, resp)
 	}
 }

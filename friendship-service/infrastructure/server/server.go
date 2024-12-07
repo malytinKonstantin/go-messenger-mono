@@ -15,13 +15,15 @@ import (
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/repositories"
 	"github.com/malytinKonstantin/go-messenger-mono/friendship-service/internal/usecase/friendship"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/friendship_service/v1"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/middleware"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
 func SetupGRPCServer(producer *kafka.Producer, driver neo4j.DriverWithContext) (*grpc.Server, error) {
-	server := grpc.NewServer()
+	recoveryInterceptor := middleware.PanicRecoveryInterceptor()
+	server := grpc.NewServer(grpc.UnaryInterceptor(recoveryInterceptor))
 
 	// Инициализация репозиториев
 	friendRequestRepo := repositories.NewFriendRequestRepository(database.Neo4jDriver)

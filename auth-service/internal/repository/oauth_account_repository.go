@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/malytinKonstantin/go-messenger-mono/auth-service/infrastructure/database/generated"
@@ -22,6 +23,9 @@ type oauthAccountRepository struct {
 }
 
 func NewOauthAccountRepository(db *gorm.DB) OauthAccountRepository {
+	if db == nil {
+		log.Fatal("Database connection is nil")
+	}
 	return &oauthAccountRepository{
 		db: db,
 	}

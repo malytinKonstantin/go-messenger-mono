@@ -11,6 +11,7 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/gofiber/fiber/v2"
 	pb "github.com/malytinKonstantin/go-messenger-mono/proto/pkg/api/user_service/v1"
+	"github.com/malytinKonstantin/go-messenger-mono/shared/middleware"
 	handlers "github.com/malytinKonstantin/go-messenger-mono/user-service/internal/delivery/grpc"
 	"github.com/malytinKonstantin/go-messenger-mono/user-service/internal/repositories"
 	"github.com/malytinKonstantin/go-messenger-mono/user-service/internal/usecases/user"
@@ -32,8 +33,9 @@ func SetupGRPCServer(session *gocql.Session) (*grpc.Server, error) {
 	// Инициализация gRPC хендлера
 	userHandler := handlers.NewUserHandler(getUserUC, createUserUC, updateUserUC, searchUsersUC)
 
+	recoveryInterceptor := middleware.PanicRecoveryInterceptor()
 	// Создание gRPC сервера и регистрация сервисов
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(recoveryInterceptor))
 	pb.RegisterUserServiceServer(grpcServer, userHandler)
 	reflection.Register(grpcServer)
 
@@ -42,9 +44,6 @@ func SetupGRPCServer(session *gocql.Session) (*grpc.Server, error) {
 
 func StartGRPCServer(grpcServer *grpc.Server) error {
 	port := viper.GetString("GRPC_PORT")
-	if port == "" {
-		port = "50051"
-	}
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
